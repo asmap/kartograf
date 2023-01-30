@@ -1,6 +1,6 @@
-# Kartograf
+# Kartograf: IP to ASN mapping for everyone
 
-> :warning: **This project is still experimental.**: Be very careful when using files generated from this for any kind of production use.
+> :warning: **This project is still experimental.** Be very careful when using files generated from this for any kind of production use.
 
 ## Background
 
