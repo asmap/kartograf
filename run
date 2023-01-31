@@ -10,6 +10,7 @@ __version__ = "0.1.0"
 __license__ = "MIT"
 
 import argparse
+import os
 import sys
 
 from kartograf.kartograf import Kartograf
@@ -48,6 +49,12 @@ if __name__ == "__main__":
     # Include multiple ASNs that validate correctly for the same prefix.
     # parser_map.add_argument("-m", "--multi_map", action="store_true", default=False)
 
+    parser_merge = subparsers.add_parser("merge")
+
+    parser_merge.add_argument("-b", "--base", default=f'{os.getcwd()}/base_file.txt')
+    parser_merge.add_argument("-e", "--extra", default=f'{os.getcwd()}/extra_file.txt')
+    parser_merge.add_argument("-o", "--output", default=f'{os.getcwd()}/out_file.txt')
+
     parser_cov = subparsers.add_parser("cov")
 
     # IP prefix to ASN map to be used for the coverage report.
@@ -67,6 +74,8 @@ if __name__ == "__main__":
         Kartograf.map(args)
     elif args.command == "cov":
         Kartograf.cov(args)
+    elif args.command == "merge":
+        Kartograf.merge(args)
     else:
         parser.print_help()
         sys.exit("Please provide a command.")

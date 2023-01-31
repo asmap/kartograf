@@ -36,6 +36,14 @@ You can enhance the RPKI maps with RIRs IRR data or Routeviews data using the `-
 ./run map -rv
 ```
 
+### Merging IP prefix to ASN maps
+
+This merges on map into another map. The mappings of the base file have preference over those in the extra file.
+
+```
+./run merge -b /path/to/base_file.txt -e /path/to/extra_file.txt -o /path/to/output.txt
+```
+
 ### Check coverage of a mapping file
 
 Check the coverage of a given list of IPs for a given IP prefix to ASN map:

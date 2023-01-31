@@ -10,7 +10,7 @@ def merge_irr(context):
     irr_filtered_file = f'{context.out_dir_irr}irr_filtered.txt'
     out_file = f"{context.out_dir}merged_file.txt"
 
-    merge(rpki_file, irr_file, irr_filtered_file, out_file)
+    general_merge(rpki_file, irr_file, irr_filtered_file, out_file)
 
 
 def merge_pfx2as(context):
@@ -19,10 +19,10 @@ def merge_pfx2as(context):
     rv_filtered_file = f'{context.out_dir_collectors}pfx2asn_filtered.txt'
     out_file = f"{context.out_dir}merged_file.txt"
 
-    merge(rpki_file, rv_file, rv_filtered_file, out_file)
+    general_merge(rpki_file, rv_file, rv_filtered_file, out_file)
 
 
-def merge(base_file, extra_file, extra_filtered_file, out_file):
+def general_merge(base_file, extra_file, extra_filtered_file, out_file):
     tqdm.pandas()
 
     print("Parse base file to numpy arrays")
@@ -74,10 +74,13 @@ def merge(base_file, extra_file, extra_filtered_file, out_file):
         print(f"Finished filtering! Originally {len(df_extra.index)} entries filtered down to {len(df_filtered.index)}")
         df_filtered.to_csv(extra_filtered_file, sep=' ', index=False, columns=["PFXS", "ASNS"], header=False)
 
-    print("Merging base file with filtered extra file")
-    with open(extra_filtered_file, "r") as extra:
-        extra_contents = extra.read()
+        with open(extra_filtered_file, "r") as extra:
+            extra_contents = extra.read()
+    else:
+        print(f"Finished filtering! Originally {len(df_extra.index)} entries filtered down to {len(df_filtered.index)}")
+        extra_contents = df_filtered.to_csv(None, sep=' ', index=False, columns=["PFXS", "ASNS"], header=False)
 
+    print("Merging base file with filtered extra file")
     with open(base_file, "r") as base:
         base_contents = base.read()
 

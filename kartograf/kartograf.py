@@ -7,7 +7,7 @@ from kartograf.coverage import coverage
 from kartograf.collectors.routeviews import fetch_routeviews_pfx2as
 from kartograf.irr.fetch import fetch_irr
 from kartograf.irr.parse import parse_irr
-from kartograf.merge import merge_irr, merge_pfx2as
+from kartograf.merge import merge_irr, merge_pfx2as, general_merge
 from kartograf.rpki.fetch import fetch_rpki_db
 from kartograf.rpki.parse import parse_rpki
 from kartograf.util import print_section_header
@@ -59,3 +59,8 @@ class Kartograf:
     @staticmethod
     def cov(args):
         coverage(args.map, args.list)
+
+
+    @staticmethod
+    def merge(args):
+        general_merge(args.base, args.extra, None, args.output)
