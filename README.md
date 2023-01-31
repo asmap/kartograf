@@ -51,3 +51,25 @@ Check the coverage of a given list of IPs for a given IP prefix to ASN map:
 ```
 ./run cov -m /path/to/map_file.txt -l /path/to/ip_list.txt
 ```
+
+## File format examples
+
+Kartograf expects files input files to be in the following formatting and also produces output files that follow this format.
+
+### Map files
+
+```
+103.152.34.0/23 AS14618
+2406:4440:10::/44 AS142641
+2406:4440:f000::/44 AS38173
+103.152.35.0/24 AS38008
+```
+
+### IP lists
+
+```
+2.56.241.243
+2.56.98.121
+2001:067c:06ec:0203:0218:33ff:fe44:5528
+2001:067c:0750:0000:0000:0000:0010:0001
+```
