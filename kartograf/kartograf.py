@@ -5,6 +5,7 @@ import time
 from kartograf.context import Context
 from kartograf.coverage import coverage
 from kartograf.collectors.routeviews import fetch_routeviews_pfx2as
+from kartograf.collectors.parse import parse_routeviews_pfx2as
 from kartograf.irr.fetch import fetch_irr
 from kartograf.irr.parse import parse_irr
 from kartograf.merge import merge_irr, merge_pfx2as, general_merge
@@ -42,6 +43,7 @@ class Kartograf:
         if args.routeviews:
             print_section_header("Routeviews pfx2as")
             fetch_routeviews_pfx2as(context)
+            parse_routeviews_pfx2as(context)
 
             print_section_header("Merging Routeviews and base data")
             merge_pfx2as(context)

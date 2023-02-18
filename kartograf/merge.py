@@ -15,7 +15,7 @@ def merge_irr(context):
 
 def merge_pfx2as(context):
     rpki_file = f'{context.out_dir_rpki}rpki_final.txt'
-    rv_file = f'{context.out_dir_collectors}pfx2asn.txt'
+    rv_file = f'{context.out_dir_collectors}pfx2asn_clean.txt'
     rv_filtered_file = f'{context.out_dir_collectors}pfx2asn_filtered.txt'
     out_file = f"{context.out_dir}merged_file.txt"
 
