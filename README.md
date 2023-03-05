@@ -10,7 +10,23 @@ Kartograf is a free software project that generates such map files, for the star
 
 ## Requirements
 
-Kartograf requires `rpki-client` to be installed locally. Find the install instructions on https://www.rpki-client.org/.
+### rpki-client
+
+Kartograf requires `rpki-client` to be installed locally. You can find install instructions on https://www.rpki-client.org/ or below:
+
+#### Linux/BSD
+
+```
+$ {pkg,dnf,yum,apt} install rpki-client
+```
+
+#### macOS
+
+```
+$ brew install rpki-client
+```
+
+### Python dependencies
 
 Install required Python packages:
 
@@ -73,3 +89,7 @@ Kartograf expects files input files to be in the following formatting and also p
 2001:067c:06ec:0203:0218:33ff:fe44:5528
 2001:067c:0750:0000:0000:0000:0010:0001
 ```
+
+## Acknowledgements
+
+[Job Snijders](https://twitter.com/JobSnijders)
