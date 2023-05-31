@@ -26,6 +26,8 @@ if __name__ == "__main__":
 
     # Delete artifacts from building the requested map
     parser_map.add_argument("-c", "--cleanup", action="store_true", default=False)
+    # Sort final output file in lexicographical order
+    parser_map.add_argument("-s", "--sorted", action="store_true", default=False)
 
     parser_map.add_argument("-irr", "--irr", action="store_true", default=False)
     parser_map.add_argument("-rv", "--routeviews", action="store_true", default=False)

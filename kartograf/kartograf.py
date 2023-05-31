@@ -11,6 +11,7 @@ from kartograf.irr.parse import parse_irr
 from kartograf.merge import merge_irr, merge_pfx2as, general_merge
 from kartograf.rpki.fetch import fetch_rpki_db
 from kartograf.rpki.parse import parse_rpki
+from kartograf.sort import sort_result_by_pfx
 from kartograf.util import print_section_header
 
 
@@ -52,6 +53,10 @@ class Kartograf:
 
             print_section_header("Merging Routeviews and base data")
             merge_pfx2as(context)
+
+        if args.sorted:
+            print_section_header("Sorting results")
+            sort_result_by_pfx(context)
 
         print_section_header("Finishing Kartograf")
 
