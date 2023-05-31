@@ -2,8 +2,10 @@ import json
 from typing import Set, Dict
 
 from kartograf.bogon import is_bogon
+from kartograf.timed import timed
 
 
+@timed
 def parse_rpki(context):
     raw_input = f"{context.out_dir_rpki}rpki_raw.json"
     rpki_res = f"{context.out_dir_rpki}rpki_final.txt"

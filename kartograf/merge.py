@@ -3,7 +3,10 @@ import numpy as np
 import pandas as pd
 from tqdm import tqdm
 
+from kartograf.timed import timed
 
+
+@timed
 def merge_irr(context):
     rpki_file = f'{context.out_dir_rpki}rpki_final.txt'
     irr_file = f'{context.out_dir_irr}irr_final.txt'
@@ -13,6 +16,7 @@ def merge_irr(context):
     general_merge(rpki_file, irr_file, irr_filtered_file, out_file)
 
 
+@timed
 def merge_pfx2as(context):
     rpki_file = f'{context.out_dir_rpki}rpki_final.txt'
     rv_file = f'{context.out_dir_collectors}pfx2asn_clean.txt'

@@ -2,6 +2,8 @@ from ftplib import FTP
 import gzip
 import shutil
 
+from kartograf.timed import timed
+
 IRR_FILE_ADDRESSES = [
     # AFRINIC
     "ftp.afrinic.net/pub/dbase/afrinic.db.gz",
@@ -18,6 +20,7 @@ IRR_FILE_ADDRESSES = [
 ]
 
 
+@timed
 def fetch_irr(context):
     for ftp_file in IRR_FILE_ADDRESSES:
         host, ftp_file_path = ftp_file.split("/", 1)

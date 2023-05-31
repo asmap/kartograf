@@ -24,25 +24,30 @@ class Kartograf:
         # The epoch is used to keep artifacts seperated for each run. This
         # makes cleanup and debugging easier.
         epoch = datetime.datetime.now()
-        # epoch = datetime.datetime(2008, 10, 31)  # Random fixed date for testing
+        # Uncomment this random fixed date for testing purposes
+        # epoch = datetime.datetime(2008, 10, 31)
+
         context = Context(epoch)
         print(f"The epoch for this run is: {context.epoch}")
 
-        print_section_header("RPKI")
+        print_section_header("Fetching RPKI")
         fetch_rpki_db(context)
+        print_section_header("Parsing RPKI")
         parse_rpki(context)
 
         if args.irr:
-            print_section_header("IRR")
+            print_section_header("Fetching IRR")
             fetch_irr(context)
+            print_section_header("Parsing IRR")
             parse_irr(context)
 
             print_section_header("Merging RPKI and IRR data")
             merge_irr(context)
 
         if args.routeviews:
-            print_section_header("Routeviews pfx2as")
+            print_section_header("Fetching Routeviews pfx2as")
             fetch_routeviews_pfx2as(context)
+            print_section_header("Parsing Routeviews pfx2as")
             parse_routeviews_pfx2as(context)
 
             print_section_header("Merging Routeviews and base data")

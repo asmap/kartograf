@@ -3,9 +3,11 @@ import os
 import pathlib
 
 from kartograf.bogon import is_bogon
+from kartograf.timed import timed
 from kartograf.util import rir_from_str
 
 
+@timed
 def parse_irr(context):
     irr_res = f"{context.out_dir_irr}irr_final.txt"
 

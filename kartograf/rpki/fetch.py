@@ -2,7 +2,10 @@ import os
 import pathlib
 import subprocess
 
+from kartograf.timed import timed
 
+
+@timed
 def fetch_rpki_db(context):
     print("Downloading RPKI Data")
     subprocess.run(["rpki-client", "-d", context.data_dir_rpki], capture_output=True)

@@ -7,6 +7,8 @@ import sys
 from bs4 import BeautifulSoup
 import requests
 
+from kartograf.timed import timed
+
 # Routeviews Prefix to AS mappings Dataset for IPv4 and IPv6
 # https://www.caida.org/catalog/datasets/routeviews-prefix2as/
 PFX2AS_V4 = "https://publicdata.caida.org/datasets/routing/routeviews-prefix2as/"
@@ -79,6 +81,7 @@ def download(url, file):
             write.write(formatted + '\n')
 
 
+@timed
 def fetch_routeviews_pfx2as(context):
     path = context.data_dir_collectors
     v4_file = f'{path}routeviews_pfx2asn_ip4.txt'

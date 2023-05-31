@@ -1,5 +1,8 @@
 from kartograf.bogon import is_bogon
+from kartograf.timed import timed
 
+
+@timed
 def parse_routeviews_pfx2as(context):
     raw_file = f'{context.out_dir_collectors}pfx2asn.txt'
     clean_file = f'{context.out_dir_collectors}pfx2asn_clean.txt'

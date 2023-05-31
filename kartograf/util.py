@@ -1,6 +1,6 @@
 def print_section_header(name):
     print()
-    print("-" * 10 + f" {name} " + "-" * 10)
+    print("-" * 3 + f" {name} " + "-" * 3)
     print()
 
 
