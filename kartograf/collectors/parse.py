@@ -1,3 +1,5 @@
+from kartograf.bogon import is_bogon
+
 def parse_routeviews_pfx2as(context):
     raw_file = f'{context.out_dir_collectors}pfx2asn.txt'
     clean_file = f'{context.out_dir_collectors}pfx2asn_clean.txt'
@@ -23,5 +25,11 @@ def parse_routeviews_pfx2as(context):
             #
             # For now we also just choose the first AS out of an AS-SET
             line = line.split(",")[0]
+
+            # Bogon prefixes are excluded since they can not be used
+            # for routing.
+            prefix = line.split(" ")[0]
+            if is_bogon(prefix):
+                continue
 
             clean.write(f'{line}\n')

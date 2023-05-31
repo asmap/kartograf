@@ -2,6 +2,7 @@ import codecs
 import os
 import pathlib
 
+from kartograf.bogon import is_bogon
 from kartograf.util import rir_from_str
 
 
@@ -43,12 +44,22 @@ def parse_irr(context):
                 # Some RIRs mirror some other RIRs in their DBs, ignore the
                 # mirrored entries
                 if entry["source"] == rir:
-                    # Sometimes there are comments in the origin field, remove these
+                    # Sometimes there are comments in the origin field, remove
+                    # these
                     origin = entry["origin"].split(" #", 1)[0]
                     if "route" in entry:
-                        result.append(f'{entry["route"]} {origin}')
-                    if "route6" in entry:
-                        result.append(f'{entry["route6"]} {origin}')
+                        route = entry["route"]
+                    elif "route6" in entry:
+                        route = entry["route6"]
+                    else:
+                        continue
+
+                    # Bogon prefixes are excluded since they can not be used
+                    # for routing.
+                    if is_bogon(route):
+                        continue
+
+                    result.append(f'{route} {origin}')
 
         print("Found valid entries:", len(result))
 

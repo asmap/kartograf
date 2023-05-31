@@ -1,6 +1,8 @@
 import json
 from typing import Set, Dict
 
+from kartograf.bogon import is_bogon
+
 
 def parse_rpki(context):
     raw_input = f"{context.out_dir_rpki}rpki_raw.json"
@@ -43,6 +45,10 @@ def parse_rpki(context):
                         output_cache[vrp['prefix']] = vrp['asid']
 
                     prefix = vrp['prefix']
+                    # Bogon prefixes are excluded since they can not be used
+                    # for routing.
+                    if is_bogon(prefix):
+                        continue
                     asn = vrp['asid']
                     line_out = f"{prefix} AS{asn}"
 
