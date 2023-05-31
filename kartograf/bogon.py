@@ -1,18 +1,3 @@
-"""
-The is_bogon function is used to determine whether a given IP address (either
-IPv4 or IPv6) is a part of a special purpose address block.
-
-The function compares the input address to known special purpose address ranges
-as listed by the Internet Assigned Numbers Authority (IANA) and the NLNOG BGP
-Filter Guide website but also makes some modifications to take some upcoming
-reallocation into account.
-
-Sources:
-- https://www.iana.org/assignments/iana-ipv4-special-registry/iana-ipv4-special-registry.xhtml
-- https://www.iana.org/assignments/iana-ipv6-special-registry/iana-ipv6-special-registry.xhtml
-- https://bgpfilterguide.nlnog.net/guides/bogon_prefixes/
-"""
-
 import ipaddress
 
 # Special-purpose IPv4 ranges
@@ -133,11 +118,21 @@ SPECIAL_IPV6 = [
 ]
 
 
-def is_bogon(prefix):
+def is_bogon_pfx(prefix):
     """
-    Returns whether a prefix is part of a special purpose address block.
-    """
+    This function is used to determine whether a given IP address (either IPv4 or
+    IPv6) is a part of a special purpose address block.
 
+    The function compares the input address to known special purpose address ranges
+    as listed by the Internet Assigned Numbers Authority (IANA) and the NLNOG BGP
+    Filter Guide website but also makes some modifications to take some upcoming
+    reallocation into account.
+
+    Sources:
+    - https://www.iana.org/assignments/iana-ipv4-special-registry/iana-ipv4-special-registry.xhtml
+    - https://www.iana.org/assignments/iana-ipv6-special-registry/iana-ipv6-special-registry.xhtml
+    - https://bgpfilterguide.nlnog.net/guides/bogon_prefixes/
+    """
     version = ipaddress.ip_network(prefix).version
 
     if version == 4:
@@ -150,5 +145,52 @@ def is_bogon(prefix):
             if ipaddress.ip_network(prefix).subnet_of(ipaddress.ip_network(ipv6_range)):
                 print(f"Bogon filtered: {prefix}")
                 return True
+
+    return False
+
+
+def is_bogon_asn(asn_string):
+    """
+    Check if a given ASN is in any reserved range.
+
+    Sources:
+    - https://www.iana.org/assignments/iana-as-numbers-special-registry/iana-as-numbers-special-registry.xhtml
+    - https://www.iana.org/assignments/as-numbers/as-numbers.xhtml
+    - https://bgpfilterguide.nlnog.net/guides/bogon_asns/
+    """
+    # Extract the number from the ASN string
+    asn = int(asn_string.replace("AS", ""))
+
+    if asn == 0:
+        # AS 0 is reserved, RFC7607
+        return True
+    if asn == 65535:
+        # Last 16 bit ASN, RFC7300
+        return True
+    if asn == 4294967295:
+        # Last 32 bit ASN, RFC7300
+        return True
+    if asn == 112:
+        # AS 112 is used by the AS112 project to sink misdirected DNS queries,
+        # RFC7534
+        return True
+    if asn == 23456:
+        # AS 23456 is reserved as AS_TRANS, RFC6793
+        return True
+    if 64496 <= asn <= 64511:
+        # AS 64496-64511 are reserved for documentation and sample code,
+        # RFC5398
+        return True
+    if 64512 <= asn <= 65534 or 4200000000 <= asn <= 4294967294:
+        # AS 64512-65534 and AS 4200000000-4294967294 are reserved for private
+        # use, RFC6996
+        return True
+    if 65536 <= asn <= 65551:
+        # AS 65536-65551 are reserved for documentation and sample code,
+        # RFC5398
+        return True
+    if 65552 <= asn <= 131071:
+        # IANA reserved ASNs, no RFC
+        return True
 
     return False

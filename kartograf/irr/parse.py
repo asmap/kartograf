@@ -2,7 +2,7 @@ import codecs
 import os
 import pathlib
 
-from kartograf.bogon import is_bogon
+from kartograf.bogon import is_bogon_pfx, is_bogon_asn
 from kartograf.timed import timed
 from kartograf.util import rir_from_str
 
@@ -56,9 +56,9 @@ def parse_irr(context):
                     else:
                         continue
 
-                    # Bogon prefixes are excluded since they can not be used
-                    # for routing.
-                    if is_bogon(route):
+                    # Bogon prefixes and ASNs are excluded since they can not
+                    # be used for routing.
+                    if is_bogon_pfx(route) or is_bogon_asn(origin):
                         continue
 
                     result.append(f'{route} {origin}')

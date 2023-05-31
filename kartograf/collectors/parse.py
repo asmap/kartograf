@@ -1,4 +1,4 @@
-from kartograf.bogon import is_bogon
+from kartograf.bogon import is_bogon_pfx, is_bogon_asn
 from kartograf.timed import timed
 
 
@@ -29,10 +29,10 @@ def parse_routeviews_pfx2as(context):
             # For now we also just choose the first AS out of an AS-SET
             line = line.split(",")[0]
 
-            # Bogon prefixes are excluded since they can not be used
+            # Bogon prefixes and ASNs are excluded since they can not be used
             # for routing.
-            prefix = line.split(" ")[0]
-            if is_bogon(prefix):
+            prefix, asn = line.split(" ")
+            if is_bogon_pfx(prefix) or is_bogon_asn(asn):
                 continue
 
             clean.write(f'{line}\n')

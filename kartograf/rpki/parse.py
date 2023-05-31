@@ -1,7 +1,7 @@
 import json
 from typing import Set, Dict
 
-from kartograf.bogon import is_bogon
+from kartograf.bogon import is_bogon_pfx, is_bogon_asn
 from kartograf.timed import timed
 
 
@@ -47,11 +47,11 @@ def parse_rpki(context):
                         output_cache[vrp['prefix']] = vrp['asid']
 
                     prefix = vrp['prefix']
-                    # Bogon prefixes are excluded since they can not be used
-                    # for routing.
-                    if is_bogon(prefix):
-                        continue
                     asn = vrp['asid']
+                    # Bogon prefixes and ASNs are excluded since they can not
+                    # be used for routing.
+                    if is_bogon_pfx(prefix) or is_bogon_asn(asn):
+                        continue
                     line_out = f"{prefix} AS{asn}"
 
                     asmap.write(line_out + '\n')
