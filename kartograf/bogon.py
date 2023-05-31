@@ -149,7 +149,7 @@ def is_bogon_pfx(prefix):
     return False
 
 
-def is_bogon_asn(asn_string):
+def is_bogon_asn(asn_raw):
     """
     Check if a given ASN is in any reserved range.
 
@@ -159,7 +159,10 @@ def is_bogon_asn(asn_string):
     - https://bgpfilterguide.nlnog.net/guides/bogon_asns/
     """
     # Extract the number from the ASN string
-    asn = int(asn_string.replace("AS", ""))
+    if isinstance(asn_raw, int):
+        asn = asn_raw
+    else:
+        asn = int(asn_raw.lower().replace("as", ""))
 
     if asn == 0:
         # AS 0 is reserved, RFC7607
