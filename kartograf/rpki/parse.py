@@ -40,7 +40,8 @@ def parse_rpki(context):
 
                 for vrp in roa['vrps']:
                     if output_cache.get(vrp['prefix']):
-                        print(f"Skipped {vrp['prefix']}, existed with ASN {output_cache.get(vrp['prefix'])} and ignored with ASN {vrp['asid']}")
+                        # Only for debugging
+                        # print(f"Skipped {vrp['prefix']}, existed with ASN {output_cache.get(vrp['prefix'])} and ignored with ASN {vrp['asid']}")
                         dups_count += 1
                         continue
                     else:
@@ -58,5 +59,5 @@ def parse_rpki(context):
                     out_count += 1
 
     print(f'Output: {out_count}')
-    print(f'Duplicats: {dups_count}')
+    print(f'Duplicates: {dups_count}')
     print(f'Invalids: {invalids}')
