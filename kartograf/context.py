@@ -4,8 +4,9 @@ import sys
 
 class Context:
     '''Keeps the context information of the current run'''
-    def __init__(self, time_now):
+    def __init__(self, time_now, args):
         self.epoch = time_now.strftime("%Y-%m-%d_%H-%M")
+        self.args = args
 
         cwd = os.getcwd()
         self.data_dir = f"{cwd}/data/{self.epoch}/"

@@ -28,7 +28,7 @@ class Kartograf:
         # Uncomment this random fixed date for testing purposes
         # epoch = datetime.datetime(2008, 10, 31)
 
-        context = Context(epoch)
+        context = Context(epoch, args)
         print(f"The epoch for this run is: {context.epoch}")
 
         print_section_header("Fetching RPKI")
