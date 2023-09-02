@@ -10,6 +10,8 @@ def fetch_rpki_db(context):
     print("Downloading RPKI Data")
     subprocess.run(["rpki-client", "-d", context.data_dir_rpki], capture_output=True)
 
+@timed
+def validate_rpki_db(context):
     print("Validating RPKI ROAs")
     onlyfiles = [path for path in pathlib.Path(context.data_dir_rpki).rglob('*')
                  if os.path.isfile(path)
@@ -23,7 +25,7 @@ def fetch_rpki_db(context):
 
     count = 0
     for file in onlyfiles:
-        rpki_output = subprocess.run(["rpki-client", "-j", "-d", context.data_dir_rpki, "-f", file],
+        rpki_output = subprocess.run(["rpki-client", "-j", "-n", "-d", context.data_dir_rpki, "-f", file],
                                      capture_output=True).stdout.decode()
 
         with open(result_path, "a") as res_file:

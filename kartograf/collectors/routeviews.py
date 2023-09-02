@@ -90,7 +90,7 @@ def fetch_routeviews_pfx2as(context):
     download(latest_link(PFX2AS_V4), v4_file)
     download(latest_link(PFX2AS_V6), v6_file)
 
-    out_file = f'{context.out_dir_collectors}pfx2asn.txt'
+    out_file = f'{context.data_dir_collectors}pfx2asn.txt'
 
     with open(v4_file, 'r') as v4, open(v6_file, 'r') as v6, open(out_file, 'w') as out:
         out.write(v4.read())

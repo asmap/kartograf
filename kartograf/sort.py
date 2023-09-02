@@ -1,16 +1,16 @@
-from typing import List
 import ipaddress
+import shutil
 
 from kartograf.timed import timed
 
 
 @timed
 def sort_result_by_pfx(context):
-    if context.args.irr and context.args.rv:
+    if context.args.irr and context.args.routeviews:
         out_file = f"{context.out_dir}merged_file_rpki_irr_rv.txt"
     elif context.args.irr:
         out_file = f"{context.out_dir}merged_file_rpki_irr.txt"
-    elif context.args.rv:
+    elif context.args.routeviews:
         out_file = f"{context.out_dir}merged_file_rpki_rv.txt"
     else:
         out_file = f"{context.out_dir_rpki}rpki_final.txt"
@@ -37,3 +37,5 @@ def sort_result_by_pfx(context):
         for is_ipv6, net_int, neg_prefixlen, asn in sortable_prefixes:
             net = ipaddress.IPv6Address(net_int) if is_ipv6 else ipaddress.IPv4Address(net_int)
             f.write(f'{str(net)}/{-neg_prefixlen} {asn}\n')
+
+    shutil.copy2(sorted_out_file, context.final_result_file)

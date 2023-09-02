@@ -32,6 +32,12 @@ if __name__ == "__main__":
     parser_map.add_argument("-irr", "--irr", action="store_true", default=False)
     parser_map.add_argument("-rv", "--routeviews", action="store_true", default=False)
 
+	# Reproduce a map file from a previous run by using provided input files.
+	# The input related arguments are ignored if this flag is set. All provided
+	# input files will be used if they are present in the reproduce folder and
+	# in the right format.
+    parser_map.add_argument("-r", "--reproduce", type=str, default=None)
+
     # TODO:
     # Save the final output file in a different location that the default out
     # folder

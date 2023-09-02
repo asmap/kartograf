@@ -1,6 +1,7 @@
 import ipaddress
 import numpy as np
 import pandas as pd
+import shutil
 from tqdm import tqdm
 
 from kartograf.timed import timed
@@ -14,6 +15,7 @@ def merge_irr(context):
     out_file = f"{context.out_dir}merged_file_rpki_irr.txt"
 
     general_merge(rpki_file, irr_file, irr_filtered_file, out_file)
+    shutil.copy2(out_file, context.final_result_file)
 
 
 @timed
@@ -31,6 +33,7 @@ def merge_pfx2as(context):
     rv_filtered_file = f'{context.out_dir_collectors}pfx2asn_filtered.txt'
 
     general_merge(base_file, rv_file, rv_filtered_file, out_file)
+    shutil.copy2(out_file, context.final_result_file)
 
 
 def general_merge(base_file, extra_file, extra_filtered_file, out_file):
