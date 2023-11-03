@@ -34,18 +34,26 @@ class Kartograf:
         if context.reproduce:
             print(f"This is a reproduction run based on the data in {context.args.reproduce}")
 
+        # Fetch everthing that we need to fetch first
         if not context.reproduce:
             print_section_header("Fetching RPKI")
             fetch_rpki_db(context)
+
+            if context.args.irr:
+                print_section_header("Fetching IRR")
+                fetch_irr(context)
+
+            if context.args.routeviews:
+                print_section_header("Fetching Routeviews pfx2as")
+                fetch_routeviews_pfx2as(context)
+
+        # RPKI
         validate_rpki_db(context)
 
         print_section_header("Parsing RPKI")
         parse_rpki(context)
 
         if context.args.irr:
-            if not context.reproduce:
-                print_section_header("Fetching IRR")
-                fetch_irr(context)
             print_section_header("Parsing IRR")
             parse_irr(context)
 
@@ -53,9 +61,6 @@ class Kartograf:
             merge_irr(context)
 
         if context.args.routeviews:
-            if not context.reproduce:
-                print_section_header("Fetching Routeviews pfx2as")
-                fetch_routeviews_pfx2as(context)
             print_section_header("Parsing Routeviews pfx2as")
             parse_routeviews_pfx2as(context)
 
