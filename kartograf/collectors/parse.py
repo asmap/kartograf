@@ -15,7 +15,11 @@ def parse_routeviews_pfx2as(context):
             # can just use the line as is.
             # https://publicdata.caida.org/datasets/routing/routeviews-prefix2as/README.txt
             if ',' not in line and '_' not in line:
-                clean.write(line)
+                # Still need to check for bogons
+                prefix, asn = line.split(" ")
+                if not is_bogon_pfx(prefix) and not is_bogon_asn(asn):
+                    clean.write(line)
+
                 continue
 
             # If the line contains a mulit-origin route (signified by the _)
