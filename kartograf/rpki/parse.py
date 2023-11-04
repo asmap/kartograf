@@ -16,6 +16,7 @@ def parse_rpki(context):
     dups_count = 0
     out_count = 0
     invalids = 0
+    incompletes = 0
 
     with open(rpki_res, "w") as asmap:
         with open(raw_input, "r") as dump:
@@ -25,6 +26,7 @@ def parse_rpki(context):
             for roa in data:
                 # Sometimes ROAs are incomplete and we have to skip them
                 if not all(key in roa for key in ['type', 'validation', 'aki', 'ski', 'vrps']):
+                    incompletes += 1
                     continue
 
                 # We are only interested in valid ROAs
@@ -61,3 +63,4 @@ def parse_rpki(context):
     print(f'Output: {out_count}')
     print(f'Duplicates: {dups_count}')
     print(f'Invalids: {invalids}')
+    print(f'Incompletes: {incompletes}')
