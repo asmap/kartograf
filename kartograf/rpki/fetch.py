@@ -25,11 +25,11 @@ def validate_rpki_db(context):
 
     count = 0
     for file in onlyfiles:
-        rpki_output = subprocess.run(["rpki-client", "-j", "-n", "-d", context.data_dir_rpki, "-f", file],
+        rpki_output = subprocess.run(["rpki-client", "-j", "-n", "-d", context.data_dir_rpki, "-P", context.epoch, "-f", file ],
                                      capture_output=True).stdout.decode()
 
         with open(result_path, "a") as res_file:
-            if count > 0:
+            if count > 0 and rpki_output != "":
                 res_file.write(",")
             res_file.write(rpki_output)
 

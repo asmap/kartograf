@@ -33,8 +33,9 @@ if __name__ == "__main__":
 	# Reproduce a map file from a previous run by using provided input files.
 	# The input related arguments are ignored if this flag is set. All provided
 	# input files will be used if they are present in the reproduce folder and
-	# in the right format.
+	# in the right format. The epoch argument is required for this to work.
     parser_map.add_argument("-r", "--reproduce", type=str, default=None)
+    parser_map.add_argument("-t", "--epoch", type=str, default=None)
 
     # TODO:
     # Save the final output file in a different location that the default out
@@ -75,6 +76,11 @@ if __name__ == "__main__":
         version="%(prog)s (version {version})".format(version=__version__))
 
     args = parser.parse_args()
+
+    if args.reproduce and not args.epoch:
+        parser.error('--reproduce is required when --epoch is set.')
+    elif not args.epoch and args.reproduce:
+        parser.error('--epoch is required when --reproduce is set.')
 
     if args.command == "map":
         Kartograf.map(args)

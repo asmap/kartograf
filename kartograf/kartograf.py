@@ -1,4 +1,5 @@
 import datetime
+from datetime import timezone
 import shutil
 import time
 
@@ -22,14 +23,10 @@ class Kartograf:
         # This is used to measure the overall runtime of the program
         start_time = time.time()
 
-        # The epoch is used to keep artifacts seperated for each run. This
-        # makes cleanup and debugging easier.
-        epoch = datetime.datetime.now()
-        # Uncomment this random fixed date for testing purposes
-        # epoch = datetime.datetime(2008, 10, 31)
-
-        context = Context(epoch, args)
-        print(f"The epoch for this run is: {context.epoch}")
+        context = Context(args)
+        utc_datetime = context.epoch_datetime.replace(tzinfo=timezone.utc)
+        local_datetime = utc_datetime.astimezone()
+        print(f"The epoch for this run is: {context.epoch} (local: {local_datetime.strftime('%Y-%m-%d %H:%M:%S %Z')}, UTC: {utc_datetime.strftime('%Y-%m-%d %H:%M:%S %Z')})")
 
         if context.reproduce:
             print(f"This is a reproduction run based on the data in {context.args.reproduce}")

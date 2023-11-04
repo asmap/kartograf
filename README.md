@@ -52,6 +52,12 @@ You can enhance the RPKI maps with RIRs IRR data or Routeviews data using the `-
 ./run map -rv
 ```
 
+### Reproducing IP prefix to ASN maps
+
+```
+./run map -r /path/to/data -t 1698854940
+```
+
 ### Merging IP prefix to ASN maps
 
 This merges on map into another map. The mappings of the base file have preference over those in the extra file.
