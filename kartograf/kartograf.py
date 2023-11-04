@@ -67,9 +67,8 @@ class Kartograf:
             print_section_header("Merging Routeviews and base data")
             merge_pfx2as(context)
 
-        if context.args.sorted:
-            print_section_header("Sorting results")
-            sort_result_by_pfx(context)
+        print_section_header("Sorting results")
+        sort_result_by_pfx(context)
 
         print_section_header("Finishing Kartograf")
 
