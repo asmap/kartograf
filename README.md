@@ -54,6 +54,8 @@ You can enhance the RPKI maps with RIRs IRR data or Routeviews data using the `-
 
 ### Reproducing IP prefix to ASN maps
 
+This uses an pre-existing data folder and creates a map from it, allowing to reproduce map files. The posix timestamp needs to be provided as well and it needs to match the epoch of the initial run exactly, otherwise the resulting file will be different.
+
 ```
 ./run map -r /path/to/data -t 1698854940
 ```

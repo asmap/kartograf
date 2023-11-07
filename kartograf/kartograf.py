@@ -48,7 +48,7 @@ class Kartograf:
                 print_section_header("Fetching Routeviews pfx2as")
                 fetch_routeviews_pfx2as(context)
 
-        # RPKI
+        print_section_header("Validating RPKI")
         validate_rpki_db(context)
 
         print_section_header("Parsing RPKI")
