@@ -6,7 +6,7 @@ does not cover the respective IP space.
 """
 
 __author__ = "Fabian Jahr"
-__version__ = "0.1.0"
+__version__ = "0.2.0"
 __license__ = "MIT"
 
 import argparse
