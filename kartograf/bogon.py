@@ -120,29 +120,30 @@ SPECIAL_IPV6 = [
 
 def is_bogon_pfx(prefix):
     """
-    This function is used to determine whether a given IP address (either IPv4 or
-    IPv6) is a part of a special purpose address block.
+    This function is used to determine whether a given IP address (either IPv4
+    or IPv6) is a part of a special purpose address block.
 
-    The function compares the input address to known special purpose address ranges
-    as listed by the Internet Assigned Numbers Authority (IANA) and the NLNOG BGP
-    Filter Guide website but also makes some modifications to take some upcoming
-    reallocation into account.
+    The function compares the input address to known special purpose address
+    ranges as listed by the Internet Assigned Numbers Authority (IANA) and the
+    NLNOG BGP Filter Guide website but also makes some modifications to take
+    some upcoming reallocation into account.
 
     Sources:
     - https://www.iana.org/assignments/iana-ipv4-special-registry/iana-ipv4-special-registry.xhtml
     - https://www.iana.org/assignments/iana-ipv6-special-registry/iana-ipv6-special-registry.xhtml
     - https://bgpfilterguide.nlnog.net/guides/bogon_prefixes/
     """
-    version = ipaddress.ip_network(prefix).version
+    network = ipaddress.ip_network(prefix)
+    version = network.version
 
     if version == 4:
         for ipv4_range in SPECIAL_IPV4:
-            if ipaddress.ip_network(prefix).subnet_of(ipaddress.ip_network(ipv4_range)):
+            if network.subnet_of(ipaddress.ip_network(ipv4_range)):
                 print(f"Bogon filtered: {prefix}")
                 return True
     elif version == 6:
         for ipv6_range in SPECIAL_IPV6:
-            if ipaddress.ip_network(prefix).subnet_of(ipaddress.ip_network(ipv6_range)):
+            if network.subnet_of(ipaddress.ip_network(ipv6_range)):
                 print(f"Bogon filtered: {prefix}")
                 return True
 

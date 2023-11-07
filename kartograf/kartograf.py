@@ -26,10 +26,14 @@ class Kartograf:
         context = Context(args)
         utc_datetime = context.epoch_datetime.replace(tzinfo=timezone.utc)
         local_datetime = utc_datetime.astimezone()
-        print(f"The epoch for this run is: {context.epoch} (local: {local_datetime.strftime('%Y-%m-%d %H:%M:%S %Z')}, UTC: {utc_datetime.strftime('%Y-%m-%d %H:%M:%S %Z')})")
+        print(f"The epoch for this run is: {context.epoch} "
+              f"({utc_datetime.strftime('%Y-%m-%d %H:%M:%S %Z')}, "
+              f"local: {local_datetime.strftime('%Y-%m-%d %H:%M:%S %Z')}")
 
         if context.reproduce:
-            print(f"This is a reproduction run based on the data in {context.args.reproduce}")
+            repro_path = context.args.reproduce
+            print(f"This is a reproduction run based on the data in "
+                  f"{repro_path}")
 
         # Fetch everthing that we need to fetch first
         if not context.reproduce:

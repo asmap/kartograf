@@ -24,7 +24,8 @@ def latest_link(base):
         response = requests.get(url)
         response.raise_for_status()
     except requests.exceptions.HTTPError:
-        print(f"The page at {url} couldn't be fetched. Trying the previous month.")
+        print(f"The page at {url} couldn't be fetched. "
+              f"Trying the previous month.")
 
         last_month = now - timedelta(days=now.day)
         ym = year_and_month(last_month)
@@ -34,7 +35,8 @@ def latest_link(base):
             response = requests.get(url)
             response.raise_for_status()
         except requests.exceptions.HTTPError:
-            print(f"The page at {url} couldn't be fetched. Download of Routeviews pfx2as data failed.")
+            print(f"The page at {url} couldn't be fetched. "
+                  f"Download of Routeviews pfx2as data failed.")
             sys.exit()
 
     soup = BeautifulSoup(response.text, 'html.parser')
@@ -92,6 +94,8 @@ def fetch_routeviews_pfx2as(context):
 
     out_file = f'{context.data_dir_collectors}pfx2asn.txt'
 
-    with open(v4_file, 'r') as v4, open(v6_file, 'r') as v6, open(out_file, 'w') as out:
+    with open(v4_file, 'r') as v4, \
+            open(v6_file, 'r') as v6, \
+            open(out_file, 'w') as out:
         out.write(v4.read())
         out.write(v6.read())

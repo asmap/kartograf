@@ -10,9 +10,9 @@ def coverage(map_file, ip_list_file):
     rpki_nets = []
     rpki_masks = []
     for line in map_file:
-        pfx, asn = line.split()
+        pfx, _ = line.split()
         ipn = ipaddress.ip_network(pfx)
-        netw = int(ipn.network_address) # W: Constant name "netw" doesn't conform to UPPER_CASE naming style
+        netw = int(ipn.network_address)
         mask = int(ipn.netmask)
         rpki_masks.append(mask)
         rpki_nets.append(netw)
@@ -41,4 +41,5 @@ def coverage(map_file, ip_list_file):
     covered = len(df_cov)
     total = len(df)
     percentage = (covered / total) * 100
-    print(f"A total of {covered} IPs out of {total} are covered by the map. That's {percentage:.2f}%")
+    print(f"A total of {covered} IPs out of {total} are covered by the map. "
+          f"That's {percentage:.2f}%")

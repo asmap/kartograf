@@ -18,19 +18,24 @@ class Context:
         self.reproduce = self.args.reproduce is not None
         if self.reproduce:
             items = os.listdir(self.args.reproduce)
-            source_folders = [folder for folder in items if os.path.isdir(os.path.join(self.args.reproduce, folder))]
+            source_folders = []
+            for folder in items:
+                full_path = os.path.join(self.args.reproduce, folder)
+                if os.path.isdir(full_path):
+                    source_folders.append(folder)
             # We override the args because we are reproducing and only where we
             # have data we try to use is, the actual args passed don't matter.
             self.args.irr = 'irr' in source_folders
             self.args.routeviews = 'collectors' in source_folders
 
-            reproduction_epoch = datetime.utcfromtimestamp(int(self.args.epoch))
+            repro_epoch = datetime.utcfromtimestamp(int(self.args.epoch))
 
-            # When we reproduce we are not really using the data from that epoch,
-            # so better to signal that data is coming from a reproduction run.
+            # When we reproduce we are not really using the data from that
+            # epoch, so better to signal that data is coming from a
+            # reproduction run.
             self.epoch = self.args.epoch
             self.epoch_dir = "r" + self.args.epoch
-            self.epoch_datetime = reproduction_epoch
+            self.epoch_datetime = repro_epoch
         else:
             self.epoch = str(int(utc_time_now))
             self.epoch_dir = str(int(utc_time_now))

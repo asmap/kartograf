@@ -15,8 +15,8 @@ def sort_result_by_pfx(context):
     else:
         out_file = f"{context.out_dir_rpki}rpki_final.txt"
 
-    with open(out_file, 'r') as f:
-        prefixes = f.read().splitlines()
+    with open(out_file, 'r') as file:
+        prefixes = file.read().splitlines()
 
     # Convert prefixes to a sortable form
     sortable_prefixes = []
@@ -28,14 +28,20 @@ def sort_result_by_pfx(context):
         # Create a tuple containing whether it's IPv6, the IP network as an
         # integer, the prefix length (negated for descending order), and the
         # ASN
-        sortable_prefixes.append((is_ipv6, int(net.network_address), -net.prefixlen, asn))
+        sortable_prefixes.append((is_ipv6,
+                                  int(net.network_address),
+                                  -net.prefixlen,
+                                  asn))
 
     sortable_prefixes.sort()
 
     sorted_out_file = f"{context.out_dir}merged_file_sorted.txt"
-    with open(sorted_out_file, "w") as f:
+    with open(sorted_out_file, "w") as file:
         for is_ipv6, net_int, neg_prefixlen, asn in sortable_prefixes:
-            net = ipaddress.IPv6Address(net_int) if is_ipv6 else ipaddress.IPv4Address(net_int)
-            f.write(f'{str(net)}/{-neg_prefixlen} {asn}\n')
+            if is_ipv6:
+                net = ipaddress.IPv6Address(net_int)
+            else:
+                net = ipaddress.IPv4Address(net_int)
+            file.write(f'{str(net)}/{-neg_prefixlen} {asn}\n')
 
     shutil.copy2(sorted_out_file, context.final_result_file)

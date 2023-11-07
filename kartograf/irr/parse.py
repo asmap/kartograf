@@ -42,7 +42,9 @@ def parse_irr(context):
 
         for entry in entry_list:
             # if "route" and "origin" and "source" in entry:
-            if all(k in entry for k in ("origin", "source")) and any(k in entry for k in ("route", "route6")):
+            is_complete = all(k in entry for k in ("origin", "source"))
+            has_route = any(k in entry for k in ("route", "route6"))
+            if is_complete and has_route:
                 # Some RIRs mirror some other RIRs in their DBs, ignore the
                 # mirrored entries
                 if entry["source"] == rir:

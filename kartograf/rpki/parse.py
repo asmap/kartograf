@@ -25,7 +25,8 @@ def parse_rpki(context):
 
             for roa in data:
                 # Sometimes ROAs are incomplete and we have to skip them
-                if not all(key in roa for key in ['type', 'validation', 'aki', 'ski', 'vrps']):
+                key_list = ['type', 'validation', 'aki', 'ski', 'vrps']
+                if not all(key in roa for key in key_list):
                     incompletes += 1
                     continue
 
@@ -34,7 +35,8 @@ def parse_rpki(context):
                     invalids += 1
                     continue
 
-                # We are only interested in the edges, kick out RIRs here so we are only left with LIRs
+                # We are only interested in the edges, kick out RIRs here so
+                # we are only left with LIRs
                 if roa['aki'] in aki_cache:
                     continue
 
@@ -42,8 +44,6 @@ def parse_rpki(context):
 
                 for vrp in roa['vrps']:
                     if output_cache.get(vrp['prefix']):
-                        # Only for debugging
-                        # print(f"Skipped {vrp['prefix']}, existed with ASN {output_cache.get(vrp['prefix'])} and ignored with ASN {vrp['asid']}")
                         dups_count += 1
                         continue
                     else:

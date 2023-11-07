@@ -1,7 +1,7 @@
 import ipaddress
+import shutil
 import numpy as np
 import pandas as pd
-import shutil
 from tqdm import tqdm
 
 from kartograf.timed import timed
@@ -46,7 +46,7 @@ def general_merge(base_file, extra_file, extra_filtered_file, out_file):
         for line in file:
             pfx, asn = line.split(" ")
             ipn = ipaddress.ip_network(pfx)
-            netw = int(ipn.network_address) # W: Constant name "netw" doesn't conform to UPPER_CASE naming style
+            netw = int(ipn.network_address)
             mask = int(ipn.netmask)
             base_masks.append(mask)
             base_nets.append(netw)
@@ -80,19 +80,30 @@ def general_merge(base_file, extra_file, extra_filtered_file, out_file):
 
         return 0
 
-    print("Filtering extra prefixes that were already included in the base file")
+    print("Filtering extra prefixes that were already "
+          "included in the base file")
     df_extra['INCLUDED'] = df_extra.INETS.progress_apply(check_inclusion)
     df_filtered = df_extra[df_extra.INCLUDED == 0]
 
     if extra_filtered_file:
-        print(f"Finished filtering! Originally {len(df_extra.index)} entries filtered down to {len(df_filtered.index)}")
-        df_filtered.to_csv(extra_filtered_file, sep=' ', index=False, columns=["PFXS", "ASNS"], header=False)
+        print(f"Finished filtering! Originally {len(df_extra.index)} entries "
+              f"filtered down to {len(df_filtered.index)}")
+        df_filtered.to_csv(extra_filtered_file,
+                           sep=' ',
+                           index=False,
+                           columns=["PFXS", "ASNS"],
+                           header=False)
 
         with open(extra_filtered_file, "r") as extra:
             extra_contents = extra.read()
     else:
-        print(f"Finished filtering! Originally {len(df_extra.index)} entries filtered down to {len(df_filtered.index)}")
-        extra_contents = df_filtered.to_csv(None, sep=' ', index=False, columns=["PFXS", "ASNS"], header=False)
+        print(f"Finished filtering! Originally {len(df_extra.index)} entries "
+              f"filtered down to {len(df_filtered.index)}")
+        extra_contents = df_filtered.to_csv(None,
+                                            sep=' ',
+                                            index=False,
+                                            columns=["PFXS", "ASNS"],
+                                            header=False)
 
     print("Merging base file with filtered extra file")
     with open(base_file, "r") as base:
