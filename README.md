@@ -12,7 +12,7 @@ Kartograf is a free software project that generates such map files, for the star
 
 ### rpki-client
 
-Kartograf requires `rpki-client` to be installed locally. You can find install instructions on https://www.rpki-client.org/ or below:
+Kartograf requires `rpki-client` version 8.4 or higher to be installed locally. You can find install instructions on https://www.rpki-client.org/ or below:
 
 #### Linux/BSD
 

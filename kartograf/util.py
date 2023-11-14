@@ -1,4 +1,6 @@
 import hashlib
+import subprocess
+import re
 
 
 def calculate_sha256(file_path):
@@ -31,3 +33,35 @@ def rir_from_str(maybe_rir):
         return "APNIC"
 
     raise Exception("No RIR found in String")
+
+
+def check_compatibility():
+    exception_msg = "Could not determine rpki-client version. Is it installed?"
+
+    try:
+        result = subprocess.run(['rpki-client', '-V'],
+                                capture_output=True,
+                                text=True,
+                                check=True)
+
+        # On OpenBSD the result should include 'rpki-client', everywhere else
+        # it should be 'rpki-client-portable'.
+        version_match = re.search(r'rpki-client(?:-portable)? (\d+\.\d+)',
+                                  result.stderr)
+        if version_match:
+            version = version_match.group(1)
+            version_number = float(version)
+
+            if version_number < 8.4:
+                raise Exception("Error: rpki-client version 8.4 or higher is"
+                                "required.")
+            elif version_number >= 9.0:
+                print("Warning: Kartograf has not been tested with "
+                      "rpki-client version 9 or higher.")
+            else:
+                print(f"Using rpki-client version {version}.")
+        else:
+            raise Exception(exception_msg)
+
+    except subprocess.CalledProcessError:
+        raise Exception(exception_msg)

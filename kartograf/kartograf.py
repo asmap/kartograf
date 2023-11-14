@@ -13,13 +13,19 @@ from kartograf.merge import merge_irr, merge_pfx2as, general_merge
 from kartograf.rpki.fetch import fetch_rpki_db, validate_rpki_db
 from kartograf.rpki.parse import parse_rpki
 from kartograf.sort import sort_result_by_pfx
-from kartograf.util import print_section_header, calculate_sha256
+from kartograf.util import (
+    print_section_header,
+    calculate_sha256,
+    check_compatibility
+)
 
 
 class Kartograf:
     @staticmethod
     def map(args):
         print_section_header("Start Kartograf")
+        check_compatibility()
+
         # This is used to measure the overall runtime of the program
         start_time = time.time()
 
@@ -28,7 +34,7 @@ class Kartograf:
         local_datetime = utc_datetime.astimezone()
         print(f"The epoch for this run is: {context.epoch} "
               f"({utc_datetime.strftime('%Y-%m-%d %H:%M:%S %Z')}, "
-              f"local: {local_datetime.strftime('%Y-%m-%d %H:%M:%S %Z')}")
+              f"local: {local_datetime.strftime('%Y-%m-%d %H:%M:%S %Z')})")
 
         if context.reproduce:
             repro_path = context.args.reproduce
