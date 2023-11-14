@@ -53,7 +53,7 @@ def check_compatibility():
             version_number = float(version)
 
             if version_number < 8.4:
-                raise Exception("Error: rpki-client version 8.4 or higher is"
+                raise Exception("Error: rpki-client version 8.4 or higher is "
                                 "required.")
             elif version_number >= 9.0:
                 print("Warning: Kartograf has not been tested with "
