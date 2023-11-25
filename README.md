@@ -12,7 +12,22 @@ Kartograf is a free software project that generates such map files, for the star
 
 ### rpki-client
 
-Kartograf requires `rpki-client` version 8.4 or higher to be installed locally. You can find install instructions on https://www.rpki-client.org/ or below:
+Kartograf requires `rpki-client` version 8.4 or higher to be installed locally. The recommended method of installation is with [Nix](https://nixos.org/download.html). You can read about why [here](./nix.md). You may however install from any method below. You can also find install instructions on https://www.rpki-client.org/.
+
+#### Nix
+
+The Nix flake in this repo exposes a development shell, with the `rpki-client` binary, Python 3.10, and the Python packages required to run kartograf.
+
+If you have Nix installed with flakes enabled, clone this repo, and run `nix develop`. You can now proceed to [Usage](#usage).
+
+If you don't have flakes enabled, you can either:
+- pass the flag `--experimental-features 'nix-command flakes'` whenever you run `nix develop`
+- or add the following line to `~/.config/nix/nix.conf`:
+```
+experimental-features = nix-command flakes
+```
+
+to enable flakes in your Nix config, then run `nix develop`.
 
 #### Linux/BSD
 
