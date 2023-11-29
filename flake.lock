@@ -2,32 +2,32 @@
   "nodes": {
     "nixpkgs": {
       "locked": {
-        "lastModified": 1700403855,
-        "narHash": "sha256-Q0Uzjik9kUTN9pd/kp52XJi5kletBhy29ctBlAG+III=",
+        "lastModified": 1701156937,
+        "narHash": "sha256-jpMJOFvOTejx211D8z/gz0ErRtQPy6RXxgD2ZB86mso=",
         "owner": "NixOS",
         "repo": "nixpkgs",
-        "rev": "0c5678df521e1407884205fe3ce3cf1d7df297db",
+        "rev": "7c4c20509c4363195841faa6c911777a134acdf3",
         "type": "github"
       },
       "original": {
         "owner": "NixOS",
-        "ref": "nixos-23.05",
+        "ref": "nixos-23.11",
         "repo": "nixpkgs",
         "type": "github"
       }
     },
     "nixpkgs_2": {
       "locked": {
-        "lastModified": 1700403855,
-        "narHash": "sha256-Q0Uzjik9kUTN9pd/kp52XJi5kletBhy29ctBlAG+III=",
+        "lastModified": 1701156937,
+        "narHash": "sha256-jpMJOFvOTejx211D8z/gz0ErRtQPy6RXxgD2ZB86mso=",
         "owner": "NixOS",
         "repo": "nixpkgs",
-        "rev": "0c5678df521e1407884205fe3ce3cf1d7df297db",
+        "rev": "7c4c20509c4363195841faa6c911777a134acdf3",
         "type": "github"
       },
       "original": {
         "owner": "NixOS",
-        "ref": "nixos-23.05",
+        "ref": "nixos-23.11",
         "repo": "nixpkgs",
         "type": "github"
       }
@@ -47,17 +47,17 @@
         "utils": "utils"
       },
       "locked": {
-        "lastModified": 1700580311,
-        "narHash": "sha256-j5xLYbn4b55lCs0Wk8HusoKcGGZpTTZezJHa7NN7IEQ=",
-        "ref": "refs/heads/flakify",
-        "rev": "8a1d84ae86bb2232903378352e705b8416aaedbb",
-        "revCount": 9,
-        "type": "git",
-        "url": "file:///home/base/code/rpki-client-nix"
+        "lastModified": 1701295827,
+        "narHash": "sha256-/dT44u8PW/UwChKDfaNeO3rwZ6uC9QSqtGoIMwLeQNo=",
+        "owner": "fjahr",
+        "repo": "rpki-client-nix",
+        "rev": "9959db555aac5cfabe2c7d3fd185185b801d7dc7",
+        "type": "github"
       },
       "original": {
-        "type": "git",
-        "url": "file:///home/base/code/rpki-client-nix"
+        "owner": "fjahr",
+        "repo": "rpki-client-nix",
+        "type": "github"
       }
     },
     "rpki-client-src": {
