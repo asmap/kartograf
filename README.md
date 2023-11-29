@@ -10,11 +10,9 @@ Kartograf is a free software project that generates such map files, for the star
 
 ## Requirements
 
-### rpki-client
+The recommended method of installation is with [Nix](https://nixos.org/download.html). You can read about why [here](./nix.md). You may however install from any method below.
 
-Kartograf requires `rpki-client` version 8.4 or higher to be installed locally. The recommended method of installation is with [Nix](https://nixos.org/download.html). You can read about why [here](./nix.md). You may however install from any method below. You can also find install instructions on https://www.rpki-client.org/.
-
-#### Nix
+### Nix
 
 The Nix flake in this repo exposes a development shell, with the `rpki-client` binary, Python 3.10, and the Python packages required to run kartograf.
 
@@ -29,25 +27,32 @@ experimental-features = nix-command flakes
 
 to enable flakes in your Nix config, then run `nix develop`.
 
-#### Linux/BSD
+### Linux/BSD/macOS
+
+#### rpki-client
+
+Kartograf requires `rpki-client` version 8.4 or higher to be installed locally. Many package managers have `rpki-client`, however please note that typically only the latest version is available. Kartograf is currently tested to work with `rpki-client` 8.4 - 8.6. If a new release is available that breaks compatibility, you may need to build a compatible `rpki-client` version yourself if your preferred package manager does not have a compatible version available. In that case, see the [instructions in the rpki-client-portable project](https://github.com/rpki-client/rpki-client-portable/blob/master/INSTALL).
 
 ```
+# Linux/BSD
 $ {pkg,dnf,yum,apt} install rpki-client
-```
-
-#### macOS
-
-```
+# macOS
 $ brew install rpki-client
 ```
 
-### Python dependencies
+#### Python dependencies
 
-Install required Python packages:
+Python versions 3.10 and 3.11 have both been tested with Kartograf.
+
+You can use `pip3` to install required Python packages:
 
 ```
 $ pip3 install -r requirements.txt
 ```
+
+### Windows
+
+Kartograf has not been tested on Windows.
 
 ## Usage
 
