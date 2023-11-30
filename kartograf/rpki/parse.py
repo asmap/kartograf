@@ -1,5 +1,5 @@
 import json
-from typing import Set, Dict
+from typing import Dict
 
 from kartograf.bogon import is_bogon_pfx, is_bogon_asn
 from kartograf.timed import timed
@@ -10,8 +10,7 @@ def parse_rpki(context):
     raw_input = f"{context.out_dir_rpki}rpki_raw.json"
     rpki_res = f"{context.out_dir_rpki}rpki_final.txt"
 
-    aki_cache: Set[str] = set()
-    output_cache: Dict[str, str] = {}
+    output_cache: Dict[str, [str, str]] = {}
 
     dups_count = 0
     out_count = 0
@@ -24,7 +23,14 @@ def parse_rpki(context):
 
         for roa in data:
             # Sometimes ROAs are incomplete and we have to skip them
-            key_list = ['type', 'validation', 'aki', 'ski', 'vrps']
+            key_list = [
+                'type',
+                'validation',
+                'aki',
+                'ski',
+                'vrps',
+                'valid_until'
+            ]
             if not all(key in roa for key in key_list):
                 incompletes += 1
                 continue
@@ -34,13 +40,7 @@ def parse_rpki(context):
                 invalids += 1
                 continue
 
-            # We are only interested in the edges, kick out RIRs here so
-            # we are only left with LIRs
-            # TODO: Decide if we keep this, speed up seems marginal
-            if roa['aki'] in aki_cache:
-                continue
-
-            aki_cache.add(roa['ski'])
+            valid_until = roa['valid_until']
 
             for vrp in roa['vrps']:
                 prefix = vrp['prefix']
@@ -54,19 +54,17 @@ def parse_rpki(context):
                 # Duplicates are possible and need to be filtered out
                 if output_cache.get(prefix):
                     dups_count += 1
-                    # If the new ASN is lower, we override the old one
-                    # TODO: Find better way to decide that is still
-                    # deterministic but has additional benefits, 
-                    # potentially looking at expiry time.
-                    old_asn = output_cache[prefix]
-                    if int(asn) < int(old_asn):
-                        output_cache[prefix] = asn
+                    # If the new ASN is from a ROA that is valid for longer,
+                    # we override the old entry with it
+                    [old_asn, old_valid_until] = output_cache[prefix]
+                    if int(valid_until) > int(old_valid_until):
+                        output_cache[prefix] = [asn, valid_until]
                 else:
                     # No duplicate, add to cache
-                    output_cache[prefix] = asn
+                    output_cache[prefix] = [asn, valid_until]
 
     with open(rpki_res, "w") as asmap:
-        for prefix, asn in output_cache.items():
+        for prefix, [asn, _] in output_cache.items():
             line_out = f"{prefix} AS{asn}"
 
             asmap.write(line_out + '\n')

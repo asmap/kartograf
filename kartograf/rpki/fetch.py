@@ -28,23 +28,23 @@ def validate_rpki_db(context):
         res_file.write("[")
 
     count = 0
-    for file in files:
-        rpki_output = subprocess.run(["rpki-client",
-                                      "-j",
-                                      "-n",
-                                      "-d", context.data_dir_rpki,
-                                      "-P", context.epoch,
-                                      "-f", file
-                                      ], capture_output=True).stdout.decode()
+    with open(result_path, "a") as res_file:
+        for file in files:
+            rpki_output = subprocess.run(["rpki-client",
+                                          "-j",
+                                          "-n",
+                                          "-d", context.data_dir_rpki,
+                                          "-P", context.epoch,
+                                          "-f", file
+                                          ], capture_output=True).stdout.decode()
 
-        with open(result_path, "a") as res_file:
             if count > 0 and rpki_output != "":
                 res_file.write(",")
             res_file.write(rpki_output)
 
-        count += 1
+            count += 1
 
     with open(result_path, "a") as res_file:
         res_file.write("]")
 
-    print(f"{count} raw RKPI DB entries downloaded and saved to {result_path}")
+    print(f"{count} raw RKPI DB entries validated and saved to {result_path}")
