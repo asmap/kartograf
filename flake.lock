@@ -47,11 +47,11 @@
         "utils": "utils"
       },
       "locked": {
-        "lastModified": 1701295827,
-        "narHash": "sha256-/dT44u8PW/UwChKDfaNeO3rwZ6uC9QSqtGoIMwLeQNo=",
+        "lastModified": 1701362547,
+        "narHash": "sha256-k6y6jdWYIZSwg/rVoWM5zhb2bcdJgimKzKJIVf5Gkj4=",
         "owner": "fjahr",
         "repo": "rpki-client-nix",
-        "rev": "9959db555aac5cfabe2c7d3fd185185b801d7dc7",
+        "rev": "5a8893fbce28cccb57a39d79ce58c679c1b8a774",
         "type": "github"
       },
       "original": {
