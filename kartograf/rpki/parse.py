@@ -41,6 +41,7 @@ def parse_rpki(context):
                 continue
 
             valid_until = roa['valid_until']
+            valid_since = roa['valid_since']
 
             for vrp in roa['vrps']:
                 prefix = vrp['prefix']
@@ -51,20 +52,33 @@ def parse_rpki(context):
                 if is_bogon_pfx(prefix) or is_bogon_asn(asn):
                     continue
 
-                # Duplicates are possible and need to be filtered out
+                # Multiple ROAs for the same prefix are possible and we need
+                # to decide if we update the entry or not
                 if output_cache.get(prefix):
                     dups_count += 1
                     # If the new ASN is from a ROA that is valid for longer,
                     # we override the old entry with it
-                    [old_asn, old_valid_until] = output_cache[prefix]
+                    [old_asn, old_valid_until, old_valid_since] = output_cache[prefix]
                     if int(valid_until) > int(old_valid_until):
-                        output_cache[prefix] = [asn, valid_until]
+                        output_cache[prefix] = [asn, valid_until, valid_since]
+                    # If the entries have the same validity period, we need to
+                    # choose a different tie breaker
+                    if int(valid_until) == int(old_valid_until):
+                        # Prefer the ROA that was announced last
+                        if int(valid_since) > int(old_valid_since):
+                            output_cache[prefix] = [asn, valid_until, valid_since]
+                        # If the ROAs were also announced at the same time, we
+                        # fall back to using the lower ASN just to be
+                        # deterministic
+                        if int(valid_since) == int(old_valid_since):
+                            if int(asn) < int(old_asn):
+                                output_cache[prefix] = [asn, valid_until, valid_since]
                 else:
                     # No duplicate, add to cache
-                    output_cache[prefix] = [asn, valid_until]
+                    output_cache[prefix] = [asn, valid_until, valid_since]
 
     with open(rpki_res, "w") as asmap:
-        for prefix, [asn, _] in output_cache.items():
+        for prefix, [asn, _, _] in output_cache.items():
             line_out = f"{prefix} AS{asn}"
 
             asmap.write(line_out + '\n')
