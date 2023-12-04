@@ -139,12 +139,10 @@ def is_bogon_pfx(prefix):
     if version == 4:
         for ipv4_range in SPECIAL_IPV4:
             if network.subnet_of(ipaddress.ip_network(ipv4_range)):
-                print(f"Bogon filtered: {prefix}")
                 return True
     elif version == 6:
         for ipv6_range in SPECIAL_IPV6:
             if network.subnet_of(ipaddress.ip_network(ipv6_range)):
-                print(f"Bogon filtered: {prefix}")
                 return True
 
     return False
