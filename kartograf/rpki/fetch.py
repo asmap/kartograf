@@ -1,4 +1,4 @@
-import os
+from concurrent.futures import ThreadPoolExecutor
 import pathlib
 import subprocess
 
@@ -17,34 +17,30 @@ def fetch_rpki_db(context):
 def validate_rpki_db(context):
     print("Validating RPKI ROAs")
     files = [path for path in pathlib.Path(context.data_dir_rpki).rglob('*')
-             if os.path.isfile(path)
-             and ((os.path.splitext(path)[1] == ".roa")
-                  or (path.name == ".roa"))]
+             if path.is_file() and ((path.suffix == ".roa")
+                                    or (path.name == ".roa"))]
 
     rpki_raw_file = 'rpki_raw.json'
     result_path = f"{context.out_dir_rpki}{rpki_raw_file}"
 
+    def process_file(file):
+        return subprocess.run(["rpki-client",
+                               "-j",
+                               "-n",
+                               "-d",
+                               context.data_dir_rpki,
+                               "-P",
+                               context.epoch,
+                               "-f",
+                               file
+                               ], capture_output=True).stdout
+
+    with ThreadPoolExecutor() as executor:
+        results = executor.map(process_file, files)
+
     with open(result_path, "w") as res_file:
         res_file.write("[")
-
-    count = 0
-    with open(result_path, "a") as res_file:
-        for file in files:
-            rpki_output = subprocess.run(["rpki-client",
-                                          "-j",
-                                          "-n",
-                                          "-d", context.data_dir_rpki,
-                                          "-P", context.epoch,
-                                          "-f", file
-                                          ], capture_output=True).stdout.decode()
-
-            if count > 0 and rpki_output != "":
-                res_file.write(",")
-            res_file.write(rpki_output)
-
-            count += 1
-
-    with open(result_path, "a") as res_file:
+        res_file.write(",".join([result.decode() for result in results if result]))
         res_file.write("]")
 
-    print(f"{count} raw RKPI DB entries validated and saved to {result_path}")
+    print(f"{len(files)} raw RKPI DB entries validated and saved to {result_path}")
