@@ -23,7 +23,7 @@
         pname = "pandarallel";
         version = "1.6.5";
 
-        src = pkgs.python3Packages.fetchPypi {
+        src = pkgs.python311Packages.fetchPypi {
           inherit pname version;
           sha256 = "HC35j/ZEHorhP/QozuuqfsQtcx9/lyxBzk/e8dOt9kA=";
         };
@@ -37,10 +37,7 @@
         };
       };
 
-    in rec {
-      packages = {
-        inherit pandarallel;
-      };
+    in {
       # This flake exposes one attribute: a development shell
       # containing the rpki-client and the necessary Python env and packages to run kartograf.
       # To use, run 'nix develop' in the current directory.
@@ -48,13 +45,13 @@
           packages = [
             rpki-cli.defaultPackage.${system}
             # Python 3.10 with packages
-            (pkgs.python310.withPackages (ps: [
+            (pkgs.python311.withPackages (ps: [
               ps.pandas
               ps.beautifulsoup4
               ps.requests
               ps.tqdm
-              pandarallel
             ]))
+            pandarallel
           ];
       };
     });
