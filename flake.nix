@@ -17,7 +17,30 @@
     # Build for all default systems: ["x86_64-linux" "aarch64-linux" "x86_64-darwin" "aarch64-darwin"]
     utils.lib.eachDefaultSystem (system: let
       pkgs = nixpkgs.legacyPackages.${system};
+
+      # Custom derivation for pandarallel
+      pandarallel = pkgs.python3Packages.buildPythonPackage rec {
+        pname = "pandarallel";
+        version = "1.6.5";
+
+        src = pkgs.python3Packages.fetchPypi {
+          inherit pname version;
+          sha256 = "HC35j/ZEHorhP/QozuuqfsQtcx9/lyxBzk/e8dOt9kA=";
+        };
+
+        propagatedBuildInputs = with pkgs.python3Packages; [ pandas dill psutil ];
+
+        meta = with pkgs.lib; {
+          description = "An efficient parallel computing library for pandas";
+          homepage = "https://github.com/nalepae/pandarallel";
+          license = licenses.bsd3;
+        };
+      };
+
     in rec {
+      packages = {
+        inherit pandarallel;
+      };
       # This flake exposes one attribute: a development shell
       # containing the rpki-client and the necessary Python env and packages to run kartograf.
       # To use, run 'nix develop' in the current directory.
@@ -30,6 +53,7 @@
               ps.beautifulsoup4
               ps.requests
               ps.tqdm
+              pandarallel
             ]))
           ];
       };
