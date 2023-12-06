@@ -1,8 +1,8 @@
 import ipaddress
 import shutil
 import numpy as np
+from pandarallel import pandarallel
 import pandas as pd
-from tqdm import tqdm
 
 from kartograf.timed import timed
 
@@ -37,7 +37,7 @@ def merge_pfx2as(context):
 
 
 def general_merge(base_file, extra_file, extra_filtered_file, out_file):
-    tqdm.pandas()
+    pandarallel.initialize(progress_bar=True, verbose=0)
 
     print("Parse base file to numpy arrays")
     base_nets = []
@@ -81,13 +81,13 @@ def general_merge(base_file, extra_file, extra_filtered_file, out_file):
         return 0
 
     print("Filtering extra prefixes that were already "
-          "included in the base file")
-    df_extra['INCLUDED'] = df_extra.INETS.progress_apply(check_inclusion)
+          "included in the base file:\n")
+    df_extra['INCLUDED'] = df_extra.INETS.parallel_apply(check_inclusion)
     df_filtered = df_extra[df_extra.INCLUDED == 0]
 
     if extra_filtered_file:
-        print(f"Finished filtering! Originally {len(df_extra.index)} entries "
-              f"filtered down to {len(df_filtered.index)}")
+        print(f"\nFinished filtering! Originally {len(df_extra.index)} "
+              f"entries filtered down to {len(df_filtered.index)}")
         df_filtered.to_csv(extra_filtered_file,
                            sep=' ',
                            index=False,

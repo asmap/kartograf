@@ -3,3 +3,4 @@ numpy==1.24.1
 pandas==1.5.3
 requests>=2.31.0
 tqdm==4.64.1
+pandarallel==1.6.5
