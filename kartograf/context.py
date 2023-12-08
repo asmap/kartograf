@@ -11,7 +11,10 @@ class Context:
 
         # The epoch is used to keep artifacts seperated for each run. This
         # makes cleanup and debugging easier.
-        utc_time_now = time.time()
+        if args.wait:
+            utc_time_now = args.wait
+        else:
+            utc_time_now = time.time()
         # Uncomment this random fixed date for testing purposes
         # time_now = datetime(2008, 10, 31)
 

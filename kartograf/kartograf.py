@@ -14,9 +14,10 @@ from kartograf.rpki.fetch import fetch_rpki_db, validate_rpki_db
 from kartograf.rpki.parse import parse_rpki
 from kartograf.sort import sort_result_by_pfx
 from kartograf.util import (
-    print_section_header,
     calculate_sha256,
-    check_compatibility
+    check_compatibility,
+    print_section_header,
+    wait_for_launch
 )
 
 
@@ -25,6 +26,15 @@ class Kartograf:
     def map(args):
         print_section_header("Start Kartograf")
         check_compatibility()
+
+        if args.wait:
+            wait_epoch = datetime.datetime.utcfromtimestamp(int(args.wait))
+            utc_wait_epoch = wait_epoch.replace(tzinfo=timezone.utc)
+            local_wait_epoch = utc_wait_epoch.astimezone()
+            print(f"Coordinated launch mode: Waiting until {args.wait} "
+                  f"({local_wait_epoch.strftime('%Y-%m-%d %H:%M:%S %Z')}) to "
+                  "launch mapping process.")
+            wait_for_launch(args.wait)
 
         # This is used to measure the overall runtime of the program
         start_time = time.time()
