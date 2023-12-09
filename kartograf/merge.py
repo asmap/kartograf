@@ -84,9 +84,11 @@ def general_merge(base_file, extra_file, extra_filtered_file, out_file):
           "included in the base file:\n")
     df_extra['INCLUDED'] = df_extra.INETS.parallel_apply(check_inclusion)
     df_filtered = df_extra[df_extra.INCLUDED == 0]
+    # We are stuck at the end of the progress bar after above finishes
+    print("\n")
 
     if extra_filtered_file:
-        print(f"\nFinished filtering! Originally {len(df_extra.index)} "
+        print(f"Finished filtering! Originally {len(df_extra.index)} "
               f"entries filtered down to {len(df_filtered.index)}")
         df_filtered.to_csv(extra_filtered_file,
                            sep=' ',
