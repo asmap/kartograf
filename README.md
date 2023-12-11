@@ -72,6 +72,16 @@ You can enhance the RPKI maps with RIRs IRR data or Routeviews data using the `-
 ./run map -rv
 ```
 
+### Coordinated launch for building IP prefix to ASN maps
+
+This feature allows multiple contributors to launch the mapping process simultaneously which should result in mostly the same data for all of them, potentially even let some or all of them get the exact same result. this should improve confidence in the correctness of the data collected. A future timestamp that is coordinated between participants can be provided to the `-w` (`--wait`) option, the mapping process then launches at this exact moment and uses it also as the RPKI validation timestamp.
+
+All other map building flags are compatible but not the reproduction flags.
+
+```
+./run map -w 1702299537 -rv -irr
+```
+
 ### Reproducing IP prefix to ASN maps
 
 This uses an pre-existing data folder and creates a map from it, allowing to reproduce map files. The posix timestamp needs to be provided as well and it needs to match the epoch of the initial run exactly, otherwise the resulting file will be different.
