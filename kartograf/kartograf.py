@@ -5,18 +5,19 @@ import time
 
 from kartograf.context import Context
 from kartograf.coverage import coverage
-from kartograf.collectors.routeviews import fetch_routeviews_pfx2as
+from kartograf.collectors.routeviews import extract_routeviews_pfx2as, fetch_routeviews_pfx2as
 from kartograf.collectors.parse import parse_routeviews_pfx2as
-from kartograf.irr.fetch import fetch_irr
+from kartograf.irr.fetch import extract_irr, fetch_irr
 from kartograf.irr.parse import parse_irr
 from kartograf.merge import merge_irr, merge_pfx2as, general_merge
 from kartograf.rpki.fetch import fetch_rpki_db, validate_rpki_db
 from kartograf.rpki.parse import parse_rpki
 from kartograf.sort import sort_result_by_pfx
 from kartograf.util import (
-    print_section_header,
     calculate_sha256,
-    check_compatibility
+    check_compatibility,
+    print_section_header,
+    wait_for_launch
 )
 
 
@@ -25,6 +26,15 @@ class Kartograf:
     def map(args):
         print_section_header("Start Kartograf")
         check_compatibility()
+
+        if args.wait:
+            wait_epoch = datetime.datetime.utcfromtimestamp(int(args.wait))
+            utc_wait_epoch = wait_epoch.replace(tzinfo=timezone.utc)
+            local_wait_epoch = utc_wait_epoch.astimezone()
+            print(f"Coordinated launch mode: Waiting until {args.wait} "
+                  f"({local_wait_epoch.strftime('%Y-%m-%d %H:%M:%S %Z')}) to "
+                  "launch mapping process.")
+            wait_for_launch(args.wait)
 
         # This is used to measure the overall runtime of the program
         start_time = time.time()
@@ -62,6 +72,7 @@ class Kartograf:
 
         if context.args.irr:
             print_section_header("Parsing IRR")
+            extract_irr(context)
             parse_irr(context)
 
             print_section_header("Merging RPKI and IRR data")
@@ -69,6 +80,7 @@ class Kartograf:
 
         if context.args.routeviews:
             print_section_header("Parsing Routeviews pfx2as")
+            extract_routeviews_pfx2as(context)
             parse_routeviews_pfx2as(context)
 
             print_section_header("Merging Routeviews and base data")

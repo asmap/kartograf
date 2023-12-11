@@ -1,6 +1,5 @@
 from datetime import datetime, timedelta
 import gzip
-import os
 import shutil
 import sys
 
@@ -65,14 +64,17 @@ def download(url, file):
         for chunk in response.iter_content(chunk_size=8192):
             gz.write(chunk)
 
-    print(f'Unzipping {url}')
+
+def extract(file, context):
+    gz_file = context.data_dir_collectors + file + ".gz"
+    file = context.out_dir_collectors + file
+
+    print(f'Unzipping {gz_file}')
     with gzip.open(gz_file, 'rb') as f_in:
         with open(file, 'wb') as f_out:
             shutil.copyfileobj(f_in, f_out)
 
-    os.remove(gz_file)
-
-    print(f'Formatting {url}')
+    print(f'Formatting {file}')
     with open(file, "r") as read:
         lines = read.readlines()
 
@@ -92,7 +94,17 @@ def fetch_routeviews_pfx2as(context):
     download(latest_link(PFX2AS_V4), v4_file)
     download(latest_link(PFX2AS_V6), v6_file)
 
-    out_file = f'{context.data_dir_collectors}pfx2asn.txt'
+
+def extract_routeviews_pfx2as(context):
+    v4_file_name = 'routeviews_pfx2asn_ip4.txt'
+    v6_file_name = 'routeviews_pfx2asn_ip6.txt'
+
+    extract(v4_file_name, context)
+    extract(v6_file_name, context)
+
+    v4_file = context.out_dir_collectors + v4_file_name
+    v6_file = context.out_dir_collectors + v6_file_name
+    out_file = f'{context.out_dir_collectors}pfx2asn.txt'
 
     with open(v4_file, 'r') as v4, \
             open(v6_file, 'r') as v6, \

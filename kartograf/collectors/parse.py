@@ -4,9 +4,10 @@ from kartograf.timed import timed
 
 @timed
 def parse_routeviews_pfx2as(context):
-    raw_file = f'{context.data_dir_collectors}pfx2asn.txt'
+    raw_file = f'{context.out_dir_collectors}pfx2asn.txt'
     clean_file = f'{context.out_dir_collectors}pfx2asn_clean.txt'
 
+    print("Cleaning " + raw_file)
     with open(raw_file, 'r') as raw, open(clean_file, 'w') as clean:
         lines = raw.readlines()
         for line in lines:

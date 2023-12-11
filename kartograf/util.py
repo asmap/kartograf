@@ -1,6 +1,7 @@
 import hashlib
-import subprocess
 import re
+import subprocess
+import time
 
 
 def calculate_sha256(file_path):
@@ -65,3 +66,15 @@ def check_compatibility():
 
     except subprocess.CalledProcessError:
         raise Exception(exception_msg)
+
+
+def wait_for_launch(wait):
+    wait = int(wait)
+
+    while True:
+        current_time = time.time()
+
+        if current_time >= wait:
+            break
+
+        time.sleep(1)

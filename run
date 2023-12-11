@@ -37,6 +37,9 @@ if __name__ == "__main__":
     parser_map.add_argument("-r", "--reproduce", type=str, default=None)
     parser_map.add_argument("-t", "--epoch", type=str, default=None)
 
+    # Waits until the provided epoch is reached before starting the map
+    parser_map.add_argument("-w", "--wait", type=str, default=None)
+
     # TODO:
     # Save the final output file in a different location that the default out
     # folder
@@ -81,6 +84,9 @@ if __name__ == "__main__":
         parser.error('--reproduce is required when --epoch is set.')
     elif not args.epoch and args.reproduce:
         parser.error('--epoch is required when --reproduce is set.')
+
+    if args.wait and args.reproduce:
+        parser.error('--reproduce is not compatible with --wait.')
 
     if args.command == "map":
         Kartograf.map(args)
