@@ -40,9 +40,15 @@ def fetch_irr(context):
 
         ftp.close()
 
-        if file_name.endswith(".gz"):
-            print("Extracting " + file_name)
-            with gzip.open(local_file_path, 'rb') as r:
-                extracted_file_path = local_file_path.rstrip(".gz")
-                with open(extracted_file_path, 'wb') as w:
-                    shutil.copyfileobj(r, w)
+
+def extract_irr(context):
+    for ftp_file in IRR_FILE_ADDRESSES:
+        _, ftp_file_path = ftp_file.split("/", 1)
+        _, file_name = ftp_file_path.rsplit("/", 1)
+        local_file_path = context.data_dir_irr + file_name
+        extracted_file_path = context.out_dir_irr + file_name.rstrip(".gz")
+
+        print("Extracting " + file_name)
+        with gzip.open(local_file_path, 'rb') as r:
+            with open(extracted_file_path, 'wb') as w:
+                shutil.copyfileobj(r, w)

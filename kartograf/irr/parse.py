@@ -11,7 +11,7 @@ from kartograf.util import rir_from_str
 def parse_irr(context):
     irr_res = f"{context.out_dir_irr}irr_final.txt"
 
-    irr_files = [path for path in pathlib.Path(context.data_dir_irr).rglob('*')
+    irr_files = [path for path in pathlib.Path(context.out_dir_irr).rglob('*')
                  if os.path.isfile(path)
                  and (os.path.splitext(path)[1] != ".gz")]
 

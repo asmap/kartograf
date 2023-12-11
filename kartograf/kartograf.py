@@ -5,9 +5,9 @@ import time
 
 from kartograf.context import Context
 from kartograf.coverage import coverage
-from kartograf.collectors.routeviews import fetch_routeviews_pfx2as
+from kartograf.collectors.routeviews import extract_routeviews_pfx2as, fetch_routeviews_pfx2as
 from kartograf.collectors.parse import parse_routeviews_pfx2as
-from kartograf.irr.fetch import fetch_irr
+from kartograf.irr.fetch import extract_irr, fetch_irr
 from kartograf.irr.parse import parse_irr
 from kartograf.merge import merge_irr, merge_pfx2as, general_merge
 from kartograf.rpki.fetch import fetch_rpki_db, validate_rpki_db
@@ -72,6 +72,7 @@ class Kartograf:
 
         if context.args.irr:
             print_section_header("Parsing IRR")
+            extract_irr(context)
             parse_irr(context)
 
             print_section_header("Merging RPKI and IRR data")
@@ -79,6 +80,7 @@ class Kartograf:
 
         if context.args.routeviews:
             print_section_header("Parsing Routeviews pfx2as")
+            extract_routeviews_pfx2as(context)
             parse_routeviews_pfx2as(context)
 
             print_section_header("Merging Routeviews and base data")
