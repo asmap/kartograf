@@ -10,7 +10,7 @@ def fetch_rpki_db(context):
     print("Downloading RPKI Data")
     subprocess.run(["rpki-client",
                     "-d", context.data_dir_rpki
-                    ], capture_output=True)
+                    ], stdout=subprocess.DEVNULL)
 
 
 @timed
