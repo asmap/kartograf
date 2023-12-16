@@ -16,6 +16,7 @@ def parse_rpki(context):
     out_count = 0
     invalids = 0
     incompletes = 0
+    not_roas = 0
 
     with open(raw_input, "r") as dump:
         data = json.loads(dump.read())
@@ -35,8 +36,13 @@ def parse_rpki(context):
                 incompletes += 1
                 continue
 
+            # We are only interested in ROAs
+            if roa['type'] != "roa":
+                not_roas += 1
+                continue
+
             # We are only interested in valid ROAs
-            if roa['type'] != "roa" or roa['validation'] != "OK":
+            if roa['validation'] != "OK":
                 invalids += 1
                 continue
 
@@ -84,7 +90,8 @@ def parse_rpki(context):
             asmap.write(line_out + '\n')
             out_count += 1
 
-    print(f'Output: {out_count}')
-    print(f'Duplicates: {dups_count}')
-    print(f'Invalids: {invalids}')
+    print(f'Result entries written: {out_count}')
+    print(f'Duplicates found: {dups_count}')
+    print(f'Invalids found: {invalids}')
     print(f'Incompletes: {incompletes}')
+    print(f'Non-ROA files: {not_roas}')

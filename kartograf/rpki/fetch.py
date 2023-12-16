@@ -20,6 +20,7 @@ def validate_rpki_db(context):
              if path.is_file() and ((path.suffix == ".roa")
                                     or (path.name == ".roa"))]
 
+    print(f"{len(files)} raw RKPI ROA files found.")
     rpki_raw_file = 'rpki_raw.json'
     result_path = f"{context.out_dir_rpki}{rpki_raw_file}"
 
@@ -38,9 +39,11 @@ def validate_rpki_db(context):
     with ThreadPoolExecutor() as executor:
         results = executor.map(process_file, files)
 
+    json_results = [result.decode() for result in results if result]
+
     with open(result_path, "w") as res_file:
         res_file.write("[")
-        res_file.write(",".join([result.decode() for result in results if result]))
+        res_file.write(",".join(json_results))
         res_file.write("]")
 
-    print(f"{len(files)} raw RKPI DB entries validated and saved to {result_path}")
+    print(f"{len(json_results)} RKPI ROAs validated and saved to {result_path}")
