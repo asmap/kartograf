@@ -1,16 +1,54 @@
 from concurrent.futures import ThreadPoolExecutor
+import os
 import pathlib
+import requests
 import subprocess
 
 from kartograf.timed import timed
 
+TAL_URLS = {
+    "afrinic": "http://rpki.afrinic.net/tal/afrinic.tal",
+    "apnic": "https://tal.apnic.net/tal-archive/apnic-rfc7730-https.tal",
+    "arin": "https://www.arin.net/resources/manage/rpki/arin.tal",
+    "lacnic": "https://www.lacnic.net/rpki/lacnic.tal",
+    "ripe": "https://tal.rpki.ripe.net/ripe-ncc.tal"
+}
+
+
+def download_rir_tals(context):
+    tal_folder = context.data_dir_rpki + "tals/"
+    os.makedirs(tal_folder, exist_ok=True)
+    tals = []
+
+    for rir, url in TAL_URLS.items():
+        try:
+            response = requests.get(url)
+            response.raise_for_status()
+
+            tal_path = os.path.join(tal_folder, f"{rir}.tal")
+            with open(tal_path, 'wb') as file:
+                file.write(response.content)
+
+            print(f"Downloaded TAL for {rir.upper()} to {tal_path}")
+            tals.append(tal_path)
+
+        except requests.RequestException as e:
+            print(f"Error downloading TAL for {rir.upper()}: {e}")
+            exit(1)
+
+    return tals
+
 
 @timed
 def fetch_rpki_db(context):
+    # Download TALs and presist them in the RPKI data folder
+    tal_paths = download_rir_tals(context)
+    tal_options = [item for path in tal_paths for item in ('-t', path)]
     print("Downloading RPKI Data")
     subprocess.run(["rpki-client",
                     "-d", context.data_dir_rpki
-                    ], capture_output=True)
+                    ] + tal_options,
+                   capture_output=True)
 
 
 @timed

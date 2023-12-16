@@ -131,3 +131,7 @@ Kartograf expects files input files to be in the following formatting and also p
 ## Acknowledgements
 
 [Job Snijders](https://twitter.com/JobSnijders)
+
+## Legal note
+
+In order to properly validate RPKI ROAs Kartograf downloads all RIR Trust Anchors via each users TAL. Usage of the ARIN TAL file requires users of Kartograf to agree to [ARIN's Relying Party Agreement](https://www.arin.net/resources/manage/rpki/rpa.pdf).
