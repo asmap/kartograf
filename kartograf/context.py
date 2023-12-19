@@ -53,7 +53,8 @@ class Context:
         else:
             self.data_dir = f"{cwd}/data/{self.epoch_dir}/"
         self.data_dir_irr = f"{self.data_dir}irr/"
-        self.data_dir_rpki = f"{self.data_dir}rpki/"
+        self.data_dir_rpki_cache = f"{self.data_dir}rpki/cache/"
+        self.data_dir_rpki_tals = f"{self.data_dir}rpki/tals/"
         self.data_dir_collectors = f"{self.data_dir}collectors/"
         # Out dir
         self.out_dir = f"{cwd}/out/{self.epoch_dir}/"
@@ -67,7 +68,8 @@ class Context:
 
         # We skip creating the folders if we are reproducing a run.
         if not self.reproduce:
-            os.makedirs(self.data_dir_rpki)
+            os.makedirs(self.data_dir_rpki_cache)
+            os.makedirs(self.data_dir_rpki_tals)
             if self.args.irr:
                 os.makedirs(self.data_dir_irr)
             if self.args.routeviews:

@@ -16,8 +16,6 @@ TAL_URLS = {
 
 
 def download_rir_tals(context):
-    tal_folder = context.data_dir_rpki + "tals/"
-    os.makedirs(tal_folder, exist_ok=True)
     tals = []
 
     for rir, url in TAL_URLS.items():
@@ -25,7 +23,7 @@ def download_rir_tals(context):
             response = requests.get(url)
             response.raise_for_status()
 
-            tal_path = os.path.join(tal_folder, f"{rir}.tal")
+            tal_path = os.path.join(context.data_dir_rpki_tals, f"{rir}.tal")
             with open(tal_path, 'wb') as file:
                 file.write(response.content)
 
@@ -36,17 +34,25 @@ def download_rir_tals(context):
             print(f"Error downloading TAL for {rir.upper()}: {e}")
             exit(1)
 
-    return tals
+
+def data_tals(context):
+    tal_paths = [path for path in pathlib.Path(context.data_dir_rpki_tals).rglob('*.tal')]
+    # We need to have 5 TALs, one from each RIR
+    if len(tal_paths) == 5:
+        return tal_paths
+    else:
+        print("Not all 5 TALs could be downloaded.")
+        exit(1)
 
 
 @timed
 def fetch_rpki_db(context):
     # Download TALs and presist them in the RPKI data folder
-    tal_paths = download_rir_tals(context)
-    tal_options = [item for path in tal_paths for item in ('-t', path)]
+    download_rir_tals(context)
+    tal_options = [item for path in data_tals(context) for item in ('-t', path)]
     print("Downloading RPKI Data")
     subprocess.run(["rpki-client",
-                    "-d", context.data_dir_rpki
+                    "-d", context.data_dir_rpki_cache
                     ] + tal_options,
                    capture_output=True)
 
@@ -54,7 +60,7 @@ def fetch_rpki_db(context):
 @timed
 def validate_rpki_db(context):
     print("Validating RPKI ROAs")
-    files = [path for path in pathlib.Path(context.data_dir_rpki).rglob('*')
+    files = [path for path in pathlib.Path(context.data_dir_rpki_cache).rglob('*')
              if path.is_file() and ((path.suffix == ".roa")
                                     or (path.name == ".roa"))]
 
@@ -62,17 +68,19 @@ def validate_rpki_db(context):
     rpki_raw_file = 'rpki_raw.json'
     result_path = f"{context.out_dir_rpki}{rpki_raw_file}"
 
+    tal_options = [item for path in data_tals(context) for item in ('-t', path)]
+
     def process_file(file):
         return subprocess.run(["rpki-client",
                                "-j",
                                "-n",
                                "-d",
-                               context.data_dir_rpki,
+                               context.data_dir_rpki_cache,
                                "-P",
                                context.epoch,
-                               "-f",
-                               file
-                               ], capture_output=True).stdout
+                               ] + tal_options +
+                              ["-f", file],  # -f has to be last
+                              capture_output=True).stdout
 
     with ThreadPoolExecutor() as executor:
         results = executor.map(process_file, files)
