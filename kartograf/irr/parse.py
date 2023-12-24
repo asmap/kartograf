@@ -50,7 +50,7 @@ def parse_irr(context):
                 if entry["source"] == rir:
                     # Sometimes there are comments in the origin field, remove
                     # these
-                    origin = entry["origin"].split(" #", 1)[0]
+                    origin = entry["origin"].split(" #", 1)[0].upper()
                     if "route" in entry:
                         route = entry["route"]
                     elif "route6" in entry:

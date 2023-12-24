@@ -161,7 +161,7 @@ def is_bogon_asn(asn_raw):
     if isinstance(asn_raw, int):
         asn = asn_raw
     else:
-        asn = int(asn_raw.lower().replace("as", ""))
+        asn = int(asn_raw.lower().replace("as", "").strip())
 
     if asn == 0:
         # AS 0 is reserved, RFC7607
