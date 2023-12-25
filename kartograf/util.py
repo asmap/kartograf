@@ -75,6 +75,16 @@ def wait_for_launch(wait):
         current_time = time.time()
 
         if current_time >= wait:
+            print("\nStarting...")
             break
+
+        remaining = wait - current_time
+        days, remainder = divmod(remaining, 86400)
+        hours, remainder = divmod(remainder, 3600)
+        minutes, seconds = divmod(remainder, 60)
+        days, hours, minutes, seconds = int(days), int(hours), int(minutes), int(seconds)
+
+        # Print the countdown, using '\r' to remain on the same line
+        print(f"Countdown: {'' if days < 0 else str(days) + ' days,'} {'' if hours < 0 else str(hours) + ' hours,'} {'' if minutes < 0 else str(minutes) + ' minutes,'} {seconds} seconds", end='\r')
 
         time.sleep(1)
