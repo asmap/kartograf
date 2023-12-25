@@ -1,6 +1,8 @@
 import codecs
+from datetime import datetime, timezone
 import os
 import pathlib
+from typing import Dict
 
 from kartograf.bogon import is_bogon_pfx, is_bogon_asn
 from kartograf.timed import timed
@@ -15,7 +17,7 @@ def parse_irr(context):
                  if os.path.isfile(path)
                  and (os.path.splitext(path)[1] != ".gz")]
 
-    all_rir_list = []
+    output_cache: Dict[str, str] = {}
 
     for file in irr_files:
         print(f"Parsing {file}")
@@ -28,7 +30,6 @@ def parse_irr(context):
 
         entry_list = []
         current_entry = dict()
-        result = []
 
         # Parse the RPSL objects in the IRR DB into Python Dicts
         for line in lines:
@@ -41,8 +42,7 @@ def parse_irr(context):
                     current_entry[k.strip()] = v.strip()
 
         for entry in entry_list:
-            # if "route" and "origin" and "source" in entry:
-            is_complete = all(k in entry for k in ("origin", "source"))
+            is_complete = all(k in entry for k in ("origin", "source", "last-modified"))
             has_route = any(k in entry for k in ("route", "route6"))
             if is_complete and has_route:
                 # Some RIRs mirror some other RIRs in their DBs, ignore the
@@ -58,20 +58,38 @@ def parse_irr(context):
                     else:
                         continue
 
+                    last_modified = datetime.strptime(entry["last-modified"], '%Y-%m-%dT%H:%M:%SZ')
+                    last_modified = last_modified.replace(tzinfo=timezone.utc)
+                    last_modified = last_modified.timestamp()
+
                     # Bogon prefixes and ASNs are excluded since they can not
                     # be used for routing.
                     if is_bogon_pfx(route) or is_bogon_asn(origin):
                         continue
 
-                    result.append(f'{route} {origin}')
+                    # There are dublicates and multiple entries for some
+                    # prefixes in the IRR DBs, so we need to deal with them
+                    # here.
+                    if output_cache.get(route):
+                        [old_origin, old_last_modified] = output_cache[route]
 
-        print("Found valid entries:", len(result))
+                        # If there are two entries for the same prefix, we
+                        # prefer the one with the newer last-modified date.
+                        if int(last_modified) > int(old_last_modified):
+                            output_cache[route] = [origin, last_modified]
 
-        all_rir_list += result
+                        # If the last-modified date is the same, we use the
+                        # lower ASN as a deterministic tie-breaker.
+                        if int(last_modified) == int(old_last_modified):
+                            if int(origin[2:]) < int(old_origin[2:]):
+                                output_cache[route] = [origin, last_modified]
 
-    # There are some dublicates. Unclear why but it's only a small number.
-    uniq_rir_list = set(all_rir_list)
+                    else:
+                        output_cache[route] = [origin, last_modified]
+
+    print("Found valid, unique entries:", len(output_cache))
 
     with open(irr_res, "a+") as irr:
-        for r in uniq_rir_list:
-            irr.write(r + "\n")
+        for route, [origin, _] in output_cache.items():
+            line_out = f"{route} {origin}\n"
+            irr.write(line_out)
