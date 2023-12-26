@@ -5,15 +5,12 @@ and IRR as the secondary data source. IRR data is only used if the RPKI data
 does not cover the respective IP space.
 """
 
-__author__ = "Fabian Jahr"
-__version__ = "0.3.2"
-__license__ = "MIT"
-
 import argparse
 import os
 import sys
 
 from kartograf.kartograf import Kartograf
+import kartograf
 
 
 if __name__ == "__main__":
@@ -76,7 +73,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "--version",
         action="version",
-        version="%(prog)s (version {version})".format(version=__version__))
+        version="%(prog)s (version {version})".format(version=kartograf.__version__))
 
     args = parser.parse_args()
 

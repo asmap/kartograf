@@ -3,6 +3,7 @@ from datetime import timezone
 import shutil
 import time
 
+from . import __version__
 from kartograf.context import Context
 from kartograf.coverage import coverage
 from kartograf.collectors.routeviews import extract_routeviews_pfx2as, fetch_routeviews_pfx2as
@@ -25,6 +26,7 @@ class Kartograf:
     @staticmethod
     def map(args):
         print_section_header("Start Kartograf")
+        print("Kartograf version:", __version__)
         check_compatibility()
 
         if args.wait:
