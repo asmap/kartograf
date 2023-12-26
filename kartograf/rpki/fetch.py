@@ -3,6 +3,7 @@ import os
 import pathlib
 import requests
 import subprocess
+from tqdm import tqdm
 
 from kartograf.timed import timed
 
@@ -83,7 +84,7 @@ def validate_rpki_db(context):
                               capture_output=True).stdout
 
     with ThreadPoolExecutor() as executor:
-        results = executor.map(process_file, files)
+        results = list(tqdm(executor.map(process_file, files), total=len(files)))
 
     json_results = [result.decode() for result in results if result]
 
