@@ -1,5 +1,6 @@
 from kartograf.bogon import is_bogon_pfx, is_bogon_asn
 from kartograf.timed import timed
+from kartograf.util import format_pfx
 
 
 @timed
@@ -18,6 +19,7 @@ def parse_routeviews_pfx2as(context):
             if ',' not in line and '_' not in line:
                 # Still need to check for bogons
                 prefix, asn = line.split(" ")
+                prefix = format_pfx(prefix)
                 asn = asn.upper().rstrip('\n')
                 if not is_bogon_pfx(prefix) and not is_bogon_asn(asn):
                     clean.write(f"{prefix} {asn}\n")
@@ -38,6 +40,7 @@ def parse_routeviews_pfx2as(context):
             # Bogon prefixes and ASNs are excluded since they can not be used
             # for routing.
             prefix, asn = line.split(" ")
+            prefix = format_pfx(prefix)
             asn = asn.upper().rstrip('\n')
             if is_bogon_pfx(prefix) or is_bogon_asn(asn):
                 continue

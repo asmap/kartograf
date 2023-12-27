@@ -1,4 +1,5 @@
 import hashlib
+import ipaddress
 import re
 import subprocess
 import time
@@ -88,3 +89,18 @@ def wait_for_launch(wait):
         print(f"Countdown: {'' if days < 0 else str(days) + ' days,'} {'' if hours < 0 else str(hours) + ' hours,'} {'' if minutes < 0 else str(minutes) + ' minutes,'} {seconds} seconds", end='\r')
 
         time.sleep(1)
+
+
+def format_pfx(pfx):
+    """
+    We have seen some formatting issues like leading zeros in the prefix,
+    which can cause problems.
+    """
+    try:
+        if '/' in pfx:
+            formatted_pfx = str(ipaddress.ip_network(pfx))
+            return f"{formatted_pfx}"
+        else:
+            return str(ipaddress.ip_address(pfx))
+    except ValueError:
+        return pfx

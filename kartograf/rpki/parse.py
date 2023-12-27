@@ -3,6 +3,7 @@ from typing import Dict
 
 from kartograf.bogon import is_bogon_pfx, is_bogon_asn
 from kartograf.timed import timed
+from kartograf.util import format_pfx
 
 
 @timed
@@ -50,7 +51,7 @@ def parse_rpki(context):
             valid_since = roa['valid_since']
 
             for vrp in roa['vrps']:
-                prefix = vrp['prefix']
+                prefix = format_pfx(vrp['prefix'])
                 asn = vrp['asid']
 
                 # Bogon prefixes and ASNs are excluded since they can not

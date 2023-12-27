@@ -6,7 +6,7 @@ from typing import Dict
 
 from kartograf.bogon import is_bogon_pfx, is_bogon_asn
 from kartograf.timed import timed
-from kartograf.util import rir_from_str
+from kartograf.util import format_pfx, rir_from_str
 
 
 @timed
@@ -57,6 +57,8 @@ def parse_irr(context):
                         route = entry["route6"]
                     else:
                         continue
+
+                    route = format_pfx(route)
 
                     last_modified = datetime.strptime(entry["last-modified"], '%Y-%m-%dT%H:%M:%SZ')
                     last_modified = last_modified.replace(tzinfo=timezone.utc)
