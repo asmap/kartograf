@@ -38,10 +38,13 @@ def sort_result_by_pfx(context):
     sorted_out_file = f"{context.out_dir}merged_file_sorted.txt"
     with open(sorted_out_file, "w") as file:
         for is_ipv6, net_int, neg_prefixlen, asn in sortable_prefixes:
+            prefixlen = -neg_prefixlen
             if is_ipv6:
-                net = ipaddress.IPv6Address(net_int)
+                net_address = ipaddress.IPv6Address(net_int)
+                net = ipaddress.IPv6Network((net_address, prefixlen))
             else:
-                net = ipaddress.IPv4Address(net_int)
-            file.write(f'{str(net)}/{-neg_prefixlen} {asn}\n')
+                net_address = ipaddress.IPv4Address(net_int)
+                net = ipaddress.IPv4Network((net_address, prefixlen))
+            file.write(f'{str(net)} {asn}\n')
 
     shutil.copy2(sorted_out_file, context.final_result_file)
