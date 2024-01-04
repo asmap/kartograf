@@ -86,7 +86,10 @@ def wait_for_launch(wait):
         days, hours, minutes, seconds = int(days), int(hours), int(minutes), int(seconds)
 
         # Print the countdown, using '\r' to remain on the same line
-        print(f"Countdown: {'' if days < 0 else str(days) + ' days,'} {'' if hours < 0 else str(hours) + ' hours,'} {'' if minutes < 0 else str(minutes) + ' minutes,'} {seconds} seconds", end='\r')
+        print(f"Countdown:{'' if days <= 0 else ' ' + str(days) + ' day(s),'}"
+              f"{'' if hours <= 0 else ' ' + str(hours) + ' hour(s),'}"
+              f"{'' if minutes <= 0 else ' ' + str(minutes) + ' minute(s),'}"
+              f" {seconds} second(s)".ljust(80), end='\r')
 
         time.sleep(1)
 
