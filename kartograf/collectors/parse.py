@@ -1,4 +1,8 @@
-from kartograf.bogon import is_bogon_pfx, is_bogon_asn
+from kartograf.bogon import (
+    is_bogon_pfx,
+    is_bogon_asn,
+    is_out_of_encoding_range,
+)
 from kartograf.timed import timed
 from kartograf.util import format_pfx
 
@@ -21,9 +25,14 @@ def parse_routeviews_pfx2as(context):
                 prefix, asn = line.split(" ")
                 prefix = format_pfx(prefix)
                 asn = asn.upper().rstrip('\n')
-                if not is_bogon_pfx(prefix) and not is_bogon_asn(asn):
-                    clean.write(f"{prefix} {asn}\n")
 
+                if context.max_encode and is_out_of_encoding_range(asn, context.max_encode):
+                    continue
+
+                if is_bogon_pfx(prefix) or is_bogon_asn(asn):
+                    continue
+
+                clean.write(f"{prefix} {asn}\n")
                 continue
 
             # If the line contains a mulit-origin route (signified by the _)
@@ -42,7 +51,11 @@ def parse_routeviews_pfx2as(context):
             prefix, asn = line.split(" ")
             prefix = format_pfx(prefix)
             asn = asn.upper().rstrip('\n')
+
             if is_bogon_pfx(prefix) or is_bogon_asn(asn):
+                continue
+
+            if context.max_encode and is_out_of_encoding_range(asn, context.max_encode):
                 continue
 
             clean.write(f"{prefix} {asn}\n")

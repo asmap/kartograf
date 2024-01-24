@@ -37,6 +37,10 @@ if __name__ == "__main__":
     # Waits until the provided epoch is reached before starting the map
     parser_map.add_argument("-w", "--wait", type=str, default=None)
 
+    # Ignore ASNs too high to be compatible with the current asmap encoder
+    # Set to 0 to disable
+    parser_map.add_argument("-me", "--max_encode", type=int, default=33521664)
+
     # TODO:
     # Save the final output file in a different location that the default out
     # folder
