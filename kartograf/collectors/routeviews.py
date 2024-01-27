@@ -7,6 +7,7 @@ from bs4 import BeautifulSoup
 import requests
 
 from kartograf.timed import timed
+from kartograf.util import calculate_sha256
 
 # Routeviews Prefix to AS mappings Dataset for IPv4 and IPv6
 # https://www.caida.org/catalog/datasets/routeviews-prefix2as/
@@ -56,11 +57,10 @@ def year_and_month(now):
 
 
 def download(url, file):
-    print(f'Downloading {url}')
-    gz_file = file + ".gz"
+    print(f'Downloading from {url}')
 
     response = requests.get(url, stream=True, timeout=300)
-    with open(gz_file, 'wb') as gz:
+    with open(file, 'wb') as gz:
         for chunk in response.iter_content(chunk_size=8192):
             gz.write(chunk)
 
@@ -88,11 +88,13 @@ def extract(file, context):
 @timed
 def fetch_routeviews_pfx2as(context):
     path = context.data_dir_collectors
-    v4_file = f'{path}routeviews_pfx2asn_ip4.txt'
-    v6_file = f'{path}routeviews_pfx2asn_ip6.txt'
+    v4_file_gz = f'{path}routeviews_pfx2asn_ip4.txt.gz'
+    v6_file_gz = f'{path}routeviews_pfx2asn_ip6.txt.gz'
 
-    download(latest_link(PFX2AS_V4), v4_file)
-    download(latest_link(PFX2AS_V6), v6_file)
+    download(latest_link(PFX2AS_V4), v4_file_gz)
+    print(f"Downloaded {v4_file_gz}, file hash: {calculate_sha256(v4_file_gz)}")
+    download(latest_link(PFX2AS_V6), v6_file_gz)
+    print(f"Downloaded {v6_file_gz}, file hash: {calculate_sha256(v6_file_gz)}")
 
 
 def extract_routeviews_pfx2as(context):

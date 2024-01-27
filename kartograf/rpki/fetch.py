@@ -6,6 +6,10 @@ import subprocess
 from tqdm import tqdm
 
 from kartograf.timed import timed
+from kartograf.util import (
+    calculate_sha256,
+    calculate_sha256_directory,
+)
 
 TAL_URLS = {
     "afrinic": "http://rpki.afrinic.net/tal/afrinic.tal",
@@ -28,7 +32,7 @@ def download_rir_tals(context):
             with open(tal_path, 'wb') as file:
                 file.write(response.content)
 
-            print(f"Downloaded TAL for {rir.upper()} to {tal_path}")
+            print(f"Downloaded TAL for {rir.upper()} to {tal_path}, file hash: {calculate_sha256(tal_path)}")
             tals.append(tal_path)
 
         except requests.RequestException as e:
@@ -51,11 +55,13 @@ def fetch_rpki_db(context):
     # Download TALs and presist them in the RPKI data folder
     download_rir_tals(context)
     tal_options = [item for path in data_tals(context) for item in ('-t', path)]
-    print("Downloading RPKI Data")
+    print("Downloading RPKI Data, this may take a while.")
     subprocess.run(["rpki-client",
                     "-d", context.data_dir_rpki_cache
                     ] + tal_options,
                    capture_output=True)
+
+    print(f"Downloaded RPKI Data, hash sum: {calculate_sha256_directory(context.data_dir_rpki_cache)}")
 
 
 @timed
@@ -93,4 +99,4 @@ def validate_rpki_db(context):
         res_file.write(",".join(json_results))
         res_file.write("]")
 
-    print(f"{len(json_results)} RKPI ROAs validated and saved to {result_path}")
+    print(f"{len(json_results)} RKPI ROAs validated and saved to {result_path}, file hash: {calculate_sha256(result_path)}")

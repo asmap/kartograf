@@ -3,6 +3,7 @@ import gzip
 import shutil
 
 from kartograf.timed import timed
+from kartograf.util import calculate_sha256
 
 IRR_FILE_ADDRESSES = [
     # AFRINIC
@@ -39,6 +40,8 @@ def fetch_irr(context):
             pass
 
         ftp.close()
+
+        print(f"Downloaded {file_name}, file hash: {calculate_sha256(local_file_path)}")
 
 
 def extract_irr(context):
