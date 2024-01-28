@@ -1,6 +1,7 @@
 from ftplib import FTP
 import gzip
 import shutil
+import time
 
 from kartograf.timed import timed
 from kartograf.util import calculate_sha256
@@ -23,25 +24,36 @@ IRR_FILE_ADDRESSES = [
 
 @timed
 def fetch_irr(context):
+    max_retries = 5
+    retry_delay = 2  # Seconds
+
     for ftp_file in IRR_FILE_ADDRESSES:
         host, ftp_file_path = ftp_file.split("/", 1)
         path, file_name = ftp_file_path.rsplit("/", 1)
-        ftp = FTP(host)
-        ftp.login()
-        ftp.cwd(path)
+
+        local_file_path = context.data_dir_irr + file_name
+        attempt = 0
 
         print("Downloading " + file_name)
-        local_file_path = context.data_dir_irr + file_name
+        while attempt < max_retries:
+            try:
+                with FTP(host) as ftp:
+                    ftp.login()
+                    ftp.cwd(path)
 
-        try:
-            with open(local_file_path, 'wb') as f:
-                ftp.retrbinary("RETR " + file_name, f.write)
-        except EOFError:
-            pass
+                    with open(local_file_path, 'wb') as f:
+                        ftp.retrbinary("RETR " + file_name, f.write)
 
-        ftp.close()
+                    print(f"Downloaded {file_name}, file hash: {calculate_sha256(local_file_path)}")
+                    break
 
-        print(f"Downloaded {file_name}, file hash: {calculate_sha256(local_file_path)}")
+            except EOFError:
+                print(f"Connection lost while downloading {file_name}. Retrying... (Attempt {attempt + 1}/{max_retries})")
+                attempt += 1
+                time.sleep(retry_delay)
+
+        if attempt == max_retries:
+            raise Exception(f"Fatal: Failed to download {file_name} after {max_retries} attempts.")
 
 
 def extract_irr(context):
