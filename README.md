@@ -42,7 +42,7 @@ $ brew install rpki-client
 
 #### Python dependencies
 
-Python versions 3.10 and 3.11 have both been tested with Kartograf.
+Python versions 3.10, 3.11 and 3.12 have been tested with Kartograf.
 
 You can use `pip3` to install required Python packages:
 
