@@ -1,3 +1,4 @@
 data/*
 out/*
 __pycache__/
+venv/*
