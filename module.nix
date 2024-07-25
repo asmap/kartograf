@@ -17,7 +17,7 @@ in
 {
   options.services.kartograf = {
     enable = mkEnableOption "kartograf";
-    clean = mkEnableOption "cleaning up of temporarty artifacts after processing." // { default = true; };
+    clean = mkEnableOption "cleaning up of temporary artifacts after processing." // { default = true; };
     silent = mkEnableOption "silencing output (suppresses pandarallel's progress_bar)." // { default = true; };
     useIRR = mkEnableOption "using Internet Routing Registry (IRR) data" // { default = true; };
     useRV = mkEnableOption "using RouteViews (RV) data" // { default = true; };
