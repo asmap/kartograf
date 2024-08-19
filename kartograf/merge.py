@@ -14,7 +14,7 @@ def merge_irr(context):
     irr_filtered_file = f'{context.out_dir_irr}irr_filtered.txt'
     out_file = f"{context.out_dir}merged_file_rpki_irr.txt"
 
-    general_merge(rpki_file, irr_file, irr_filtered_file, out_file)
+    general_merge(rpki_file, irr_file, irr_filtered_file, out_file, context.args.silent, context.args.workers)
     shutil.copy2(out_file, context.final_result_file)
 
 
@@ -32,12 +32,13 @@ def merge_pfx2as(context):
     rv_file = f'{context.out_dir_collectors}pfx2asn_clean.txt'
     rv_filtered_file = f'{context.out_dir_collectors}pfx2asn_filtered.txt'
 
-    general_merge(base_file, rv_file, rv_filtered_file, out_file)
+    general_merge(base_file, rv_file, rv_filtered_file, out_file, context.args.silent, context.args.workers)
     shutil.copy2(out_file, context.final_result_file)
 
 
-def general_merge(base_file, extra_file, extra_filtered_file, out_file):
-    pandarallel.initialize(progress_bar=True, verbose=0)
+def general_merge(base_file, extra_file, extra_filtered_file, out_file, silent=False, num_workers=0):
+    extra_kwargs = {'nb_workers': num_workers} if num_workers > 0 else {}
+    pandarallel.initialize(progress_bar=not silent, verbose=0, **extra_kwargs)
 
     print("Parse base file to numpy arrays")
     base_nets = []

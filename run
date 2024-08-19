@@ -52,9 +52,11 @@ if __name__ == "__main__":
     # services.
     # parser_map.add_argument("-f", "--announced_filter", action="store_true", default=False)
 
-    # TODO:
-    # Don't log progress and statistics
-    # parser_map.add_argument("-s", "--silent", action="store_true", default=False)
+    # Reduce log output (for now, affects only progress_bar in general_merge)
+    parser_map.add_argument("-s", "--silent", action="store_true", default=False)
+
+    # Number of workers to use for pandarallel
+    parser_map.add_argument("-p", "--workers", type=int, default=0)
 
     # TODO:
     # Include multiple ASNs that validate correctly for the same prefix.
