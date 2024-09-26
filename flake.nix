@@ -2,7 +2,7 @@
   description = "An IP-to-AS mapping tool.";
 
   inputs = {
-    nixpkgs.url = "github:NixOS/nixpkgs/nixos-23.11";
+    nixpkgs.url = "github:NixOS/nixpkgs/nixos-24.05";
     utils.url = "github:numtide/flake-utils";
     # the rpki-client binary will be built from the flake at this URL.
     rpki-cli.url = "github:asmap/rpki-client-nix";
