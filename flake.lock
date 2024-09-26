@@ -49,13 +49,13 @@
       "locked": {
         "lastModified": 1724097265,
         "narHash": "sha256-nVQLVgCKpEfCyFDyQT8TVLBBkY12MVtnJyT9E5qCWPc=",
-        "owner": "fjahr",
+        "owner": "asmap",
         "repo": "rpki-client-nix",
         "rev": "cf9c7238ee751a7924e63ecde1ed2eb7595c9146",
         "type": "github"
       },
       "original": {
-        "owner": "fjahr",
+        "owner": "asmap",
         "repo": "rpki-client-nix",
         "type": "github"
       }
