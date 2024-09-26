@@ -5,7 +5,7 @@
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-23.11";
     utils.url = "github:numtide/flake-utils";
     # the rpki-client binary will be built from the flake at this URL.
-    rpki-cli.url = "github:fjahr/rpki-client-nix";
+    rpki-cli.url = "github:asmap/rpki-client-nix";
   };
 
   outputs = {
@@ -55,7 +55,7 @@
       # * A development shell containing the rpki-client and the necessary
       #   Python env and packages to run kartograf. To use, run 'nix develop'
       #   in the current directory.
-      # * A default/kartograf package 
+      # * A default/kartograf package
       # * A NixOS module
       devShell = pkgs.mkShell {
         packages = kartografDeps;
