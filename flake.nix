@@ -86,7 +86,7 @@
           meta = with pkgs.lib; {
             description = "Kartograf: IP to ASN mapping for everyone";
             license = licenses.mit;
-            homepage = "https://github.com/fjahr/kartograf";
+            homepage = "https://github.com/asmap/kartograf";
           };
         };
         default = self.packages.${system}.kartograf;
