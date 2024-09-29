@@ -84,4 +84,7 @@ class Context:
 
         self.max_encode = self.args.max_encode
 
-        self.debug_log = f"{self.out_dir}debug.log"
+        if self.args.debug:
+            self.debug_log = f"{self.out_dir}debug.log"
+        else:
+            self.debug_log = ""

@@ -57,13 +57,20 @@ def fetch_rpki_db(context):
     download_rir_tals(context)
     tal_options = [item for path in data_tals(context) for item in ('-t', path)]
     print("Downloading RPKI Data, this may take a while.")
-    with open(context.debug_log, 'a') as logs:
-        logs.write("=== RPKI Download ===\n")
+    if context.debug_log:
+        with open(context.debug_log, 'a') as logs:
+            logs.write("=== RPKI Download ===\n")
+            logs.flush()  # Without this the line above is not appearing first in the logs
+            subprocess.run(["rpki-client",
+                            "-d", context.data_dir_rpki_cache
+                            ] + tal_options,
+                           stdout=logs,
+                           stderr=logs)
+    else:
         subprocess.run(["rpki-client",
                         "-d", context.data_dir_rpki_cache
                         ] + tal_options,
-                       stdout=logs,
-                       stderr=logs)
+                       capture_output=True)
 
     print(f"Downloaded RPKI Data, hash sum: {calculate_sha256_directory(context.data_dir_rpki_cache)}")
 
@@ -83,30 +90,32 @@ def validate_rpki_db(context):
 
     debug_file_lock = Lock()
 
-    with open(context.debug_log, 'a') as logs:
-        logs.write("\n\n=== RPKI Validation ===\n")
+    if context.debug_log:
+        with open(context.debug_log, 'a') as logs:
+            logs.write("\n\n=== RPKI Validation ===\n")
 
-        def process_file(file):
-            result = subprocess.run(["rpki-client",
-                                     "-j",
-                                     "-n",
-                                     "-d",
-                                     context.data_dir_rpki_cache,
-                                     "-P",
-                                     context.epoch,
-                                     ] + tal_options +
-                                     ["-f", file],  # -f has to be last
-                                     capture_output=True)
+    def process_file(file):
+        result = subprocess.run(["rpki-client",
+                                 "-j",
+                                 "-n",
+                                 "-d",
+                                 context.data_dir_rpki_cache,
+                                 "-P",
+                                 context.epoch,
+                                 ] + tal_options +
+                                 ["-f", file],  # -f has to be last
+                                 capture_output=True)
 
-            if result.stderr:
-                stderr_output = result.stderr.decode()
-                with debug_file_lock:
+        if result.stderr and context.debug_log:
+            stderr_output = result.stderr.decode()
+            with debug_file_lock:
+                with open(context.debug_log, 'a') as logs:
                     logs.write(f'\nfile: {file}\n')
                     logs.write(stderr_output)
-            return result.stdout
+        return result.stdout
 
-        with ThreadPoolExecutor() as executor:
-            results = list(tqdm(executor.map(process_file, files), total=len(files)))
+    with ThreadPoolExecutor() as executor:
+        results = list(tqdm(executor.map(process_file, files), total=len(files)))
 
     json_results = [result.decode() for result in results if result]
 
