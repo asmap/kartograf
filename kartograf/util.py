@@ -1,3 +1,4 @@
+import asyncio
 import hashlib
 import ipaddress
 import os
@@ -87,8 +88,14 @@ def check_compatibility():
         raise Exception(exception_msg)
 
 
-def wait_for_launch(wait):
+async def wait_for_launch(wait, warmup_function):
     wait = int(wait)
+    warmup = None
+    warmup_running = False
+    cache_filled = False
+    cache_msg = "Cache not filled."
+
+    loop = asyncio.get_event_loop()
 
     while True:
         current_time = time.time()
@@ -107,9 +114,19 @@ def wait_for_launch(wait):
         print(f"Countdown:{'' if days <= 0 else ' ' + str(days) + ' day(s),'}"
               f"{'' if hours <= 0 else ' ' + str(hours) + ' hour(s),'}"
               f"{'' if minutes <= 0 else ' ' + str(minutes) + ' minute(s),'}"
-              f" {seconds} second(s)".ljust(80), end='\r')
+              f" {seconds} second(s). {cache_msg}".ljust(80), end='\r')
 
-        time.sleep(1)
+        if warmup_running and warmup is not None:
+            if warmup.returncode is not None:
+                cache_msg = "Cache filled!"
+                warmup_running = False
+
+        if remaining < 1800 and not warmup_running and warmup is None:
+            warmup = await warmup_function()
+            warmup_running = True
+            cache_msg = "Cache warming up!"
+
+        await asyncio.sleep(1)
 
 
 def format_pfx(pfx):

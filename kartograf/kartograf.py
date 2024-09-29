@@ -1,3 +1,4 @@
+import asyncio
 import datetime
 from datetime import timezone
 import shutil
@@ -11,7 +12,11 @@ from kartograf.collectors.parse import parse_routeviews_pfx2as
 from kartograf.irr.fetch import extract_irr, fetch_irr
 from kartograf.irr.parse import parse_irr
 from kartograf.merge import merge_irr, merge_pfx2as, general_merge
-from kartograf.rpki.fetch import fetch_rpki_db, validate_rpki_db
+from kartograf.rpki.fetch import (
+    fetch_rpki_db,
+    validate_rpki_db,
+    warmup_rpki_cache
+)
 from kartograf.rpki.parse import parse_rpki
 from kartograf.sort import sort_result_by_pfx
 from kartograf.util import (
@@ -28,6 +33,7 @@ class Kartograf:
         print_section_header("Start Kartograf")
         print("Kartograf version:", __version__)
         check_compatibility()
+        context = Context(args)
 
         if args.wait:
             wait_epoch = datetime.datetime.utcfromtimestamp(int(args.wait))
@@ -36,12 +42,11 @@ class Kartograf:
             print(f"Coordinated launch mode: Waiting until {args.wait} "
                   f"({local_wait_epoch.strftime('%Y-%m-%d %H:%M:%S %Z')}) to "
                   "launch mapping process.")
-            wait_for_launch(args.wait)
+            asyncio.run(wait_for_launch(args.wait, lambda: warmup_rpki_cache(context)))
 
         # This is used to measure the overall runtime of the program
         start_time = time.time()
 
-        context = Context(args)
         utc_datetime = context.epoch_datetime.replace(tzinfo=timezone.utc)
         local_datetime = utc_datetime.astimezone()
         print(f"The epoch for this run is: {context.epoch} "

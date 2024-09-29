@@ -1,4 +1,5 @@
 from concurrent.futures import ThreadPoolExecutor
+import asyncio
 import os
 import pathlib
 import requests
@@ -20,7 +21,7 @@ TAL_URLS = {
 }
 
 
-def download_rir_tals(context):
+def download_rir_tals(context, silent=False):
     tals = []
 
     for rir, url in TAL_URLS.items():
@@ -32,7 +33,8 @@ def download_rir_tals(context):
             with open(tal_path, 'wb') as file:
                 file.write(response.content)
 
-            print(f"Downloaded TAL for {rir.upper()} to {tal_path}, file hash: {calculate_sha256(tal_path)}")
+            if not silent:
+                print(f"Downloaded TAL for {rir.upper()} to {tal_path}, file hash: {calculate_sha256(tal_path)}")
             tals.append(tal_path)
 
         except requests.RequestException as e:
@@ -48,6 +50,18 @@ def data_tals(context):
     else:
         print("Not all 5 TALs could be downloaded.")
         exit(1)
+
+
+async def warmup_rpki_cache(context):
+    download_rir_tals(context, silent=True)
+    tal_options = [item for path in data_tals(context) for item in ('-t', path)]
+    return await asyncio.create_subprocess_exec(
+        "rpki-client",
+        "-d", context.data_dir_rpki_cache,
+        *tal_options,
+        stdout=asyncio.subprocess.DEVNULL,
+        stderr=asyncio.subprocess.DEVNULL
+    )
 
 
 @timed
