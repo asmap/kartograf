@@ -41,15 +41,15 @@
       kartografDeps = [
         rpki-cli.defaultPackage.${system}
         (pkgs.python311.withPackages (ps: [
-          ps.pandas
           ps.beautifulsoup4
           ps.numpy
+          ps.pandas
+          ps.pytest
           ps.requests
           ps.tqdm
           pandarallel
         ]))
       ];
-
     in {
       # This flake exposes the following attributes:
       # * A development shell containing the rpki-client and the necessary
@@ -58,7 +58,7 @@
       # * A default/kartograf package
       # * A NixOS module
       devShell = pkgs.mkShell {
-        packages = kartografDeps;
+        packages = kartografDeps ++ [pkgs.python311Packages.autopep8];
       };
       packages = {
         kartograf = pkgs.stdenv.mkDerivation { # not a python-installable package, so just manually copy files

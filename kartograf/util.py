@@ -4,6 +4,9 @@ import os
 import re
 import subprocess
 import time
+import json
+
+RPKI_VERSION = 9.3
 
 
 def calculate_sha256(file_path):
@@ -51,40 +54,58 @@ def rir_from_str(maybe_rir):
     raise Exception("No RIR found in String")
 
 
-def check_compatibility():
-    exception_msg = "Could not determine rpki-client version. Is it installed?"
-
+def get_rpki_wanted_version():
+    """Return the rpki-client version defined in the Nix environment"""
+    rpki_path = subprocess.check_output(["which", "rpki-client"]).decode().strip()
     try:
-        result = subprocess.run(['rpki-client', '-V'],
-                                capture_output=True,
-                                text=True,
-                                check=True)
+        derivation = subprocess.check_output(["nix", "derivation", "show", rpki_path])
+        derivation_env = json.loads(derivation).values()
+        rpki_version = list(derivation_env)[0].get("env").get("version")
+        return float(rpki_version)
+    except BaseException:
+        return None
+
+
+def get_rpki_local_version():
+    """Return the rpki-client version in the user's path"""
+    exception_msg = "Could not determine rpki-client version. Is it installed?"
+    try:
+        result = subprocess.run(
+            ["rpki-client", "-V"], capture_output=True, text=True, check=True
+        )
 
         # On OpenBSD the result should include 'rpki-client', everywhere else
         # it should be 'rpki-client-portable'.
-        version_match = re.search(r'rpki-client(?:-portable)? (\d+\.\d+)',
-                                  result.stderr)
+        version_match = re.search(
+            r"rpki-client(?:-portable)? (\d+\.\d+)", result.stderr
+        )
         if version_match:
             version = version_match.group(1)
-            version_number = float(version)
-            latest_version = 9.1
-
-            if version_number < 8.4:
-                raise Exception("Error: rpki-client version 8.4 or higher is "
-                                "required.")
-            elif version_number == latest_version:
-                print(f"Using rpki-client version {version} (recommended).")
-            elif version_number > latest_version:
-                print("Warning: This kartograf version has not been tested with "
-                      f"rpki-client versions higher than {latest_version}.")
-            else:
-                print(f"Using rpki-client version {version}. Please beware that running with the latest tested version ({latest_version}) is recommend.")
-
+            return float(version)
         else:
             raise Exception(exception_msg)
 
     except subprocess.CalledProcessError:
         raise Exception(exception_msg)
+
+
+def check_compatibility():
+    local_version = get_rpki_local_version()
+    latest_version = RPKI_VERSION
+
+    if local_version < 8.4:
+        raise Exception("Error: rpki-client version 8.4 or higher is " "required.")
+    elif local_version == latest_version:
+        print(f"Using rpki-client version {local_version} (recommended).")
+    elif local_version > latest_version:
+        print(
+            "Warning: This kartograf version has not been tested with "
+            f"rpki-client versions higher than {latest_version}."
+        )
+    else:
+        print(
+            f"Using rpki-client version {local_version}. Please beware that running with the latest tested version ({latest_version}) is recommend."
+        )
 
 
 def wait_for_launch(wait):
@@ -101,13 +122,21 @@ def wait_for_launch(wait):
         days, remainder = divmod(remaining, 86400)
         hours, remainder = divmod(remainder, 3600)
         minutes, seconds = divmod(remainder, 60)
-        days, hours, minutes, seconds = int(days), int(hours), int(minutes), int(seconds)
+        days, hours, minutes, seconds = (
+            int(days),
+            int(hours),
+            int(minutes),
+            int(seconds),
+        )
 
         # Print the countdown, using '\r' to remain on the same line
-        print(f"Countdown:{'' if days <= 0 else ' ' + str(days) + ' day(s),'}"
-              f"{'' if hours <= 0 else ' ' + str(hours) + ' hour(s),'}"
-              f"{'' if minutes <= 0 else ' ' + str(minutes) + ' minute(s),'}"
-              f" {seconds} second(s)".ljust(80), end='\r')
+        print(
+            f"Countdown:{'' if days <= 0 else ' ' + str(days) + ' day(s),'}"
+            f"{'' if hours <= 0 else ' ' + str(hours) + ' hour(s),'}"
+            f"{'' if minutes <= 0 else ' ' + str(minutes) + ' minute(s),'}"
+            f" {seconds} second(s)".ljust(80),
+            end="\r",
+        )
 
         time.sleep(1)
 
@@ -118,7 +147,7 @@ def format_pfx(pfx):
     which can cause problems.
     """
     try:
-        if '/' in pfx:
+        if "/" in pfx:
             formatted_pfx = str(ipaddress.ip_network(pfx))
             return f"{formatted_pfx}"
         else:
