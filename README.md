@@ -54,6 +54,14 @@ $ pip3 install -r requirements.txt
 
 Kartograf has not been tested on Windows.
 
+#### Environment check
+
+To check whether you have all the dependencies required to use Kartograf, you can run the following from the root of the project directory:
+
+```
+python check.py
+```
+
 ## Usage
 
 ### Building IP prefix to ASN maps

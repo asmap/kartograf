@@ -38,18 +38,28 @@
           license = licenses.bsd3;
         };
       };
-      kartografDeps = [
-        rpki-cli.defaultPackage.${system}
-        (pkgs.python311.withPackages (ps: [
-          ps.pandas
-          ps.beautifulsoup4
-          ps.numpy
-          ps.requests
-          ps.tqdm
-          pandarallel
-        ]))
-      ];
 
+      rpki-client = rpki-cli.defaultPackage.${system};
+      pythonBuildDeps = pkgs.python311.withPackages (ps: [
+        ps.beautifulsoup4
+        ps.numpy
+        ps.pandas
+        ps.requests
+        ps.tqdm
+        pandarallel
+      ]);
+      pythonDevDeps = pkgs.python311.withPackages (ps: [
+        ps.beautifulsoup4
+        ps.numpy
+        ps.pandas
+        ps.requests
+        ps.tqdm
+        pandarallel
+      ]);
+      kartografDeps = [
+        pythonBuildDeps
+        rpki-client
+      ];
     in {
       # This flake exposes the following attributes:
       # * A development shell containing the rpki-client and the necessary
@@ -58,16 +68,17 @@
       # * A default/kartograf package
       # * A NixOS module
       devShells.default = pkgs.mkShell {
-        packages = kartografDeps;
+        packages = [rpki-client pythonDevDeps];
       };
       packages = {
-        kartograf = pkgs.stdenv.mkDerivation { # not a python-installable package, so just manually copy files
+        kartograf = pkgs.stdenv.mkDerivation {
+          # not a python-installable package, so just manually copy files
           pname = "kartograf";
           version = "1.0.0";
           src = ./.;
-          nativeBuildInputs = [ pkgs.makeWrapper ];
+          nativeBuildInputs = [pkgs.makeWrapper];
           buildInputs = kartografDeps;
-          propagatedBuildInputs = [ rpki-cli.defaultPackage.${system} ];
+          propagatedBuildInputs = [rpki-client];
           buildPhase = ''
             mkdir -p $out/lib/kartograf
             cp -r ${./kartograf}/* $out/lib/kartograf/
