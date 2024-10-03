@@ -18,16 +18,16 @@
     },
     "nixpkgs_2": {
       "locked": {
-        "lastModified": 1701156937,
-        "narHash": "sha256-jpMJOFvOTejx211D8z/gz0ErRtQPy6RXxgD2ZB86mso=",
+        "lastModified": 1727264057,
+        "narHash": "sha256-KQPI8CTTnB9CrJ7LrmLC4VWbKZfljEPBXOFGZFRpxao=",
         "owner": "NixOS",
         "repo": "nixpkgs",
-        "rev": "7c4c20509c4363195841faa6c911777a134acdf3",
+        "rev": "759537f06e6999e141588ff1c9be7f3a5c060106",
         "type": "github"
       },
       "original": {
         "owner": "NixOS",
-        "ref": "nixos-23.11",
+        "ref": "nixos-24.05",
         "repo": "nixpkgs",
         "type": "github"
       }
@@ -47,11 +47,11 @@
         "utils": "utils"
       },
       "locked": {
-        "lastModified": 1724097265,
-        "narHash": "sha256-nVQLVgCKpEfCyFDyQT8TVLBBkY12MVtnJyT9E5qCWPc=",
+        "lastModified": 1727388158,
+        "narHash": "sha256-WtNCxHZ7jtpZHEagvWMcyY4pHjFAHk9k/3Z0K3pJka8=",
         "owner": "asmap",
         "repo": "rpki-client-nix",
-        "rev": "cf9c7238ee751a7924e63ecde1ed2eb7595c9146",
+        "rev": "b9b68b6d4b8170213c741362797ea13029913222",
         "type": "github"
       },
       "original": {
@@ -63,34 +63,34 @@
     "rpki-client-src": {
       "flake": false,
       "locked": {
-        "lastModified": 1719147915,
-        "narHash": "sha256-QM3rjH264vpW/3Cfjv1O0sjC+jrwRV8uJAYsLWZxRmE=",
+        "lastModified": 1726775911,
+        "narHash": "sha256-pyyBVLamtwUQnGzULrOoRgI92fnJPVuyGZhwG6N52q0=",
         "owner": "rpki-client",
         "repo": "rpki-client-portable",
-        "rev": "a8aadf11866008666e17c65da76132659942fe2c",
+        "rev": "12c58dcd8f61d18567fda0689ba64cb4b8c70a2d",
         "type": "github"
       },
       "original": {
         "owner": "rpki-client",
         "repo": "rpki-client-portable",
-        "rev": "a8aadf11866008666e17c65da76132659942fe2c",
+        "rev": "12c58dcd8f61d18567fda0689ba64cb4b8c70a2d",
         "type": "github"
       }
     },
     "rpki-openbsd-src": {
       "flake": false,
       "locked": {
-        "lastModified": 1719126506,
-        "narHash": "sha256-YfOxKHbe5+H+Uv2ecQYcYX6gxk+ii2Zr9NSGuCElFwg=",
+        "lastModified": 1726753507,
+        "narHash": "sha256-MU/lO3Pa7aOs8xqB24cwlPfd4B2/aR8/BewEiqS/WVY=",
         "owner": "rpki-client",
         "repo": "rpki-client-openbsd",
-        "rev": "a59ae351b4f900cf90b01e755118290047fcdb28",
+        "rev": "dfa32b728c451dab0c97c854fbe23bc7b9be25ad",
         "type": "github"
       },
       "original": {
         "owner": "rpki-client",
         "repo": "rpki-client-openbsd",
-        "rev": "a59ae351b4f900cf90b01e755118290047fcdb28",
+        "rev": "dfa32b728c451dab0c97c854fbe23bc7b9be25ad",
         "type": "github"
       }
     },
