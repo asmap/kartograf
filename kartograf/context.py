@@ -83,3 +83,8 @@ class Context:
         self.final_result_file = f"{self.out_dir}final_result.txt"
 
         self.max_encode = self.args.max_encode
+
+        if self.args.debug:
+            self.debug_log = f"{self.out_dir}debug.log"
+        else:
+            self.debug_log = ""
