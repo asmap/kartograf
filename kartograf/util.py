@@ -67,7 +67,7 @@ def check_compatibility():
         if version_match:
             version = version_match.group(1)
             version_number = float(version)
-            latest_version = 9.1
+            latest_version = 9.3
 
             if version_number < 8.4:
                 raise Exception("Error: rpki-client version 8.4 or higher is "
