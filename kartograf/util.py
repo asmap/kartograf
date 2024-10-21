@@ -54,18 +54,6 @@ def rir_from_str(maybe_rir):
     raise Exception("No RIR found in String")
 
 
-def get_rpki_wanted_version():
-    """Return the rpki-client version defined in the Nix environment"""
-    rpki_path = subprocess.check_output(["which", "rpki-client"]).decode().strip()
-    try:
-        derivation = subprocess.check_output(["nix", "derivation", "show", rpki_path])
-        derivation_env = json.loads(derivation).values()
-        rpki_version = list(derivation_env)[0].get("env").get("version")
-        return float(rpki_version)
-    except BaseException:
-        return None
-
-
 def get_rpki_local_version():
     """Return the rpki-client version in the user's path"""
     exception_msg = "Could not determine rpki-client version. Is it installed?"
