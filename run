@@ -88,13 +88,14 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
-    if args.reproduce and not args.epoch:
-        parser.error('--reproduce is required when --epoch is set.')
-    elif not args.epoch and args.reproduce:
-        parser.error('--epoch is required when --reproduce is set.')
+    if args.command == 'run':
+        if args.reproduce and not args.epoch:
+            parser.error('--reproduce is required when --epoch is set.')
+        elif not args.epoch and args.reproduce:
+            parser.error('--epoch is required when --reproduce is set.')
 
-    if args.wait and args.reproduce:
-        parser.error('--reproduce is not compatible with --wait.')
+        if args.wait and args.reproduce:
+            parser.error('--reproduce is not compatible with --wait.')
 
     if args.command == "map":
         Kartograf.map(args)
