@@ -30,9 +30,10 @@
       pythonDevDeps = pkgs.python311.withPackages (ps: [
         ps.beautifulsoup4
         ps.pandas
+        ps.pylint
+        ps.pytest
         ps.requests
         ps.tqdm
-        ps.pylint
       ]);
       kartografDeps = [
         pythonBuildDeps
