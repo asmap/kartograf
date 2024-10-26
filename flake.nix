@@ -20,41 +20,18 @@
     utils.lib.eachDefaultSystem (system: let
       pkgs = nixpkgs.legacyPackages.${system};
 
-      # Custom derivation for pandarallel
-      pandarallel = pkgs.python3Packages.buildPythonPackage rec {
-        pname = "pandarallel";
-        version = "1.6.5";
-
-        src = pkgs.python311Packages.fetchPypi {
-          inherit pname version;
-          sha256 = "HC35j/ZEHorhP/QozuuqfsQtcx9/lyxBzk/e8dOt9kA=";
-        };
-
-        propagatedBuildInputs = with pkgs.python3Packages; [ pandas dill psutil ];
-
-        meta = with pkgs.lib; {
-          description = "An efficient parallel computing library for pandas";
-          homepage = "https://github.com/nalepae/pandarallel";
-          license = licenses.bsd3;
-        };
-      };
-
       rpki-client = rpki-cli.defaultPackage.${system};
       pythonBuildDeps = pkgs.python311.withPackages (ps: [
         ps.beautifulsoup4
-        ps.numpy
         ps.pandas
         ps.requests
         ps.tqdm
-        pandarallel
       ]);
       pythonDevDeps = pkgs.python311.withPackages (ps: [
         ps.beautifulsoup4
-        ps.numpy
         ps.pandas
         ps.requests
         ps.tqdm
-        pandarallel
       ]);
       kartografDeps = [
         pythonBuildDeps

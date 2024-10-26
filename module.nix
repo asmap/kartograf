@@ -18,15 +18,8 @@ in
   options.services.kartograf = {
     enable = mkEnableOption "kartograf";
     clean = mkEnableOption "cleaning up of temporary artifacts after processing." // { default = true; };
-    silent = mkEnableOption "silencing output (suppresses pandarallel's progress_bar)." // { default = true; };
     useIRR = mkEnableOption "using Internet Routing Registry (IRR) data" // { default = true; };
     useRV = mkEnableOption "using RouteViews (RV) data" // { default = true; };
-    workers = mkOption {
-      type = types.int;
-      default = 0;
-      example = 4;
-      description = mdDoc "Number of workers to use for pandarallel (0 = use all available cores).";
-    };
     schedule = mkOption {
       type = types.str;
       default = "*-*-01 00:00:00 UTC";
@@ -69,10 +62,8 @@ in
         ExecStopPost = "${postScript}/bin/post-script";
         ExecStart = ''${kartograf}/bin/kartograf map \
           ${optionalString cfg.clean "--cleanup" } \
-          ${optionalString cfg.silent "--silent" } \
           ${optionalString cfg.useIRR "--irr" } \
           ${optionalString cfg.useRV "--routeviews" } \
-          ${optionalString (cfg.workers != 0) "--workers=${toString cfg.workers}" } \
         '';
         MemoryDenyWriteExecute = true;
         WorkingDirectory = cfg.resultPath;
