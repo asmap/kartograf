@@ -8,6 +8,7 @@ from kartograf.context import Context
 from kartograf.coverage import coverage
 from kartograf.collectors.routeviews import extract_routeviews_pfx2as, fetch_routeviews_pfx2as
 from kartograf.collectors.parse import parse_routeviews_pfx2as
+from kartograf.diff import diff
 from kartograf.irr.fetch import extract_irr, fetch_irr
 from kartograf.irr.parse import parse_irr
 from kartograf.merge import merge_irr, merge_pfx2as, general_merge
@@ -111,3 +112,7 @@ class Kartograf:
     @staticmethod
     def merge(args):
         general_merge(args.base, args.extra, None, args.output)
+
+    @staticmethod
+    def diff(args):
+        diff(args.base, args.extra, args.output)

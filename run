@@ -86,15 +86,22 @@ if __name__ == "__main__":
         action="version",
         version="%(prog)s (version {version})".format(version=kartograf.__version__))
 
+    parser_diff = subparsers.add_parser("diff")
+
+    parser_diff.add_argument("-b", "--base")
+    parser_diff.add_argument("-e", "--extra")
+    parser_diff.add_argument("-o", "--output", default=f'{os.getcwd()}/out/diff.txt')
+
     args = parser.parse_args()
 
-    if args.reproduce and not args.epoch:
-        parser.error('--reproduce is required when --epoch is set.')
-    elif not args.epoch and args.reproduce:
-        parser.error('--epoch is required when --reproduce is set.')
+    if args.command == 'run':
+        if args.reproduce and not args.epoch:
+            parser.error('--reproduce is required when --epoch is set.')
+        elif not args.epoch and args.reproduce:
+            parser.error('--epoch is required when --reproduce is set.')
 
-    if args.wait and args.reproduce:
-        parser.error('--reproduce is not compatible with --wait.')
+        if args.wait and args.reproduce:
+            parser.error('--reproduce is not compatible with --wait.')
 
     if args.command == "map":
         Kartograf.map(args)
@@ -102,6 +109,8 @@ if __name__ == "__main__":
         Kartograf.cov(args)
     elif args.command == "merge":
         Kartograf.merge(args)
+    elif args.command == "diff":
+        Kartograf.diff(args)
     else:
         parser.print_help()
         sys.exit("Please provide a command.")
