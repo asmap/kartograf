@@ -57,7 +57,7 @@
       #   in the current directory.
       # * A default/kartograf package
       # * A NixOS module
-      devShell = pkgs.mkShell {
+      devShells.default = pkgs.mkShell {
         packages = kartografDeps;
       };
       packages = {

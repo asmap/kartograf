@@ -1,0 +1,22 @@
+name: Kartograf CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+    - name: Install Nix
+      uses: DeterminateSystems/nix-installer-action@v3
+    - name: Verify Flake Outputs
+      run: |
+        nix flake check
+        nix build .#devShells.x86_64-linux.default
+        nix build .#default
+
