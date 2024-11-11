@@ -1,9 +1,11 @@
+import subprocess
+import sys
+
 from concurrent.futures import ThreadPoolExecutor
 from threading import Lock
 import os
 import pathlib
 import requests
-import subprocess
 from tqdm import tqdm
 
 from kartograf.timed import timed
@@ -26,7 +28,7 @@ def download_rir_tals(context):
 
     for rir, url in TAL_URLS.items():
         try:
-            response = requests.get(url)
+            response = requests.get(url, timeout=600)
             response.raise_for_status()
 
             tal_path = os.path.join(context.data_dir_rpki_tals, f"{rir}.tal")
@@ -38,17 +40,17 @@ def download_rir_tals(context):
 
         except requests.RequestException as e:
             print(f"Error downloading TAL for {rir.upper()}: {e}")
-            exit(1)
+            sys.exit(1)
 
 
 def data_tals(context):
-    tal_paths = [path for path in pathlib.Path(context.data_dir_rpki_tals).rglob('*.tal')]
+    tal_paths = list(pathlib.Path(context.data_dir_rpki_tals).rglob('*.tal'))
     # We need to have 5 TALs, one from each RIR
     if len(tal_paths) == 5:
         return tal_paths
-    else:
-        print("Not all 5 TALs could be downloaded.")
-        exit(1)
+
+    print("Not all 5 TALs could be downloaded.")
+    sys.exit(1)
 
 
 @timed
@@ -65,12 +67,14 @@ def fetch_rpki_db(context):
                             "-d", context.data_dir_rpki_cache
                             ] + tal_options,
                            stdout=logs,
-                           stderr=logs)
+                           stderr=logs,
+                           check=False)
     else:
         subprocess.run(["rpki-client",
                         "-d", context.data_dir_rpki_cache
                         ] + tal_options,
-                       capture_output=True)
+                       capture_output=True,
+                       check=False)
 
     print(f"Downloaded RPKI Data, hash sum: {calculate_sha256_directory(context.data_dir_rpki_cache)}")
 
@@ -104,7 +108,8 @@ def validate_rpki_db(context):
                                  context.epoch,
                                  ] + tal_options +
                                  ["-f", file],  # -f has to be last
-                                 capture_output=True)
+                                 capture_output=True,
+                                 check=False)
 
         if result.stderr and context.debug_log:
             stderr_output = result.stderr.decode()
