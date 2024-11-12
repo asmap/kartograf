@@ -33,13 +33,13 @@ def parse_irr(context):
             lines = f.readlines()
 
         entry_list = []
-        current_entry = dict()
+        current_entry = {}
 
         # Parse the RPSL objects in the IRR DB into Python Dicts
         for line in lines:
             if line == '\n':
                 entry_list.append(current_entry)
-                current_entry = dict()
+                current_entry = {}
             else:
                 if ":" in line:
                     k, v = line.strip().split(':', 1)

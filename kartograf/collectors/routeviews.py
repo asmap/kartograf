@@ -21,7 +21,7 @@ def latest_link(base):
     url = base + ym
 
     try:
-        response = requests.get(url)
+        response = requests.get(url, timeout=600)
         response.raise_for_status()
     except requests.exceptions.HTTPError:
         print(f"The page at {url} couldn't be fetched. "
@@ -32,7 +32,7 @@ def latest_link(base):
         url = base + ym
 
         try:
-            response = requests.get(url)
+            response = requests.get(url, timeout=600)
             response.raise_for_status()
         except requests.exceptions.HTTPError:
             print(f"The page at {url} couldn't be fetched. "
@@ -42,6 +42,7 @@ def latest_link(base):
     soup = BeautifulSoup(response.text, 'html.parser')
 
     links = [a["href"] for a in soup.find_all("a", href=True)]
+    latest = ""
 
     for link in links:
         if link.endswith(".pfx2as.gz"):

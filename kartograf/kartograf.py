@@ -3,7 +3,6 @@ from datetime import timezone
 import shutil
 import time
 
-from . import __version__
 from kartograf.context import Context
 from kartograf.coverage import coverage
 from kartograf.collectors.routeviews import extract_routeviews_pfx2as, fetch_routeviews_pfx2as
@@ -21,8 +20,11 @@ from kartograf.util import (
     wait_for_launch
 )
 
+from . import __version__
 
 class Kartograf:
+    ''' Top level project class. '''
+
     @staticmethod
     def map(args):
         print_section_header("Start Kartograf")

@@ -1,3 +1,4 @@
+from functools import partial
 import hashlib
 import ipaddress
 import os
@@ -19,11 +20,12 @@ def calculate_sha256(file_path):
 def calculate_sha256_directory(directory_path):
     sha256_hash = hashlib.sha256()
 
-    for root, dirs, files in os.walk(directory_path):
+    for root, _dirs, files in os.walk(directory_path):
         for file in sorted(files):
             file_path = os.path.join(root, file)
             with open(file_path, "rb") as f:
-                for byte_block in iter(lambda: f.read(4096), b""):
+                read_block = partial(f.read, 4096)
+                for byte_block in iter(read_block, b""):
                     sha256_hash.update(byte_block)
 
     return sha256_hash.hexdigest()
@@ -72,7 +74,8 @@ def check_compatibility():
             if version_number < 8.4:
                 raise Exception("Error: rpki-client version 8.4 or higher is "
                                 "required.")
-            elif version_number == latest_version:
+
+            if version_number == latest_version:
                 print(f"Using rpki-client version {version} (recommended).")
             elif version_number > latest_version:
                 print("Warning: This kartograf version has not been tested with "
@@ -121,7 +124,6 @@ def format_pfx(pfx):
         if '/' in pfx:
             formatted_pfx = str(ipaddress.ip_network(pfx))
             return f"{formatted_pfx}"
-        else:
-            return str(ipaddress.ip_address(pfx))
+        return str(ipaddress.ip_address(pfx))
     except ValueError:
         return pfx
