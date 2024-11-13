@@ -32,6 +32,7 @@
         ps.pandas
         ps.requests
         ps.tqdm
+        ps.pylint
       ]);
       kartografDeps = [
         pythonBuildDeps
