@@ -1,3 +1,7 @@
+"""
+Test merging multiple sets of networks, as if they were independent AS files.
+"""
+
 from generate_data import (
     build_file_lines,
     generate_ip_file,
@@ -11,6 +15,41 @@ from kartograf.merge import general_merge
 
 def __tmp_paths(tmp_path):
     return [tmp_path / p for p in ["rpki_final.txt", "irr_final.txt", "out.txt"]]
+
+def __read_test_vectors(filepath):
+    networks = []
+    subnet_count = 0
+    with open(filepath, "r") as f:
+        lines = f.readlines()[1:]
+        for line in lines:
+            network, is_valid, is_subnet = line.split(',')
+            if is_valid == "TRUE":
+                networks.append(network)
+            if is_subnet.strip() == "TRUE":
+                subnet_count += 1
+    return networks, subnet_count
+
+def test_merge_from_fixtures(tmp_path):
+    '''
+    Assert that general_merge merges subnets correctly.
+    '''
+
+    base_nets, base_subnet_count = __read_test_vectors("tests/base_file.csv")
+    base_path = tmp_path / "base.txt"
+    extra_nets, extra_subnet_count = __read_test_vectors("tests/extra_file.csv")
+    extra_path = tmp_path / "extra.txt"
+    # write the networks to disk, generating ASNs for each network
+    generate_ip_file(base_path, build_file_lines(base_nets, generate_asns(len(base_nets))))
+    generate_ip_file(extra_path, build_file_lines(extra_nets, generate_asns(len(extra_nets))))
+
+    outpath = tmp_path / "final_result.txt"
+    general_merge(base_path, extra_path, None, outpath)
+    with open(outpath, "r") as f:
+        l = f.readlines()
+        final_network_count = len(l)
+        expected_count = (len(base_nets) + len(extra_nets)) - (base_subnet_count + extra_subnet_count)
+        assert final_network_count == expected_count
+
 
 def test_merge(tmp_path):
     """
