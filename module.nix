@@ -1,9 +1,8 @@
-flake: { config, pkgs, lib, ... }:
+{ config, pkgs, lib, ... }:
 
 with lib;
 
 let
-  inherit (flake.packages.${pkgs.stdenv.hostPlatform.system}) kartograf;
   cfg = config.services.kartograf;
   postScript = pkgs.writeScriptBin "post-script" /* bash */ ''
     #!/${pkgs.bash}/bin/bash
