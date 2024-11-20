@@ -6,9 +6,12 @@ from kartograf.timed import timed
 
 class BaseNetworkIndex:
     '''
-    A class whose _dict represents a mapping of the network number and IP networks within that network for a given AS file.
+    A class whose _dict represents a mapping of the network number and
+    IP networks within that network for a given AS file.
 
-    To check inclusion of a given IP network in the base AS file, we can compare (see check_inclusion) the networks under the root network number instead of all the networks in the base file.
+    To check inclusion of a given IP network in the base AS file,
+    we can compare (see check_inclusion) the networks under the root network number
+    instead of all the networks in the base file.
     '''
 
 
@@ -18,7 +21,12 @@ class BaseNetworkIndex:
         self._v6_keys = self._dict[6].keys()
 
     def update(self, pfx):
-        ipn = ipaddress.ip_network(pfx)
+        try:
+            ipn = ipaddress.ip_network(pfx)
+        except ValueError:
+            print(f"Invalid prefix provided: {pfx}")
+            return
+
         netw = int(ipn.network_address)
         mask = int(ipn.netmask)
         v = ipn.version
@@ -48,7 +56,7 @@ class BaseNetworkIndex:
         version = ipaddress.ip_network(row.PFXS).version
         if version == 4 and (root_net in self._v4_keys):
             return self.check_inclusion(row, root_net, version)
-        elif version == 6 and (root_net in self._v6_keys):
+        if version == 6 and (root_net in self._v6_keys):
             return self.check_inclusion(row, root_net, version)
         return 0
 
@@ -92,28 +100,19 @@ def merge_pfx2as(context):
     shutil.copy2(out_file, context.final_result_file)
 
 
-def general_merge(
-    base_file, extra_file, extra_filtered_file, out_file
-):
-    """
-    Merge lists of IP networks into a base file.
-    """
-    print("Parse base file to dictionary")
-    base = BaseNetworkIndex()
-    with open(base_file, "r") as file:
-        for line in file:
-            pfx, asn = line.split(" ")
-            base.update(pfx)
-
-    print("Parse extra file to Pandas DataFrame")
+def extra_file_to_df(extra_file_path):
     extra_nets_int = []
     extra_asns = []
     extra_pfxs = []
     extra_pfxs_leading = []
-    with open(extra_file, "r") as file:
+    with open(extra_file_path, "r") as file:
         for line in file:
             pfx, asn = line.split(" ")
-            ipn = ipaddress.ip_network(pfx)
+            try:
+                ipn = ipaddress.ip_network(pfx)
+            except ValueError:
+                print(f"Invalid IP network: {pfx}, skipping")
+                continue
             netw_int = int(ipn.network_address)
             extra_nets_int.append(netw_int)
             extra_asns.append(asn.strip())
@@ -124,14 +123,33 @@ def general_merge(
                 root_net = str(pfx).split(":", maxsplit=1)[0]
             extra_pfxs_leading.append(root_net)
 
-    df_extra = pd.DataFrame()
-    df_extra["INETS"] = extra_nets_int
-    df_extra["ASNS"] = extra_asns
-    df_extra["PFXS"] = extra_pfxs
-    df_extra["PFXS_LEADING"] = extra_pfxs_leading
+    df_extra = pd.DataFrame({
+        "INETS": extra_nets_int,
+        "ASNS": extra_asns,
+        "PFXS": extra_pfxs,
+        "PFXS_LEADING": extra_pfxs_leading
+        })
+
+    return df_extra
+
+
+def general_merge(
+    base_file, extra_file, extra_filtered_file, out_file
+):
+    """
+    Merge lists of IP networks into a base file.
+    """
+    print("Parse base file to dictionary")
+    base = BaseNetworkIndex()
+    with open(base_file, "r") as file:
+        for line in file:
+            pfx, _ = line.split(" ")
+            base.update(pfx)
+
+    print("Parse extra file to Pandas DataFrame")
+    df_extra = extra_file_to_df(extra_file)
 
     print("Merging extra prefixes that were not included in the base file:\n")
-
     extra_included = []
     for row in df_extra.itertuples(index=False):
         result = base.contains_row(row)
@@ -170,7 +188,5 @@ def general_merge(
     with open(base_file, "r") as base:
         base_contents = base.read()
 
-    merged_contents = base_contents + extra_contents
-
     with open(out_file, "w") as merge_file:
-        merge_file.write(merged_contents)
+        merge_file.write(base_contents + extra_contents)

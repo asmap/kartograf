@@ -26,6 +26,7 @@ def test_base_dict_create():
     for row in df_extra.itertuples(index=False):
         assert not base.contains_row(row)
 
+
 def test_base_dict_update():
     '''
     contains_row returns true when adding a row already present in the base dict.
@@ -49,4 +50,3 @@ def test_check_included_subnet():
     df_extra = _df_from_network(subnet)
     for row in df_extra.itertuples(index=False):
         assert base.contains_row(row)
-
