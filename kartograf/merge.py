@@ -13,41 +13,43 @@ class BaseNetworkIndex:
 
 
     def __init__(self):
-        self._dict = {}
-        self._keys = self._dict.keys()
-        for i in range(0, 255):
-            self._dict[i] = []
+        self._dict = {4: {}, 6: {}}
+        self._v4_keys = self._dict[4].keys()
+        self._v6_keys = self._dict[6].keys()
 
     def update(self, pfx):
         ipn = ipaddress.ip_network(pfx)
         netw = int(ipn.network_address)
         mask = int(ipn.netmask)
-        if ipn.version == 4:
+        v = ipn.version
+        if v == 4:
             root_net = int(str(pfx).split(".", maxsplit=1)[0])
-            current = self._dict[root_net]
-            self._dict[root_net] = current + [(netw, mask)]
         else:
-            root_net = str(pfx).split(":", maxsplit=1)[0]
-            if root_net in self._keys:
-                current = self._dict[root_net]
-                self._dict[root_net] = current + [(netw, mask)]
-            else:
-                self._dict.update({root_net: [(netw, mask)]})
+            root_net = int(str(pfx).split(":", maxsplit=1)[0])
 
-    def check_inclusion(self, row, root_net):
+        if (root_net in self._v4_keys) or (root_net in self._v6_keys):
+            current = self._dict[v][root_net]
+            self._dict[v][root_net] = current + [(netw, mask)]
+        else:
+            self._dict[v].update({root_net: [(netw, mask)]})
+
+    def check_inclusion(self, row, root_net, version):
         """
         A network is a subnet of another if the bitwise AND of its IP and the base network's netmask
         is equal to the base network IP.
         """
-        for net, mask in self._dict[root_net]:
+        for net, mask in self._dict[version][root_net]:
             if row[0] & mask == net:
                 return 1
         return 0
 
     def contains_row(self, row):
         root_net = row.PFXS_LEADING
-        if root_net in self._keys:
-            return self.check_inclusion(row, root_net)
+        version = ipaddress.ip_network(row.PFXS).version
+        if version == 4 and (root_net in self._v4_keys):
+            return self.check_inclusion(row, root_net, version)
+        elif version == 6 and (root_net in self._v6_keys):
+            return self.check_inclusion(row, root_net, version)
         return 0
 
 
