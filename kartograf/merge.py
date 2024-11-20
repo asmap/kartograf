@@ -44,14 +44,11 @@ class BaseNetworkIndex:
                 return 1
         return 0
 
-    def included(self, row, result_array):
+    def contains_row(self, row):
         root_net = row.PFXS_LEADING
         if root_net in self._keys:
-            result = self.check_inclusion(row, root_net)
-            result_array.append(result)
-        else:
-            result_array.append(0)
-        return result_array
+            return self.check_inclusion(row, root_net)
+        return 0
 
 
 @timed
@@ -133,11 +130,12 @@ def general_merge(
 
     print("Merging extra prefixes that were not included in the base file:\n")
 
-    included = []
+    extra_included = []
     for row in df_extra.itertuples(index=False):
-        base.included(row, included)
+        result = base.contains_row(row)
+        extra_included.append(result)
 
-    df_extra["INCLUDED"] = included
+    df_extra["INCLUDED"] = extra_included
     df_filtered = df_extra[df_extra.INCLUDED == 0]
 
     print("Finished merging extra prefixes.")
