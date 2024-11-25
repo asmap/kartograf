@@ -136,6 +136,10 @@ Kartograf expects files input files to be in the following formatting and also p
 2001:067c:0750:0000:0000:0000:0010:0001
 ```
 
+## Testing
+
+Tests are located under `tests`, and can be run with `pytest`. Run `pytest tests` or specify a specific test with `pytest tests/TEST_NAME.py`.
+
 ## Acknowledgements
 
 [Job Snijders](https://twitter.com/JobSnijders)
