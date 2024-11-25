@@ -1,8 +1,9 @@
 """
 Test merging multiple sets of networks, as if they were independent AS files.
 """
+from kartograf.merge import general_merge
 
-from generate_data import (
+from .util.generate_data import (
     build_file_lines,
     generate_ip_file,
     generate_file_items,
@@ -11,7 +12,6 @@ from generate_data import (
     make_disjoint
 )
 
-from kartograf.merge import general_merge
 
 def __tmp_paths(tmp_path):
     return [tmp_path / p for p in ["rpki_final.txt", "irr_final.txt", "out.txt"]]
