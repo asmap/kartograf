@@ -230,7 +230,7 @@ disable=raw-checker-failed,
         too-many-statements,
         too-few-public-methods,
         fixme,
-        too-many-positional,
+        too-many-positional-arguments,
         broad-exception-raised,
         raise-missing-from
 

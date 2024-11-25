@@ -23,4 +23,4 @@ jobs:
 
       - name: Run Pylint
         run: |
-          pylint --disable=C0301,C0103,C0114,C0116,R0913,R0914,W1514,R0911,R0912,R1702,R0902,R0915,R0903,W0511,R0917,W0719,W0707 $(find . -name "*.py")
+          pylint --rcfile pylintrc $(find . -name "*.py")
