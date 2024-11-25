@@ -7,8 +7,13 @@ def _df_from_network(network, asn=123):
     '''
     Create a one-row dataframe that holds the extra file rows in the expected format for contains_row().
     '''
-    root_net = int(network.split(".", maxsplit=1)[0])
-    network_int = int(ipaddress.ip_network(network).network_address)
+    ipn = ipaddress.ip_network(network)
+    v = ipn.version
+    if v == 4:
+        root_net = int(str(network).split(".", maxsplit=1)[0])
+    else:
+        root_net = int(str(network).split(":", maxsplit=1)[0])
+    network_int = int(ipn.network_address)
     df_extra = pd.DataFrame(
         data={"INETS": network_int, "ASNS": asn, "PFXS": network, "PFXS_LEADING": root_net},
         index=[0],
