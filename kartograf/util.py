@@ -138,11 +138,16 @@ def format_pfx(pfx):
     """
     try:
         if "/" in pfx:
+            pattern = r"^0+"
+            match = re.search(pattern, pfx)
+            if match:
+                pfx = re.sub(pattern, "", pfx)
             formatted_pfx = str(ipaddress.ip_network(pfx))
             return f"{formatted_pfx}"
         return str(ipaddress.ip_address(pfx))
     except ValueError:
         return pfx
+
 
 def get_root_network(pfx):
     """

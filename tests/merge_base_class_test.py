@@ -14,7 +14,6 @@ def _df_from_networks(networks, asn=123):
     for network in networks:
         ipn = ipaddress.ip_network(network)
         root_net = get_root_network(network)
-        print(root_net)
         network_int = int(ipn.network_address)
         df.loc[len(df)] = [network_int, asn, str(ipn), root_net]
     return df
