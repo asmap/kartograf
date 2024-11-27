@@ -1,6 +1,7 @@
 import ipaddress
 import pandas as pd
 from kartograf.merge import BaseNetworkIndex
+from kartograf.util import get_root_network
 
 
 def _df_from_network(network, asn=123):
@@ -8,11 +9,7 @@ def _df_from_network(network, asn=123):
     Create a one-row dataframe that holds the extra file rows in the expected format for contains_row().
     '''
     ipn = ipaddress.ip_network(network)
-    v = ipn.version
-    if v == 4:
-        root_net = int(str(network).split(".", maxsplit=1)[0])
-    else:
-        root_net = int(str(network).split(":", maxsplit=1)[0])
+    root_net = get_root_network(network)
     network_int = int(ipn.network_address)
     df_extra = pd.DataFrame(
         data={"INETS": network_int, "ASNS": asn, "PFXS": network, "PFXS_LEADING": root_net},

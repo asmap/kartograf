@@ -3,6 +3,8 @@ import shutil
 import pandas as pd
 
 from kartograf.timed import timed
+from kartograf.util import get_root_network
+
 
 class BaseNetworkIndex:
     '''
@@ -30,10 +32,7 @@ class BaseNetworkIndex:
         netw = int(ipn.network_address)
         mask = int(ipn.netmask)
         v = ipn.version
-        if v == 4:
-            root_net = int(str(pfx).split(".", maxsplit=1)[0])
-        else:
-            root_net = int(str(pfx).split(":", maxsplit=1)[0])
+        root_net = get_root_network(pfx)
 
         if (root_net in self._v4_keys) or (root_net in self._v6_keys):
             current = self._dict[v][root_net]
@@ -117,10 +116,7 @@ def extra_file_to_df(extra_file_path):
             extra_nets_int.append(netw_int)
             extra_asns.append(asn.strip())
             extra_pfxs.append(pfx)
-            if ipn.version == 4:
-                root_net = int(pfx.split(".", maxsplit=1)[0])
-            else:
-                root_net = str(pfx).split(":", maxsplit=1)[0]
+            root_net = get_root_network(pfx)
             extra_pfxs_leading.append(root_net)
 
     df_extra = pd.DataFrame({
