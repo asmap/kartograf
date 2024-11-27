@@ -2,7 +2,7 @@
   description = "An IP-to-AS mapping tool.";
 
   inputs = {
-    nixpkgs.url = "github:NixOS/nixpkgs/nixos-24.05";
+    nixpkgs.url = "github:NixOS/nixpkgs/nixos-24.11";
     utils.url = "github:numtide/flake-utils";
     # the rpki-client binary will be built from the flake at this URL.
     rpki-cli.url = "github:asmap/rpki-client-nix";
@@ -30,9 +30,9 @@
       pythonDevDeps = pkgs.python311.withPackages (ps: [
         ps.beautifulsoup4
         ps.pandas
+        ps.pylint
         ps.requests
         ps.tqdm
-        ps.pylint
       ]);
       kartografDeps = [
         pythonBuildDeps
