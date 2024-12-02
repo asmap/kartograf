@@ -51,16 +51,16 @@ class Context:
                 self.args.reproduce += '/'
             self.data_dir = self.args.reproduce
         else:
-            self.data_dir = f"{cwd}/data/{self.epoch_dir}/"
-        self.data_dir_irr = f"{self.data_dir}irr/"
-        self.data_dir_rpki_cache = f"{self.data_dir}rpki/cache/"
-        self.data_dir_rpki_tals = f"{self.data_dir}rpki/tals/"
-        self.data_dir_collectors = f"{self.data_dir}collectors/"
+            self.data_dir = os.path.join(cwd, "data", self.epoch_dir)
+        self.data_dir_irr = os.path.join(self.data_dir, "irr")
+        self.data_dir_rpki_cache = os.path.join(self.data_dir, "rpki/cache")
+        self.data_dir_rpki_tals = os.path.join(self.data_dir, "rpki/tals")
+        self.data_dir_collectors = os.path.join(self.data_dir, "collectors")
         # Out dir
-        self.out_dir = f"{cwd}/out/{self.epoch_dir}/"
-        self.out_dir_irr = f"{self.out_dir}irr/"
-        self.out_dir_rpki = f"{self.out_dir}rpki/"
-        self.out_dir_collectors = f"{self.out_dir}collectors/"
+        self.out_dir = os.path.join(cwd,"out", self.epoch_dir)
+        self.out_dir_irr = os.path.join(self.out_dir, "irr")
+        self.out_dir_rpki = os.path.join(self.out_dir, "rpki")
+        self.out_dir_collectors = os.path.join(self.out_dir, "collectors")
 
         if os.path.exists(self.data_dir) and not self.reproduce:
             print("Not so fast, a folder with that epoch already exists.")
@@ -80,11 +80,11 @@ class Context:
         if self.args.routeviews:
             os.makedirs(self.out_dir_collectors)
 
-        self.final_result_file = f"{self.out_dir}final_result.txt"
+        self.final_result_file = os.path.join(self.out_dir, "final_result.txt")
 
         self.max_encode = self.args.max_encode
 
         if self.args.debug:
-            self.debug_log = f"{self.out_dir}debug.log"
+            self.debug_log = os.path.join(self.out_dir, "debug.log")
         else:
             self.debug_log = ""
