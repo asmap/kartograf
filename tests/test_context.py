@@ -1,4 +1,5 @@
 import os
+from pathlib import Path
 import pytest
 from kartograf.context import Context
 from kartograf.cli import create_parser
@@ -21,7 +22,7 @@ def test_basic_map_context(parser, tmp_path):
     assert isinstance(context.epoch, str)
     assert isinstance(int(context.epoch), int)
     assert context.max_encode == 33521664
-    assert context.debug_log.endswith('debug.log')
+    assert Path(context.debug_log).name == 'debug.log'
 
 def test_map_context_with_reproduce(parser, tmp_path):
     # Setup a mock reproduction directory
@@ -53,10 +54,17 @@ def test_directory_creation(parser, tmp_path):
     os.chdir(tmp_path)
     context = Context(args)
 
-    assert os.path.exists(context.data_dir_rpki_cache)
-    assert os.path.exists(context.data_dir_rpki_tals)
-    assert os.path.exists(context.data_dir_irr)
-    assert os.path.exists(context.data_dir_collectors)
-    assert os.path.exists(context.out_dir_rpki)
-    assert os.path.exists(context.out_dir_irr)
-    assert os.path.exists(context.out_dir_collectors)
+    assert isinstance(context.data_dir_rpki_cache, str)
+    assert Path(context.data_dir_rpki_cache).exists()
+    assert isinstance(context.data_dir_rpki_tals, str)
+    assert Path(context.data_dir_rpki_tals).exists()
+    assert isinstance(context.data_dir_irr, str)
+    assert Path(context.data_dir_irr).exists()
+    assert isinstance(context.data_dir_collectors, str)
+    assert Path(context.data_dir_collectors).exists()
+    assert isinstance(context.out_dir_rpki, str)
+    assert Path(context.out_dir_rpki).exists()
+    assert isinstance(context.out_dir_irr, str)
+    assert Path(context.out_dir_irr).exists()
+    assert isinstance(context.out_dir_collectors, str)
+    assert Path(context.out_dir_collectors).exists()

@@ -1,5 +1,5 @@
 from datetime import datetime
-import os
+from pathlib import Path
 import sys
 import time
 
@@ -20,12 +20,12 @@ class Context:
 
         self.reproduce = self.args.reproduce is not None
         if self.reproduce:
-            items = os.listdir(self.args.reproduce)
+            items = Path.iterdir(Path(self.args.reproduce))
             source_folders = []
             for folder in items:
-                full_path = os.path.join(self.args.reproduce, folder)
-                if os.path.isdir(full_path):
-                    source_folders.append(folder)
+                full_path = self.args.reproduce / folder
+                if Path.is_dir(full_path):
+                    source_folders.append(folder.name)
             # We override the args because we are reproducing and only where we
             # have data we try to use is, the actual args passed don't matter.
             self.args.irr = 'irr' in source_folders
@@ -44,47 +44,52 @@ class Context:
             self.epoch_dir = str(int(utc_time_now))
             self.epoch_datetime = datetime.utcfromtimestamp(int(utc_time_now))
 
-        cwd = os.getcwd()
+        cwd = Path.cwd()
         # Data dir
         if self.reproduce:
             if not self.args.reproduce.endswith('/'):
                 self.args.reproduce += '/'
             self.data_dir = self.args.reproduce
         else:
-            self.data_dir = f"{cwd}/data/{self.epoch_dir}/"
-        self.data_dir_irr = f"{self.data_dir}irr/"
-        self.data_dir_rpki_cache = f"{self.data_dir}rpki/cache/"
-        self.data_dir_rpki_tals = f"{self.data_dir}rpki/tals/"
-        self.data_dir_collectors = f"{self.data_dir}collectors/"
-        # Out dir
-        self.out_dir = f"{cwd}/out/{self.epoch_dir}/"
-        self.out_dir_irr = f"{self.out_dir}irr/"
-        self.out_dir_rpki = f"{self.out_dir}rpki/"
-        self.out_dir_collectors = f"{self.out_dir}collectors/"
+            self.data_dir = str(cwd / "data" / self.epoch_dir)
 
-        if os.path.exists(self.data_dir) and not self.reproduce:
+        if Path(self.data_dir).exists() and not self.reproduce:
+            print("Not so fast, a folder with that epoch already exists.")
+            sys.exit()
+
+        self.data_dir_irr = str(Path(self.data_dir) / "irr")
+        self.data_dir_rpki_cache = str(Path(self.data_dir) / "rpki" / "cache")
+        self.data_dir_rpki_tals = str(Path(self.data_dir) / "rpki" / "tals")
+        self.data_dir_collectors = str(Path(self.data_dir) / "collectors")
+        # Out dir
+        self.out_dir = str(cwd / "out" / self.epoch_dir)
+        self.out_dir_irr = str(Path(self.out_dir) / "irr")
+        self.out_dir_rpki = str(Path(self.out_dir) / "rpki")
+        self.out_dir_collectors = str(Path(self.out_dir) / "collectors")
+
+        if Path(self.data_dir).exists() and not self.reproduce:
             print("Not so fast, a folder with that epoch already exists.")
             sys.exit()
 
         # We skip creating the folders if we are reproducing a run.
         if not self.reproduce:
-            os.makedirs(self.data_dir_rpki_cache)
-            os.makedirs(self.data_dir_rpki_tals)
+            Path(self.data_dir_rpki_cache).mkdir(parents=True)
+            Path(self.data_dir_rpki_tals).mkdir(parents=True)
             if self.args.irr:
-                os.makedirs(self.data_dir_irr)
+                Path(self.data_dir_irr).mkdir(parents=True)
             if self.args.routeviews:
-                os.makedirs(self.data_dir_collectors)
-        os.makedirs(self.out_dir_rpki)
+                Path(self.data_dir_collectors).mkdir(parents=True)
+        Path(self.out_dir_rpki).mkdir(parents=True)
         if self.args.irr:
-            os.makedirs(self.out_dir_irr)
+            Path(self.out_dir_irr).mkdir(parents=True)
         if self.args.routeviews:
-            os.makedirs(self.out_dir_collectors)
+            Path(self.out_dir_collectors).mkdir(parents=True)
 
-        self.final_result_file = f"{self.out_dir}final_result.txt"
+        self.final_result_file = str(Path(self.out_dir) / "final_result.txt")
 
         self.max_encode = self.args.max_encode
 
         if self.args.debug:
-            self.debug_log = f"{self.out_dir}debug.log"
+            self.debug_log = str(Path(self.out_dir) / "debug.log")
         else:
             self.debug_log = ""
