@@ -31,6 +31,7 @@
         ps.beautifulsoup4
         ps.pandas
         ps.pylint
+	ps.pytest
         ps.requests
         ps.tqdm
       ]);

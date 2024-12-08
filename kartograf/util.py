@@ -138,8 +138,28 @@ def format_pfx(pfx):
     """
     try:
         if "/" in pfx:
+            pattern = r"^0+"
+            match = re.search(pattern, pfx)
+            if match:
+                pfx = re.sub(pattern, "", pfx)
             formatted_pfx = str(ipaddress.ip_network(pfx))
             return f"{formatted_pfx}"
         return str(ipaddress.ip_address(pfx))
     except ValueError:
         return pfx
+
+
+def get_root_network(pfx):
+    """
+    Extract the top-level network from an IPv4 or IPv6 address.
+    Returns the value as an integer.
+    """
+    network = format_pfx(pfx)
+    v = ipaddress.ip_network(network).version
+    if v == 4:
+        return int(network.split(".", maxsplit=1)[0])
+
+    root_net = network.split(":", maxsplit=1)[0]
+    if root_net:
+        return int(root_net, 16)
+    return 0
