@@ -1,5 +1,7 @@
 import pytest
-from run import parser
+from kartograf.cli import create_parser
+
+parser = create_parser()
 
 def test_map_command():
     args = parser.parse_args(['map'])
