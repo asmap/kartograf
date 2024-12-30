@@ -29,7 +29,7 @@ def parse_routeviews_pfx2as(context):
                 if context.max_encode and is_out_of_encoding_range(asn, context.max_encode):
                     continue
 
-                if is_bogon_pfx(prefix) or is_bogon_asn(asn):
+                if not prefix or is_bogon_pfx(prefix) or is_bogon_asn(asn):
                     continue
 
                 clean.write(f"{prefix} {asn}\n")
@@ -52,7 +52,7 @@ def parse_routeviews_pfx2as(context):
             prefix = format_pfx(prefix)
             asn = asn.upper().rstrip('\n')
 
-            if is_bogon_pfx(prefix) or is_bogon_asn(asn):
+            if not prefix or is_bogon_pfx(prefix) or is_bogon_asn(asn):
                 continue
 
             if context.max_encode and is_out_of_encoding_range(asn, context.max_encode):
