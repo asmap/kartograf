@@ -133,20 +133,29 @@ def wait_for_launch(wait):
 
 def format_pfx(pfx):
     """
-    We have seen some formatting issues like leading zeros in the prefix,
-    which can cause problems.
+    Attempt to format an IP network or address.
+    If invalid, return None.
     """
-    try:
+    if is_valid_pfx(pfx):
         if "/" in pfx:
-            pattern = r"^0+"
-            match = re.search(pattern, pfx)
-            if match:
-                pfx = re.sub(pattern, "", pfx)
             formatted_pfx = str(ipaddress.ip_network(pfx))
             return f"{formatted_pfx}"
         return str(ipaddress.ip_address(pfx))
+    return None
+
+
+def is_valid_pfx(pfx):
+    """
+    Check whether the IP network or address provided is valid.
+    """
+    try:
+        if "/" in pfx:
+            ipaddress.ip_network(pfx)
+            return True
+        ipaddress.ip_address(pfx)
+        return True
     except ValueError:
-        return pfx
+        return False
 
 
 def get_root_network(pfx):

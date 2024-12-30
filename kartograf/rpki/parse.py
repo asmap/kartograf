@@ -60,7 +60,7 @@ def parse_rpki(context):
 
                 # Bogon prefixes and ASNs are excluded since they can not
                 # be used for routing.
-                if is_bogon_pfx(prefix) or is_bogon_asn(asn):
+                if not prefix or is_bogon_pfx(prefix) or is_bogon_asn(asn):
                     continue
 
                 if context.max_encode and is_out_of_encoding_range(asn, context.max_encode):
