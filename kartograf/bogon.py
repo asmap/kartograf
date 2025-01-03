@@ -117,6 +117,9 @@ SPECIAL_IPV6 = [
     # "fec0::/10",
 ]
 
+# Sets of networks
+SPECIAL_IPV4_NETWORKS = {ipaddress.ip_network(prefix) for prefix in SPECIAL_IPV4}
+SPECIAL_IPV6_NETWORKS = {ipaddress.ip_network(prefix) for prefix in SPECIAL_IPV6}
 
 def is_bogon_pfx(prefix):
     """
@@ -134,18 +137,8 @@ def is_bogon_pfx(prefix):
     - https://bgpfilterguide.nlnog.net/guides/bogon_prefixes/
     """
     network = ipaddress.ip_network(prefix)
-    version = network.version
-
-    if version == 4:
-        for ipv4_range in SPECIAL_IPV4:
-            if network.subnet_of(ipaddress.ip_network(ipv4_range)):
-                return True
-    elif version == 6:
-        for ipv6_range in SPECIAL_IPV6:
-            if network.subnet_of(ipaddress.ip_network(ipv6_range)):
-                return True
-
-    return False
+    networks = SPECIAL_IPV4_NETWORKS if network.version == 4 else SPECIAL_IPV6_NETWORKS
+    return any(network.subnet_of(special_net) for special_net in networks)
 
 
 def is_bogon_asn(asn_raw):
