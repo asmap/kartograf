@@ -10,7 +10,7 @@ from kartograf.bogon import (
     is_out_of_encoding_range,
 )
 from kartograf.timed import timed
-from kartograf.util import format_pfx, rir_from_str
+from kartograf.util import parse_pfx, rir_from_str
 
 
 @timed
@@ -62,7 +62,7 @@ def parse_irr(context):
                     else:
                         continue
 
-                    route = format_pfx(route)
+                    route = parse_pfx(route)
 
                     last_modified = datetime.strptime(entry["last-modified"], '%Y-%m-%dT%H:%M:%SZ')
                     last_modified = last_modified.replace(tzinfo=timezone.utc)
@@ -71,6 +71,9 @@ def parse_irr(context):
                     # Bogon prefixes and ASNs are excluded since they can not
                     # be used for routing.
                     if not route or is_bogon_pfx(route) or is_bogon_asn(origin):
+                        if context.debug_log:
+                            with open(context.debug_log, 'a') as logs:
+                                logs.write(f"IRR: parser encountered an invalid route: {route}")
                         continue
 
                     if context.max_encode and is_out_of_encoding_range(origin, context.max_encode):
