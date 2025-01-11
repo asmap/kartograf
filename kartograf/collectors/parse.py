@@ -4,7 +4,7 @@ from kartograf.bogon import (
     is_out_of_encoding_range,
 )
 from kartograf.timed import timed
-from kartograf.util import format_pfx
+from kartograf.util import parse_pfx
 
 
 @timed
@@ -23,13 +23,16 @@ def parse_routeviews_pfx2as(context):
             if ',' not in line and '_' not in line:
                 # Still need to check for bogons
                 prefix, asn = line.split(" ")
-                prefix = format_pfx(prefix)
+                prefix = parse_pfx(prefix)
                 asn = asn.upper().rstrip('\n')
 
                 if context.max_encode and is_out_of_encoding_range(asn, context.max_encode):
                     continue
 
                 if not prefix or is_bogon_pfx(prefix) or is_bogon_asn(asn):
+                    if context.debug_log:
+                        with open(context.debug_log, 'a') as logs:
+                            logs.write(f"Routeviews: parser encountered an invalid IP network: {prefix}")
                     continue
 
                 clean.write(f"{prefix} {asn}\n")
@@ -49,10 +52,13 @@ def parse_routeviews_pfx2as(context):
             # Bogon prefixes and ASNs are excluded since they can not be used
             # for routing.
             prefix, asn = line.split(" ")
-            prefix = format_pfx(prefix)
+            prefix = parse_pfx(prefix)
             asn = asn.upper().rstrip('\n')
 
             if not prefix or is_bogon_pfx(prefix) or is_bogon_asn(asn):
+                if context.debug_log:
+                    with open(context.debug_log, 'a') as logs:
+                        logs.write(f"Routeviews: parser encountered an invalid IP network: {prefix}")
                 continue
 
             if context.max_encode and is_out_of_encoding_range(asn, context.max_encode):
