@@ -31,7 +31,7 @@ to enable flakes in your Nix config, then run `nix develop`.
 
 #### rpki-client
 
-Kartograf requires `rpki-client` version 8.4 or higher to be installed locally. Many package managers have `rpki-client`, however please note that typically only the latest version is available. Kartograf is currently tested to work with `rpki-client` 8.4 - 9.3. If a new release is available that breaks compatibility, you may need to build a compatible `rpki-client` version yourself if your preferred package manager does not have a compatible version available. In that case, see the [instructions in the rpki-client-portable project](https://github.com/rpki-client/rpki-client-portable/blob/master/INSTALL).
+Kartograf requires `rpki-client` version 8.4 or higher to be installed locally. Many package managers have `rpki-client`, however please note that typically only the latest version is available. Kartograf is currently tested to work with `rpki-client` 8.4 - 9.4. If a new release is available that breaks compatibility, you may need to build a compatible `rpki-client` version yourself if your preferred package manager does not have a compatible version available. In that case, see the [instructions in the rpki-client-portable project](https://github.com/rpki-client/rpki-client-portable/blob/master/INSTALL).
 
 ```
 # Linux/BSD
