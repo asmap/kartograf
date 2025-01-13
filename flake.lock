@@ -35,8 +35,7 @@
     "root": {
       "inputs": {
         "nixpkgs": "nixpkgs",
-        "rpki-cli": "rpki-cli",
-        "utils": "utils_2"
+        "rpki-cli": "rpki-cli"
       }
     },
     "rpki-cli": {
@@ -47,11 +46,11 @@
         "utils": "utils"
       },
       "locked": {
-        "lastModified": 1727388158,
-        "narHash": "sha256-WtNCxHZ7jtpZHEagvWMcyY4pHjFAHk9k/3Z0K3pJka8=",
+        "lastModified": 1727819346,
+        "narHash": "sha256-QX4V5J2Faf2MlUnclQNzlHdF/0K72cH/4BRgJTpPWGY=",
         "owner": "asmap",
         "repo": "rpki-client-nix",
-        "rev": "b9b68b6d4b8170213c741362797ea13029913222",
+        "rev": "0a01e84611e878394a6453e5ac572ad736418230",
         "type": "github"
       },
       "original": {
@@ -109,21 +108,6 @@
         "type": "github"
       }
     },
-    "systems_2": {
-      "locked": {
-        "lastModified": 1681028828,
-        "narHash": "sha256-Vy1rq5AaRuLzOxct8nz4T6wlgyUR7zLU309k9mBC768=",
-        "owner": "nix-systems",
-        "repo": "default",
-        "rev": "da67096a3b9bf56a91d16901293e51ba5b49a27e",
-        "type": "github"
-      },
-      "original": {
-        "owner": "nix-systems",
-        "repo": "default",
-        "type": "github"
-      }
-    },
     "utils": {
       "inputs": {
         "systems": "systems"
@@ -134,24 +118,6 @@
         "owner": "numtide",
         "repo": "flake-utils",
         "rev": "ff7b65b44d01cf9ba6a71320833626af21126384",
-        "type": "github"
-      },
-      "original": {
-        "owner": "numtide",
-        "repo": "flake-utils",
-        "type": "github"
-      }
-    },
-    "utils_2": {
-      "inputs": {
-        "systems": "systems_2"
-      },
-      "locked": {
-        "lastModified": 1710146030,
-        "narHash": "sha256-SZ5L6eA7HJ/nmkzGG7/ISclqe6oZdOZTNoesiInkXPQ=",
-        "owner": "numtide",
-        "repo": "flake-utils",
-        "rev": "b1d9ab70662946ef0850d488da1c9019f3a9752a",
         "type": "github"
       },
       "original": {
