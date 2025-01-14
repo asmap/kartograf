@@ -131,22 +131,31 @@ def wait_for_launch(wait):
         time.sleep(1)
 
 
-def format_pfx(pfx):
+def parse_pfx(pfx):
     """
-    We have seen some formatting issues like leading zeros in the prefix,
-    which can cause problems.
+    Attempt to format an IP network or address.
+    If invalid, return the input unchanged.
     """
-    try:
+    if is_valid_pfx(pfx):
         if "/" in pfx:
-            pattern = r"^0+"
-            match = re.search(pattern, pfx)
-            if match:
-                pfx = re.sub(pattern, "", pfx)
             formatted_pfx = str(ipaddress.ip_network(pfx))
             return f"{formatted_pfx}"
         return str(ipaddress.ip_address(pfx))
+    return None
+
+
+def is_valid_pfx(pfx):
+    """
+    Check whether the IP network or address provided is valid.
+    """
+    try:
+        if "/" in pfx:
+            ipaddress.ip_network(pfx)
+            return True
+        ipaddress.ip_address(pfx)
+        return True
     except ValueError:
-        return pfx
+        return False
 
 
 def get_root_network(pfx):
@@ -154,12 +163,13 @@ def get_root_network(pfx):
     Extract the top-level network from an IPv4 or IPv6 address.
     Returns the value as an integer.
     """
-    network = format_pfx(pfx)
-    v = ipaddress.ip_network(network).version
-    if v == 4:
-        return int(network.split(".", maxsplit=1)[0])
+    network = parse_pfx(pfx)
+    if network:
+        v = ipaddress.ip_network(network).version
+        if v == 4:
+            return int(network.split(".", maxsplit=1)[0])
 
-    root_net = network.split(":", maxsplit=1)[0]
-    if root_net:
-        return int(root_net, 16)
-    return 0
+        root_net = network.split(":", maxsplit=1)[0]
+        if root_net:
+            return int(root_net, 16)
+    return None
