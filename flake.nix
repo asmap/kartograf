@@ -6,6 +6,7 @@
     utils.url = "github:numtide/flake-utils";
     # the rpki-client binary will be built from the flake at this URL.
     rpki-cli.url = "github:asmap/rpki-client-nix";
+    rpki-cli.inputs.nixpkgs.follows = "nixpkgs";
   };
 
   outputs = {
