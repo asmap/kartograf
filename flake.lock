@@ -16,22 +16,6 @@
         "type": "github"
       }
     },
-    "nixpkgs_2": {
-      "locked": {
-        "lastModified": 1727264057,
-        "narHash": "sha256-KQPI8CTTnB9CrJ7LrmLC4VWbKZfljEPBXOFGZFRpxao=",
-        "owner": "NixOS",
-        "repo": "nixpkgs",
-        "rev": "759537f06e6999e141588ff1c9be7f3a5c060106",
-        "type": "github"
-      },
-      "original": {
-        "owner": "NixOS",
-        "ref": "nixos-24.05",
-        "repo": "nixpkgs",
-        "type": "github"
-      }
-    },
     "root": {
       "inputs": {
         "nixpkgs": "nixpkgs",
@@ -41,7 +25,9 @@
     },
     "rpki-cli": {
       "inputs": {
-        "nixpkgs": "nixpkgs_2",
+        "nixpkgs": [
+          "nixpkgs"
+        ],
         "rpki-client-src": "rpki-client-src",
         "rpki-openbsd-src": "rpki-openbsd-src",
         "utils": "utils"
@@ -63,34 +49,34 @@
     "rpki-client-src": {
       "flake": false,
       "locked": {
-        "lastModified": 1726775911,
-        "narHash": "sha256-pyyBVLamtwUQnGzULrOoRgI92fnJPVuyGZhwG6N52q0=",
+        "lastModified": 1736205605,
+        "narHash": "sha256-2/xe6BBZYo0IDYDFbPEdbCvYTdzQEb1Zl0BBQf/Z0aA=",
         "owner": "rpki-client",
         "repo": "rpki-client-portable",
-        "rev": "12c58dcd8f61d18567fda0689ba64cb4b8c70a2d",
+        "rev": "98954f463a60c1aa1f9c0c0de83370558ba452c7",
         "type": "github"
       },
       "original": {
         "owner": "rpki-client",
         "repo": "rpki-client-portable",
-        "rev": "12c58dcd8f61d18567fda0689ba64cb4b8c70a2d",
+        "rev": "98954f463a60c1aa1f9c0c0de83370558ba452c7",
         "type": "github"
       }
     },
     "rpki-openbsd-src": {
       "flake": false,
       "locked": {
-        "lastModified": 1726753507,
-        "narHash": "sha256-MU/lO3Pa7aOs8xqB24cwlPfd4B2/aR8/BewEiqS/WVY=",
+        "lastModified": 1735901016,
+        "narHash": "sha256-+KexblAyPNHWwAGAdOzfWjZKXuwSqp12FrXFHuyFQnE=",
         "owner": "rpki-client",
         "repo": "rpki-client-openbsd",
-        "rev": "dfa32b728c451dab0c97c854fbe23bc7b9be25ad",
+        "rev": "27f8f58679530181c9e2f546046b714ad6f85b8c",
         "type": "github"
       },
       "original": {
         "owner": "rpki-client",
         "repo": "rpki-client-openbsd",
-        "rev": "dfa32b728c451dab0c97c854fbe23bc7b9be25ad",
+        "rev": "27f8f58679530181c9e2f546046b714ad6f85b8c",
         "type": "github"
       }
     },
