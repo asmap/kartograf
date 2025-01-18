@@ -38,17 +38,19 @@ def load_rpki_csv_to_json(self, csv_path):
 
 
 def create_test_context(tmp_path, epoch):
-    TEST_ARGS.cwd = tmp_path
+    current_path = os.getcwd()
+    os.chdir(tmp_path)  # Use temporary directory
+
     TEST_ARGS.epoch = epoch
     context = Context(TEST_ARGS)
-
-    context.tmp_dir = str(tmp_path)
-    context.data_dir = os.path.join(context.tmp_dir, "data/", context.epoch_dir)
+    context.data_dir = os.path.join(tmp_path, "data/", context.epoch_dir)
     context.data_dir_rpki = os.path.join(context.data_dir, "rpki/")
-    context.out_dir = os.path.join(context.tmp_dir, "out/", context.epoch_dir)
+    context.out_dir = os.path.join(tmp_path, "out/", context.epoch_dir)
     context.out_dir_rpki = os.path.join(context.out_dir, "rpki/")
 
     os.makedirs(context.data_dir_rpki, exist_ok=True)
     os.makedirs(context.out_dir_rpki, exist_ok=True)
-    load_rpki_csv_to_json(context, "tests/data/rpki_raw.csv")
+
+    load_rpki_csv_to_json(context, os.path.join(current_path, "tests/data/rpki_raw.csv"))
+    os.chdir(current_path)
     return context
