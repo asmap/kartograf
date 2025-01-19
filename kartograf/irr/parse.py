@@ -70,7 +70,7 @@ def parse_irr(context):
 
                     # Bogon prefixes and ASNs are excluded since they can not
                     # be used for routing.
-                    if is_bogon_pfx(route) or is_bogon_asn(origin):
+                    if not route or is_bogon_pfx(route) or is_bogon_asn(origin):
                         continue
 
                     if context.max_encode and is_out_of_encoding_range(origin, context.max_encode):

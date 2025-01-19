@@ -1,7 +1,7 @@
-from kartograf.util import format_pfx, get_root_network
+from kartograf.util import format_pfx, is_valid_pfx, get_root_network
 
 def test_valid_ipv4_network():
-    pfx = "192.144.11.0/21"
+    pfx = "192.144.11.0/24"
     assert format_pfx(pfx) == pfx
 
 
@@ -20,26 +20,31 @@ def test_valid_ipv6_addr():
     assert format_pfx(pfx) == pfx
 
 
-def test_ipv4_prefix_with_leading_zeros():
-    pfx = "010.10.00.00/16"
-    expected_output = "10.10.00.00/16"
-    assert format_pfx(pfx) == expected_output
-
-
-def test_ipv6_prefix_with_leading_zeros():
-    pfx = "001:db8::0/24"
-    expected_output = "1:db8::0/24"
-    assert format_pfx(pfx) == expected_output
-
-
 def test_invalid_ip_network():
     pfx = "192.1/asdf"
-    assert format_pfx(pfx) == pfx
+    assert format_pfx(pfx) is None
 
 
 def test_invalid_input():
     pfx = "no.slash"
+    assert format_pfx(pfx) is None
+
+
+def test_private_network():
+    pfx = "0.128.0.0/24"
     assert format_pfx(pfx) == pfx
+
+
+def test_ipv4_prefix_with_leading_zeros():
+    pfx = "010.10.00.00/16"
+    assert format_pfx(pfx) is None
+    assert not is_valid_pfx(pfx)
+
+
+def test_ipv6_prefix_with_leading_zeros():
+    pfx = "001:db8::0/24"
+    assert format_pfx(pfx) is None
+    assert not is_valid_pfx(pfx)
 
 
 def test_get_root_network():
