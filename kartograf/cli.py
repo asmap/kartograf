@@ -81,8 +81,8 @@ def main(args=None):
     parser = create_parser()
     args = parser.parse_args(args)
 
-    if args.command == "run":
-        if args.reproduce and not args.epoch:
+    if args.command == "map":
+        if not args.reproduce and args.epoch:
             parser.error("--reproduce is required when --epoch is set.")
         elif not args.epoch and args.reproduce:
             parser.error("--epoch is required when --reproduce is set.")
