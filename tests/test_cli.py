@@ -16,6 +16,23 @@ def test_map_command(parser):
     assert args.epoch is None
     assert args.max_encode == 33521664
 
+def test_reproduce_args_failure(capsys):
+    '''
+    Both --reproduce and --epoch must be set if either one is set.
+    A usage help text is returned with the error.
+    '''
+    args = ['map', '-r', '/path']
+    with pytest.raises(SystemExit):
+        main(args)
+    captured = capsys.readouterr()
+    assert captured.err.startswith("usage:")
+
+    args = ['map', '-t', '123456789']
+    with pytest.raises(SystemExit):
+        main(args)
+    captured = capsys.readouterr()
+    assert captured.err.startswith("usage:")
+
 def test_map_with_options(parser):
     args = parser.parse_args(['map', '-c', '-irr', '-rv', '-r', '/path', '-t', '123'])
     assert args.cleanup is True
