@@ -2,9 +2,7 @@ name: Build outputs
 
 on:
   push:
-    branches: [main]
-  pull_request:
-    branches: [main]
+    branches: [master]
 
 jobs:
   build-nix-outputs:
