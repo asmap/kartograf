@@ -1,4 +1,4 @@
-name: Kartograf CI
+name: Build outputs
 
 on:
   push:
@@ -7,7 +7,7 @@ on:
     branches: [main]
 
 jobs:
-  build-and-test:
+  build-nix-outputs:
     runs-on: ubuntu-latest
 
     steps:
@@ -19,4 +19,3 @@ jobs:
         nix flake check
         nix build .#devShells.x86_64-linux.default
         nix build .#default
-
