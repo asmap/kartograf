@@ -1,7 +1,7 @@
 """
 Test merging multiple sets of networks, as if they were independent AS files.
 """
-import os
+from pathlib import Path
 
 from kartograf.merge import general_merge
 
@@ -19,30 +19,32 @@ def __tmp_paths(tmp_path):
     return [tmp_path / p for p in ["rpki_final.txt", "irr_final.txt", "out.txt"]]
 
 def __read_test_vectors(filepath):
-    """
+    '''
     Fixtures for IP networks are under tests/data.
-    Read them and return the list of valid networks and the count of individual subnets expected in the result of the merge.
-    """
+    Read them and return the list of valid networks and the list of individual subnets in the file.
+    '''
     networks = []
-    subnet_count = 0
+    subnets = []
     with open(filepath, "r") as f:
         lines = f.readlines()[1:]
         for line in lines:
-            network, is_valid, is_subnet = line.split(',')
-            if is_valid == "TRUE":
+            network, _, is_subnet, test_case = line.split(',')
+            if test_case.strip() == "valid":
                 networks.append(network)
             if is_subnet.strip() == "TRUE":
-                subnet_count += 1
-    return networks, subnet_count
+                subnets.append(network)
+    return networks, subnets
 
 def test_merge_from_fixtures(tmp_path):
     '''
-    Assert that general_merge merges subnets correctly.
+    Assert that general_merge merges subnets correctly,
+    and validates against expected network sets, i.e. invalid networks are not merged,
+    and subnets are merged into the root network appropriately.
     '''
-    data_dir = os.path.join(os.path.dirname(__file__), "data")
-    base_nets, base_subnet_count = __read_test_vectors(os.path.join(data_dir, "base_file.csv"))
+    testdir = Path(__file__).parent
+    base_nets, base_nets_to_exclude = __read_test_vectors(testdir / "data/base_file.csv")
     base_path = tmp_path / "base.txt"
-    extra_nets, extra_subnet_count = __read_test_vectors(os.path.join(data_dir, "extra_file.csv"))
+    extra_nets, extra_nets_to_exclude = __read_test_vectors(testdir / "data/extra_file.csv")
     extra_path = tmp_path / "extra.txt"
     # write the networks to disk, generating ASNs for each network
     generate_ip_file(base_path, build_file_lines(base_nets, generate_asns(len(base_nets))))
@@ -52,9 +54,10 @@ def test_merge_from_fixtures(tmp_path):
     general_merge(base_path, extra_path, None, outpath)
     with open(outpath, "r") as f:
         l = f.readlines()
-        final_network_count = len(l)
-        expected_count = (len(base_nets) + len(extra_nets)) - (base_subnet_count + extra_subnet_count)
-        assert final_network_count == expected_count
+        final_networks = {line.split()[0] for line in l}
+        # the unique set of networks, excluding invalid, duplicate, or subnets
+        expected_networks = set(base_nets + extra_nets) - set(base_nets_to_exclude + extra_nets_to_exclude )
+        assert final_networks == expected_networks
 
 
 def test_merge(tmp_path):
