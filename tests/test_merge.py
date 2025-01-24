@@ -28,8 +28,8 @@ def __read_test_vectors(filepath):
     with open(filepath, "r") as f:
         lines = f.readlines()[1:]
         for line in lines:
-            network, is_valid, is_subnet = line.split(',')
-            if is_valid == "TRUE":
+            network, _, is_subnet, test_case = line.split(',')
+            if test_case.strip() == "valid":
                 networks.append(network)
             if is_subnet.strip() == "TRUE":
                 subnets.append(network)
@@ -41,9 +41,9 @@ def test_merge_from_fixtures(tmp_path):
     and validates against expected network sets, i.e. invalid networks are not merged,
     and subnets are merged into the root network appropriately.
     '''
-    base_nets, base_subnets = __read_test_vectors("tests/data/base_file.csv")
+    base_nets, base_nets_to_exclude = __read_test_vectors("tests/data/base_file.csv")
     base_path = tmp_path / "base.txt"
-    extra_nets, extra_subnets = __read_test_vectors("tests/data/extra_file.csv")
+    extra_nets, extra_nets_to_exclude = __read_test_vectors("tests/data/extra_file.csv")
     extra_path = tmp_path / "extra.txt"
     # write the networks to disk, generating ASNs for each network
     generate_ip_file(base_path, build_file_lines(base_nets, generate_asns(len(base_nets))))
@@ -54,7 +54,8 @@ def test_merge_from_fixtures(tmp_path):
     with open(outpath, "r") as f:
         l = f.readlines()
         final_networks = {line.split()[0] for line in l}
-        expected_networks = set(base_nets + extra_nets) - set(base_subnets + extra_subnets)
+        # the unique set of networks, excluding invalid, duplicate, or subnets
+        expected_networks = set(base_nets + extra_nets) - set(base_nets_to_exclude + extra_nets_to_exclude )
         assert final_networks == expected_networks
 
 
