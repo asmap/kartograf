@@ -23,17 +23,16 @@ def __read_test_vectors(filepath):
     Fixtures for IP networks are under tests/data.
     Read them and return the list of valid networks and the list of individual subnets in the file.
     '''
-    networks = []
-    subnets = []
+    all_networks = []
+    all_in_result = []
     with open(filepath, "r") as f:
         lines = f.readlines()[1:]
         for line in lines:
-            network, _, is_subnet, test_case = line.split(',')
-            if test_case.strip() == "valid":
-                networks.append(network)
-            if is_subnet.strip() == "TRUE":
-                subnets.append(network)
-    return networks, subnets
+            network, in_result, _comment = line.split(',')
+            all_networks.append(network)
+            if in_result.strip() == "1":
+                all_in_result.append(network)
+    return all_networks, all_in_result
 
 def test_merge_from_fixtures(tmp_path):
     '''
@@ -42,9 +41,9 @@ def test_merge_from_fixtures(tmp_path):
     and subnets are merged into the root network appropriately.
     '''
     testdir = Path(__file__).parent
-    base_nets, base_nets_to_exclude = __read_test_vectors(testdir / "data/base_file.csv")
+    base_nets, base_results = __read_test_vectors(testdir / "data/base_file.csv")
     base_path = tmp_path / "base.txt"
-    extra_nets, extra_nets_to_exclude = __read_test_vectors(testdir / "data/extra_file.csv")
+    extra_nets, extra_results = __read_test_vectors(testdir / "data/extra_file.csv")
     extra_path = tmp_path / "extra.txt"
     # write the networks to disk, generating ASNs for each network
     generate_ip_file(base_path, build_file_lines(base_nets, generate_asns(len(base_nets))))
@@ -54,11 +53,11 @@ def test_merge_from_fixtures(tmp_path):
     general_merge(base_path, extra_path, None, outpath)
     with open(outpath, "r") as f:
         l = f.readlines()
-        final_networks = {line.split()[0] for line in l}
-        # the unique set of networks, excluding invalid, duplicate, or subnets
-        expected_networks = set(base_nets + extra_nets) - set(base_nets_to_exclude + extra_nets_to_exclude )
-        assert final_networks == expected_networks
-
+        merged_networks = sorted([line.split()[0] for line in l])
+    expected_networks = sorted(base_results + extra_results)
+    # Compare the merged result of networks, excluding duplicates and subnets,
+    # with the expected results
+    assert merged_networks == expected_networks
 
 def test_merge(tmp_path):
     """
