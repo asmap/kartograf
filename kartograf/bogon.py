@@ -117,6 +117,9 @@ SPECIAL_IPV6 = [
     # "fec0::/10",
 ]
 
+# Sets of networks
+SPECIAL_IPV4_NETWORKS = {ipaddress.ip_network(prefix) for prefix in SPECIAL_IPV4}
+SPECIAL_IPV6_NETWORKS = {ipaddress.ip_network(prefix) for prefix in SPECIAL_IPV6}
 
 def is_bogon_pfx(prefix):
     """
@@ -134,18 +137,8 @@ def is_bogon_pfx(prefix):
     - https://bgpfilterguide.nlnog.net/guides/bogon_prefixes/
     """
     network = ipaddress.ip_network(prefix)
-    version = network.version
-
-    if version == 4:
-        for ipv4_range in SPECIAL_IPV4:
-            if network.subnet_of(ipaddress.ip_network(ipv4_range)):
-                return True
-    elif version == 6:
-        for ipv6_range in SPECIAL_IPV6:
-            if network.subnet_of(ipaddress.ip_network(ipv6_range)):
-                return True
-
-    return False
+    networks = SPECIAL_IPV4_NETWORKS if network.version == 4 else SPECIAL_IPV6_NETWORKS
+    return any(network.subnet_of(special_net) for special_net in networks)
 
 
 def is_bogon_asn(asn_raw):
@@ -159,38 +152,27 @@ def is_bogon_asn(asn_raw):
     """
     asn = extract_asn(asn_raw)
 
-    if asn == 0:
-        # AS 0 is reserved, RFC7607
-        return True
-    if asn == 65535:
-        # Last 16 bit ASN, RFC7300
-        return True
-    if asn == 4294967295:
-        # Last 32 bit ASN, RFC7300
-        return True
-    if asn == 112:
-        # AS 112 is used by the AS112 project to sink misdirected DNS queries,
-        # RFC7534
-        return True
-    if asn == 23456:
-        # AS 23456 is reserved as AS_TRANS, RFC6793
-        return True
-    if 64496 <= asn <= 64511:
-        # AS 64496-64511 are reserved for documentation and sample code,
-        # RFC5398
-        return True
-    if 64512 <= asn <= 65534 or 4200000000 <= asn <= 4294967294:
-        # AS 64512-65534 and AS 4200000000-4294967294 are reserved for private
-        # use, RFC6996
-        return True
-    if 65536 <= asn <= 65551:
-        # AS 65536-65551 are reserved for documentation and sample code,
-        # RFC5398
-        return True
-    if 65552 <= asn <= 131071:
-        # IANA reserved ASNs, no RFC
+    reserved_asns = {
+        0,          # Reserved, RFC7607
+        112,        # AS112 project, RFC7534
+        23456,      # AS_TRANS, RFC6793
+        65535,      # Last 16 bit ASN, RFC7300
+        4294967295  # Last 32 bit ASN, RFC7300
+    }
+
+    if asn in reserved_asns:
         return True
 
+    reserved_asn_ranges = {
+        (64496, 64511),           # Documentation/Sample, RFC5398
+        (64512, 65534),           # Private use, RFC6996
+        (65536, 65551),           # Documentation/Sample, RFC5398
+        (65552, 131071),          # IANA reserved, no RFC
+        (4200000000, 4294967294)  # Private use, RFC6996
+    }
+
+    if any(start <= asn <= end for start, end in reserved_asn_ranges):
+        return True
     return False
 
 

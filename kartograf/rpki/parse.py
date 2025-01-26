@@ -7,7 +7,7 @@ from kartograf.bogon import (
     is_out_of_encoding_range,
 )
 from kartograf.timed import timed
-from kartograf.util import format_pfx
+from kartograf.util import parse_pfx
 
 
 @timed
@@ -55,12 +55,15 @@ def parse_rpki(context):
             valid_since = roa['valid_since']
 
             for vrp in roa['vrps']:
-                prefix = format_pfx(vrp['prefix'])
                 asn = vrp['asid']
+                prefix = parse_pfx(vrp['prefix'])
 
                 # Bogon prefixes and ASNs are excluded since they can not
                 # be used for routing.
                 if not prefix or is_bogon_pfx(prefix) or is_bogon_asn(asn):
+                    if context.debug_log:
+                        with open(context.debug_log, 'a') as logs:
+                            logs.write(f"RPKI: parser encountered an invalid IP network: {prefix}")
                     continue
 
                 if context.max_encode and is_out_of_encoding_range(asn, context.max_encode):
