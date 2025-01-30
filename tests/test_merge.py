@@ -1,7 +1,7 @@
-"""
+'''
 Test merging multiple sets of networks, as if they were independent AS files.
-"""
-import os
+'''
+from pathlib import Path
 
 from kartograf.merge import general_merge
 
@@ -19,30 +19,31 @@ def __tmp_paths(tmp_path):
     return [tmp_path / p for p in ["rpki_final.txt", "irr_final.txt", "out.txt"]]
 
 def __read_test_vectors(filepath):
-    """
+    '''
     Fixtures for IP networks are under tests/data.
-    Read them and return the list of valid networks and the count of individual subnets expected in the result of the merge.
-    """
-    networks = []
-    subnet_count = 0
+    Read them and return the list of valid networks and the list of individual subnets in the file.
+    '''
+    all_networks = []
+    all_in_result = []
     with open(filepath, "r") as f:
         lines = f.readlines()[1:]
         for line in lines:
-            network, is_valid, is_subnet = line.split(',')
-            if is_valid == "TRUE":
-                networks.append(network)
-            if is_subnet.strip() == "TRUE":
-                subnet_count += 1
-    return networks, subnet_count
+            network, in_result, _comment = line.split(',')
+            all_networks.append(network)
+            if in_result.strip() == "1":
+                all_in_result.append(network)
+    return all_networks, all_in_result
 
 def test_merge_from_fixtures(tmp_path):
     '''
-    Assert that general_merge merges subnets correctly.
+    Assert that general_merge merges subnets correctly,
+    and validates against expected networks,
+    i.e. subnets are merged into the root network appropriately.
     '''
-    data_dir = os.path.join(os.path.dirname(__file__), "data")
-    base_nets, base_subnet_count = __read_test_vectors(os.path.join(data_dir, "base_file.csv"))
+    testdir = Path(__file__).parent
+    base_nets, base_results = __read_test_vectors(testdir / "data/base_file.csv")
     base_path = tmp_path / "base.txt"
-    extra_nets, extra_subnet_count = __read_test_vectors(os.path.join(data_dir, "extra_file.csv"))
+    extra_nets, extra_results = __read_test_vectors(testdir / "data/extra_file.csv")
     extra_path = tmp_path / "extra.txt"
     # write the networks to disk, generating ASNs for each network
     generate_ip_file(base_path, build_file_lines(base_nets, generate_asns(len(base_nets))))
@@ -52,15 +53,16 @@ def test_merge_from_fixtures(tmp_path):
     general_merge(base_path, extra_path, None, outpath)
     with open(outpath, "r") as f:
         l = f.readlines()
-        final_network_count = len(l)
-        expected_count = (len(base_nets) + len(extra_nets)) - (base_subnet_count + extra_subnet_count)
-        assert final_network_count == expected_count
-
+        merged_networks = sorted([line.split()[0] for line in l])
+    expected_networks = sorted(base_results + extra_results)
+    # Compare the merged result of networks, excluding duplicates and subnets,
+    # with the expected results
+    assert merged_networks == expected_networks
 
 def test_merge(tmp_path):
-    """
+    '''
     Assert that merging two identical files is a no-op.
-    """
+    '''
     rpki_data = generate_file_items(100)
     rpki_path, _, out_path = __tmp_paths(tmp_path)
     generate_ip_file(rpki_path, rpki_data)
@@ -75,9 +77,9 @@ def test_merge(tmp_path):
 
 
 def test_merge_disjoint(tmp_path):
-    """
+    '''
     Test merging non-overlapping sets of IP networks.
-    """
+    '''
     main_data = generate_file_items(100)
     main_ips = [item.split()[0] for item in main_data]
     rpki_ips = main_ips[:50]
@@ -99,9 +101,9 @@ def test_merge_disjoint(tmp_path):
 
 
 def test_merge_joint(tmp_path):
-    """
+    '''
     Test merging overlapping sets of IP networks.
-    """
+    '''
     overlap = 10
     rpki_data = generate_file_items(100)
     rpki_ips = [item.split()[0] for item in rpki_data]
