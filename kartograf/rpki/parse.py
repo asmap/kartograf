@@ -1,4 +1,5 @@
 import json
+from pathlib import Path
 from typing import Dict
 
 from kartograf.bogon import (
@@ -12,8 +13,8 @@ from kartograf.util import parse_pfx
 
 @timed
 def parse_rpki(context):
-    raw_input = f"{context.out_dir_rpki}rpki_raw.json"
-    rpki_res = f"{context.out_dir_rpki}rpki_final.txt"
+    raw_input = Path(context.out_dir_rpki) / "rpki_raw.json"
+    rpki_res = Path(context.out_dir_rpki) / "rpki_final.txt"
 
     output_cache: Dict[str, [str, str]] = {}
 
