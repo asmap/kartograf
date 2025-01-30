@@ -1,7 +1,7 @@
 """
 Test merging multiple sets of networks, as if they were independent AS files.
 """
-import os
+from pathlib import Path
 
 from kartograf.merge import general_merge
 
@@ -39,10 +39,10 @@ def test_merge_from_fixtures(tmp_path):
     '''
     Assert that general_merge merges subnets correctly.
     '''
-    data_dir = os.path.join(os.path.dirname(__file__), "data")
-    base_nets, base_subnet_count = __read_test_vectors(os.path.join(data_dir, "base_file.csv"))
+    data_dir = Path(__file__).parent / "data"
+    base_nets, base_subnet_count = __read_test_vectors(data_dir / "base_file.csv")
     base_path = tmp_path / "base.txt"
-    extra_nets, extra_subnet_count = __read_test_vectors(os.path.join(data_dir, "extra_file.csv"))
+    extra_nets, extra_subnet_count = __read_test_vectors(data_dir / "extra_file.csv")
     extra_path = tmp_path / "extra.txt"
     # write the networks to disk, generating ASNs for each network
     generate_ip_file(base_path, build_file_lines(base_nets, generate_asns(len(base_nets))))
