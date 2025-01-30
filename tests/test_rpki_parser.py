@@ -3,7 +3,7 @@ import os
 
 from kartograf.rpki.parse import parse_rpki
 from .context import create_test_context
-from .util import flatten
+from .util.helpers import flatten
 
 
 def prefixes_from_vrps(vrps):
