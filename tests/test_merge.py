@@ -1,6 +1,6 @@
-"""
+'''
 Test merging multiple sets of networks, as if they were independent AS files.
-"""
+'''
 from pathlib import Path
 
 from kartograf.merge import general_merge
@@ -60,9 +60,9 @@ def test_merge_from_fixtures(tmp_path):
     assert merged_networks == expected_networks
 
 def test_merge(tmp_path):
-    """
+    '''
     Assert that merging two identical files is a no-op.
-    """
+    '''
     rpki_data = generate_file_items(100)
     rpki_path, _, out_path = __tmp_paths(tmp_path)
     generate_ip_file(rpki_path, rpki_data)
@@ -77,9 +77,9 @@ def test_merge(tmp_path):
 
 
 def test_merge_disjoint(tmp_path):
-    """
+    '''
     Test merging non-overlapping sets of IP networks.
-    """
+    '''
     main_data = generate_file_items(100)
     main_ips = [item.split()[0] for item in main_data]
     rpki_ips = main_ips[:50]
@@ -101,9 +101,9 @@ def test_merge_disjoint(tmp_path):
 
 
 def test_merge_joint(tmp_path):
-    """
+    '''
     Test merging overlapping sets of IP networks.
-    """
+    '''
     overlap = 10
     rpki_data = generate_file_items(100)
     rpki_ips = [item.split()[0] for item in rpki_data]
