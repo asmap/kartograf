@@ -20,7 +20,7 @@
       "aarch64-darwin"
     ];
 
-    nixpkgsFor = system: import nixpkgs { inherit system;};
+    nixpkgsFor = system: import nixpkgs {inherit system;};
   in {
     # This flake exposes the following attributes:
     # * A development shell containing the rpki-client and the necessary
@@ -28,20 +28,21 @@
     #   in the current directory.
     # * A default/kartograf package
     # * A NixOS module
-    devShells.default = forAllSystems (system: let
+    devShells = forAllSystems (system: let
       pkgs = nixpkgsFor system;
       pythonDevDeps = pkgs.python311.withPackages (ps: [
         ps.beautifulsoup4
         ps.pandas
         ps.pylint
-	ps.pytest
+        ps.pytest
         ps.requests
         ps.tqdm
       ]);
-    in
-      pkgs.mkShell {
+    in {
+      default = pkgs.mkShell {
         packages = [pythonDevDeps rpki-cli.defaultPackage.${system}];
-      });
+      };
+    });
 
     packages = forAllSystems (system: let
       pkgs = nixpkgsFor system;
