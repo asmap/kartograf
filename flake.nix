@@ -46,12 +46,12 @@
     packages = forAllSystems (system: let
       pkgs = nixpkgsFor system;
     in rec {
-      kartograf = pkgs.callPackage ./package.nix {
+      kartograf = pkgs.callPackage ./nix/package.nix {
         rpki-client = rpki-cli.defaultPackage.${system};
       };
       default = kartograf;
     });
 
-    nixosModules.default = import ./module.nix;
+    nixosModules.default = import ./nix/module.nix;
   };
 }

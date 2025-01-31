@@ -11,17 +11,17 @@ in
           # not a python-installable package, so just manually copy files
           pname = "kartograf";
           version = "1.0.0";
-          src = ./.;
+          src = ./..;
           nativeBuildInputs = [pkgs.makeWrapper];
           buildInputs = [ pythonBuildDeps ];
           propagatedBuildInputs = [ rpki-client ];
           buildPhase = ''
             mkdir -p $out/lib/kartograf
-            cp -r ${./kartograf}/* $out/lib/kartograf/
+            cp -r ${./../kartograf}/* $out/lib/kartograf/
           '';
           installPhase = ''
             mkdir -p $out/bin
-            cp ${./run} $out/bin/kartograf
+            cp ${./../run} $out/bin/kartograf
             chmod +x $out/bin/kartograf
           '';
           fixupPhase = ''
