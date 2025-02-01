@@ -40,10 +40,10 @@ def test_merge_from_fixtures(tmp_path):
     and validates against expected networks,
     i.e. subnets are merged into the root network appropriately.
     '''
-    testdir = Path(__file__).parent
-    base_nets, base_results = __read_test_vectors(testdir / "data/base_file.csv")
+    data_dir = Path(__file__).parent / "data"
+    base_nets, base_results = __read_test_vectors(data_dir / "base_file.csv")
     base_path = tmp_path / "base.txt"
-    extra_nets, extra_results = __read_test_vectors(testdir / "data/extra_file.csv")
+    extra_nets, extra_results = __read_test_vectors(data_dir / "extra_file.csv")
     extra_path = tmp_path / "extra.txt"
     # write the networks to disk, generating ASNs for each network
     generate_ip_file(base_path, build_file_lines(base_nets, generate_asns(len(base_nets))))
