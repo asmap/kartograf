@@ -54,17 +54,37 @@ def test_directory_creation(parser, tmp_path):
     os.chdir(tmp_path)
     context = Context(args)
 
-    assert isinstance(context.data_dir_rpki_cache, str)
-    assert Path(context.data_dir_rpki_cache).exists()
-    assert isinstance(context.data_dir_rpki_tals, str)
-    assert Path(context.data_dir_rpki_tals).exists()
-    assert isinstance(context.data_dir_irr, str)
-    assert Path(context.data_dir_irr).exists()
-    assert isinstance(context.data_dir_collectors, str)
-    assert Path(context.data_dir_collectors).exists()
-    assert isinstance(context.out_dir_rpki, str)
-    assert Path(context.out_dir_rpki).exists()
-    assert isinstance(context.out_dir_irr, str)
-    assert Path(context.out_dir_irr).exists()
-    assert isinstance(context.out_dir_collectors, str)
-    assert Path(context.out_dir_collectors).exists()
+    rpki_cache = context.data_dir_rpki_cache
+    assert isinstance(rpki_cache, str)
+    assert Path(rpki_cache).exists()
+    assert Path(rpki_cache).parent.name == "rpki"
+
+    rpki_tals = context.data_dir_rpki_tals
+    assert isinstance(rpki_tals, str)
+    assert Path(rpki_tals).exists()
+    assert Path(rpki_tals).parent.name == "rpki"
+
+    data_dir_irr = context.data_dir_irr
+    assert isinstance(data_dir_irr, str)
+    assert Path(data_dir_irr).exists()
+    assert Path(data_dir_irr).name == "irr"
+
+    data_dir_collectors = context.data_dir_collectors
+    assert isinstance(data_dir_collectors, str)
+    assert Path(data_dir_collectors).exists()
+    assert Path(data_dir_collectors).name == "collectors"
+
+    out_dir_rpki = context.out_dir_rpki
+    assert isinstance(out_dir_rpki, str)
+    assert Path(out_dir_rpki).exists()
+    assert Path(out_dir_rpki).name == "rpki"
+
+    out_dir_irr = context.out_dir_irr
+    assert isinstance(out_dir_irr, str)
+    assert Path(out_dir_irr).exists()
+    assert Path(out_dir_irr).name == "irr"
+
+    out_dir_collectors = context.out_dir_collectors
+    assert isinstance(out_dir_collectors, str)
+    assert Path(out_dir_collectors).exists()
+    assert Path(out_dir_collectors).name == "collectors"
