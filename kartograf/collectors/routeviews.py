@@ -1,4 +1,5 @@
 from datetime import datetime, timedelta
+from pathlib import Path
 import gzip
 import shutil
 import sys
@@ -67,8 +68,8 @@ def download(url, file):
 
 
 def extract(file, context):
-    gz_file = context.data_dir_collectors + file + ".gz"
-    file = context.out_dir_collectors + file
+    gz_file = Path(context.data_dir_collectors) / (file + ".gz")
+    file = Path(context.out_dir_collectors) / file
 
     print(f'Unzipping {gz_file}')
     with gzip.open(gz_file, 'rb') as f_in:
@@ -88,9 +89,9 @@ def extract(file, context):
 
 @timed
 def fetch_routeviews_pfx2as(context):
-    path = context.data_dir_collectors
-    v4_file_gz = f'{path}routeviews_pfx2asn_ip4.txt.gz'
-    v6_file_gz = f'{path}routeviews_pfx2asn_ip6.txt.gz'
+    path = Path(context.data_dir_collectors)
+    v4_file_gz = path / "routeviews_pfx2asn_ip4.txt.gz"
+    v6_file_gz = path / "routeviews_pfx2asn_ip6.txt.gz"
 
     download(latest_link(PFX2AS_V4), v4_file_gz)
     print(f"Downloaded {v4_file_gz}, file hash: {calculate_sha256(v4_file_gz)}")
@@ -105,9 +106,9 @@ def extract_routeviews_pfx2as(context):
     extract(v4_file_name, context)
     extract(v6_file_name, context)
 
-    v4_file = context.out_dir_collectors + v4_file_name
-    v6_file = context.out_dir_collectors + v6_file_name
-    out_file = f'{context.out_dir_collectors}pfx2asn.txt'
+    v4_file = Path(context.out_dir_collectors) / v4_file_name
+    v6_file = Path(context.out_dir_collectors) / v6_file_name
+    out_file = Path(context.out_dir_collectors) / "pfx2asn.txt"
 
     with open(v4_file, 'r') as v4, \
             open(v6_file, 'r') as v6, \
