@@ -1,3 +1,4 @@
+from pathlib import Path
 import ipaddress
 import shutil
 import pandas as pd
@@ -62,10 +63,10 @@ class BaseNetworkIndex:
 
 @timed
 def merge_irr(context):
-    rpki_file = f"{context.out_dir_rpki}rpki_final.txt"
-    irr_file = f"{context.out_dir_irr}irr_final.txt"
-    irr_filtered_file = f"{context.out_dir_irr}irr_filtered.txt"
-    out_file = f"{context.out_dir}merged_file_rpki_irr.txt"
+    rpki_file = Path(context.out_dir_rpki) / "rpki_final.txt"
+    irr_file = Path(context.out_dir_irr) / "irr_final.txt"
+    irr_filtered_file = Path(context.out_dir_irr) / "irr_filtered.txt"
+    out_file = Path(context.out_dir) / "merged_file_rpki_irr.txt"
 
     general_merge(
         rpki_file,
@@ -81,14 +82,14 @@ def merge_pfx2as(context):
     # We are always doing RPKI but IRR is optional for now so depending on this
     # we are working off of a different base file for the merge.
     if context.args.irr:
-        base_file = f"{context.out_dir}merged_file_rpki_irr.txt"
-        out_file = f"{context.out_dir}merged_file_rpki_irr_rv.txt"
+        base_file = Path(context.out_dir) / "merged_file_rpki_irr.txt"
+        out_file = Path(context.out_dir) / "merged_file_rpki_irr_rv.txt"
     else:
-        base_file = f"{context.out_dir_rpki}rpki_final.txt"
-        out_file = f"{context.out_dir}merged_file_rpki_rv.txt"
+        base_file = Path(context.out_dir_rpki) / "rpki_final.txt"
+        out_file = Path(context.out_dir) / "merged_file_rpki_rv.txt"
 
-    rv_file = f"{context.out_dir_collectors}pfx2asn_clean.txt"
-    rv_filtered_file = f"{context.out_dir_collectors}pfx2asn_filtered.txt"
+    rv_file = Path(context.out_dir_collectors) / "pfx2asn_clean.txt"
+    rv_filtered_file = Path(context.out_dir_collectors) / "pfx2asn_filtered.txt"
 
     general_merge(
         base_file,
