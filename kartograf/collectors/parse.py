@@ -1,3 +1,5 @@
+from pathlib import Path
+
 from kartograf.bogon import (
     is_bogon_pfx,
     is_bogon_asn,
@@ -9,10 +11,10 @@ from kartograf.util import parse_pfx
 
 @timed
 def parse_routeviews_pfx2as(context):
-    raw_file = f'{context.out_dir_collectors}pfx2asn.txt'
-    clean_file = f'{context.out_dir_collectors}pfx2asn_clean.txt'
+    raw_file = Path(context.out_dir_collectors) / "pfx2asn.txt"
+    clean_file = Path(context.out_dir_collectors) / "pfx2asn_clean.txt"
 
-    print("Cleaning " + raw_file)
+    print("Cleaning " + str(raw_file))
     with open(raw_file, 'r') as raw, open(clean_file, 'w') as clean:
         lines = raw.readlines()
         for line in lines:

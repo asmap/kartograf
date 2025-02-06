@@ -3,8 +3,7 @@ import sys
 
 from concurrent.futures import ThreadPoolExecutor
 from threading import Lock
-import os
-import pathlib
+from pathlib import Path
 import requests
 from tqdm import tqdm
 
@@ -31,7 +30,7 @@ def download_rir_tals(context):
             response = requests.get(url, timeout=600)
             response.raise_for_status()
 
-            tal_path = os.path.join(context.data_dir_rpki_tals, f"{rir}.tal")
+            tal_path = Path(context.data_dir_rpki_tals) / f"{rir}.tal"
             with open(tal_path, 'wb') as file:
                 file.write(response.content)
 
@@ -44,7 +43,7 @@ def download_rir_tals(context):
 
 
 def data_tals(context):
-    tal_paths = list(pathlib.Path(context.data_dir_rpki_tals).rglob('*.tal'))
+    tal_paths = list(Path(context.data_dir_rpki_tals).rglob('*.tal'))
     # We need to have 5 TALs, one from each RIR
     if len(tal_paths) == 5:
         return tal_paths
@@ -82,13 +81,13 @@ def fetch_rpki_db(context):
 @timed
 def validate_rpki_db(context):
     print("Validating RPKI ROAs")
-    files = [path for path in pathlib.Path(context.data_dir_rpki_cache).rglob('*')
+    files = [path for path in Path(context.data_dir_rpki_cache).rglob('*')
              if path.is_file() and ((path.suffix == ".roa")
                                     or (path.name == ".roa"))]
 
     print(f"{len(files)} raw RKPI ROA files found.")
     rpki_raw_file = 'rpki_raw.json'
-    result_path = f"{context.out_dir_rpki}{rpki_raw_file}"
+    result_path = Path(context.out_dir_rpki) / rpki_raw_file
 
     tal_options = [item for path in data_tals(context) for item in ('-t', path)]
 
