@@ -40,7 +40,7 @@
       ]);
     in {
       default = pkgs.mkShell {
-        packages = [pythonDevDeps rpki-cli.defaultPackage.${system}];
+        packages = [pythonDevDeps rpki-cli.packages.${system}.default];
       };
     });
 
@@ -48,11 +48,11 @@
       pkgs = nixpkgsFor system;
     in rec {
       kartograf = pkgs.callPackage ./nix/package.nix {
-        rpki-client = rpki-cli.defaultPackage.${system};
+        rpki-client = rpki-cli.packages.${system}.default;
       };
       default = kartograf;
     });
 
-    nixosModules.default = import ./nix/module.nix;
+    nixosModules.kartograf = import ./nix/module.nix self;
   };
 }
