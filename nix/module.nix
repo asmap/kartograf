@@ -1,4 +1,4 @@
-{ config, pkgs, lib, ... }:
+flake: { config, pkgs, lib, ... }:
 
 with lib;
 
@@ -16,6 +16,11 @@ in
 {
   options.services.kartograf = {
     enable = mkEnableOption "kartograf";
+    package = mkOption {
+      type = types.package;
+      default = (flake.packages.${pkgs.stdenv.hostPlatform.system}).kartograf;
+      description = mdDoc "kartograf binary to use";
+    };
     clean = mkEnableOption "cleaning up of temporary artifacts after processing." // { default = true; };
     useIRR = mkEnableOption "using Internet Routing Registry (IRR) data" // { default = true; };
     useRV = mkEnableOption "using RouteViews (RV) data" // { default = true; };
