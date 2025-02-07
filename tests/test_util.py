@@ -1,6 +1,6 @@
+import pytest
 from kartograf.util import parse_pfx, is_valid_pfx, get_root_network, rir_from_str
 
-import pytest
 
 def test_valid_ipv4_network():
     pfx = "192.144.11.0/24"
