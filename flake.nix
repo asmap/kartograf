@@ -53,6 +53,6 @@
       default = kartograf;
     });
 
-    nixosModules.default = import ./nix/module.nix;
+    nixosModules.kartograf = import ./nix/module.nix self;
   };
 }
