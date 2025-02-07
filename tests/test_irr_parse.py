@@ -21,3 +21,5 @@ def test_parse_basic(tmp_path):
         for l in f.readlines():
             content.append(l.strip())
     assert content == ["193.254.30.0/24 AS12726", "212.166.64.0/19 AS12321", "212.80.191.0/24 AS12541"]
+    # removed duplicate network with higher ASN
+    assert "212.80.191.0/24 AS12542" not in content
