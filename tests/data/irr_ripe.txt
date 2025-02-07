@@ -1,0 +1,52 @@
+route:          193.254.30.0/24
+descr:          Lufthansa Airplus Servicekarten GmbH
+origin:         AS12726
+mnt-by:         AS12312-MNT
+mnt-by:         DE-COLT-MNT
+mnt-by:         COLT-UK
+created:        2002-05-21T15:33:55Z
+last-modified:  2024-07-30T07:55:18Z
+source:         RIPE
+remarks:        ****************************
+remarks:        * THIS OBJECT IS MODIFIED
+remarks:        * Please note that all data that is generally regarded as personal
+remarks:        * data has been removed from this object.
+remarks:        * To view the original object, please query the RIPE Database at:
+remarks:        * http://www.ripe.net/whois
+remarks:        ****************************
+
+route:          212.166.64.0/19
+descr:          Tiscali Spain
+origin:         AS12321
+mnt-by:         TISCALI-ES-MNT
+notify:         noc@ibercom.com
+notify:         david.barbarin@ibercom.com
+created:        2002-02-22T11:45:51Z
+last-modified:  2015-11-03T09:29:04Z
+source:         RIPE
+remarks:        ****************************
+remarks:        * THIS OBJECT IS MODIFIED
+remarks:        * Please note that all data that is generally regarded as personal
+remarks:        * data has been removed from this object.
+remarks:        * To view the original object, please query the RIPE Database at:
+remarks:        * http://www.ripe.net/whois
+remarks:        ****************************
+
+route:          212.80.191.0/24
+descr:          Cable&Wireless EUROPE
+descr:          assigned internal use
+origin:         AS12541
+notify:         ipadmin@cweurope.net
+notify:         aaron.hamilton@cweurope.net
+mnt-by:         EVOLUTIOCLOUD-MNT
+created:        1970-01-01T00:00:00Z
+last-modified:  2023-06-05T20:59:06Z
+source:         RIPE
+remarks:        ****************************
+remarks:        * THIS OBJECT IS MODIFIED
+remarks:        * Please note that all data that is generally regarded as personal
+remarks:        * data has been removed from this object.
+remarks:        * To view the original object, please query the RIPE Database at:
+remarks:        * http://www.ripe.net/whois
+remarks:        ****************************
+
