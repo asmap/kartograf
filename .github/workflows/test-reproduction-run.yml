@@ -1,0 +1,23 @@
+name: Test Full Run
+
+on:
+  push:
+    branches: [master]
+
+jobs:
+  test-full-run:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+
+    - name: Install dependencies
+      run: |
+        pip install -r requirements.txt
+
+    - name: Run with reproduction data
+      run: |
+        ./run map -r tests/data/ci-run -t $(date +%s)
