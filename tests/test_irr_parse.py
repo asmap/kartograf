@@ -1,12 +1,13 @@
 from pathlib import Path
 
 from kartograf.irr.parse import parse_irr
-from .context import create_test_context
+from .context import create_test_context, setup_test_data
 
 
 def build_test_context(tmp_path):
     epoch = "111111112"
     context = create_test_context(tmp_path, epoch)
+    setup_test_data(context)
     return context
 
 

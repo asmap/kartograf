@@ -45,9 +45,13 @@ def load_irr_fixtures(context, fixtures_path):
     for file in irr_fixtures():
         shutil.copy2(Path(fixtures_path) / file, context.out_dir_irr)
 
+def setup_test_data(context):
+    fixtures_path = Path(__file__).parent / "data"
+    load_rpki_csv_to_json(context, fixtures_path)
+    load_irr_fixtures(context, fixtures_path)
+
 def create_test_context(tmp_path, epoch):
     current_path = Path.cwd()
-    fixtures_path = Path(__file__).parent / "data"
     os.chdir(tmp_path)  # Use temporary directory
 
     TEST_ARGS.epoch = epoch
@@ -62,7 +66,5 @@ def create_test_context(tmp_path, epoch):
     for p in [context.data_dir_rpki, context.data_dir_irr, context.out_dir_rpki, context.out_dir_irr]:
         Path.mkdir(p, exist_ok=True, parents=True)
 
-    load_rpki_csv_to_json(context, fixtures_path)
-    load_irr_fixtures(context, fixtures_path)
     os.chdir(current_path)
     return context

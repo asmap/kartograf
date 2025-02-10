@@ -2,7 +2,7 @@ import json
 import os
 
 from kartograf.rpki.parse import parse_rpki
-from .context import create_test_context
+from .context import create_test_context, setup_test_data
 from .util.helpers import flatten
 
 
@@ -24,6 +24,7 @@ def test_roa_validations(tmp_path, capsys):
     '''
     epoch = "111111111"
     context = create_test_context(tmp_path, epoch)
+    setup_test_data(context)
     parse_rpki(context)
 
     # Check that rpki_final.txt was created
