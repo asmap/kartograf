@@ -1,4 +1,6 @@
-from kartograf.util import parse_pfx, is_valid_pfx, get_root_network
+import pytest
+from kartograf.util import parse_pfx, is_valid_pfx, get_root_network, rir_from_str
+
 
 def test_valid_ipv4_network():
     pfx = "192.144.11.0/24"
@@ -64,3 +66,13 @@ def test_get_root_network():
     assert get_root_network(ipv6) == int("2001", 16)
     invalid = "not.a.network"
     assert get_root_network(invalid) is None
+
+
+def test_rir_from_string():
+    assert rir_from_str("ripe.db.route") == "RIPE"
+    assert rir_from_str("ARIN-file") == "ARIN"
+    assert rir_from_str("lacnic.db") == "LACNIC"
+    assert rir_from_str("afrinic-data") == "AFRINIC"
+    assert rir_from_str("apnic.db") == "APNIC"
+    with pytest.raises(Exception):
+        rir_from_str("invalid")
