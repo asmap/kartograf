@@ -146,7 +146,7 @@ def general_merge(
     print("Parse extra file to Pandas DataFrame")
     df_extra = extra_file_to_df(extra_file)
 
-    print("Merging extra prefixes that were not included in the base file:\n")
+    print("Merging extra prefixes that were not included in the base file.")
     extra_included = []
     for row in df_extra.itertuples(index=False):
         result = base.contains_row(row)
