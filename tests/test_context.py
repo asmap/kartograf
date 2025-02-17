@@ -38,7 +38,9 @@ def test_map_context_with_reproduce(parser, tmp_path):
     assert context.epoch == '1225411200'
     assert context.epoch_dir == 'r1225411200'
     assert context.args.irr is True  # Should be True since irr dir exists
+    assert Path(context.data_dir_irr).exists()
     assert context.args.routeviews is True  # Should be True since collectors dir exists
+    assert Path(context.data_dir_collectors).exists()
 
 def test_map_context_with_wait(parser, tmp_path):
     args = parser.parse_args(['map', '-w', '1225411200'])

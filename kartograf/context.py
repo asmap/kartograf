@@ -20,12 +20,9 @@ class Context:
 
         self.reproduce = self.args.reproduce is not None
         if self.reproduce:
-            items = Path.iterdir(Path(self.args.reproduce))
-            source_folders = []
-            for folder in items:
-                full_path = self.args.reproduce / folder
-                if Path.is_dir(full_path):
-                    source_folders.append(folder.name)
+            data_path = Path(self.args.reproduce)
+            # in the data path, get the names of directories in the given path
+            source_folders = [ p.name for p in data_path.glob('*') if Path.is_dir(p) ]
             # We override the args because we are reproducing and only where we
             # have data we try to use is, the actual args passed don't matter.
             self.args.irr = 'irr' in source_folders
