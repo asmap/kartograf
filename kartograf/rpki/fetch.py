@@ -1,6 +1,7 @@
 import subprocess
 import sys
 
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from threading import Lock
 from pathlib import Path
 import requests
@@ -96,7 +97,7 @@ def validate_rpki_db(context):
         with open(context.debug_log, 'a') as logs:
             logs.write("\n\n=== RPKI Validation ===\n")
 
-    def process_file(batch):
+    def process_files_batch(batch):
         result = subprocess.run(["rpki-client",
                                  "-j",
                                  "-n",
@@ -118,16 +119,25 @@ def validate_rpki_db(context):
 
     total = len(files)
     batch_size = 250
+    batches = []
+    for i in range(0, total, batch_size):
+        batch = [str(f) for f in files[i:i + batch_size]]
+        batches.append(batch)
 
-    with open(result_path, "w") as res_file:
-        res_file.write("[")
-        for i in tqdm(range(0, total, batch_size)):
-            batch = [str(f) for f in files[i:i + batch_size]]
-            results = process_file(batch)
-            normalized = results.replace(b"\n}\n{\n\t", b"\n},\n{\n").decode('utf-8').strip()
-            res_file.write(normalized)
-            res_file.write(",")
-
-        res_file.write("{}]")
+    total_batches = len(batches)
+    completed = 0
+    with ThreadPoolExecutor() as executor:
+        futures = [executor.submit(process_files_batch, batch) for batch in batches]
+        with open(result_path, "w") as res_file:
+            res_file.write("[")
+            for future in tqdm(as_completed(futures), total=total_batches):
+                result = future.result()
+                if result:
+                    normalized = result.replace(b"\n}\n{\n\t", b"\n},\n{\n").decode('utf-8').strip()
+                    res_file.write(normalized)
+                    completed += 1
+                    if completed < total_batches:
+                        res_file.write(",")
+            res_file.write("]")
 
     print(f"RKPI ROAs validated and saved to {result_path}, file hash: {calculate_sha256(result_path)}")
