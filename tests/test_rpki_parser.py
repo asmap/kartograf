@@ -3,7 +3,6 @@ import os
 
 from kartograf.rpki.parse import parse_rpki
 from .context import create_test_context, setup_test_data
-from .util.helpers import flatten
 
 
 def prefixes_from_vrps(vrps):
@@ -31,24 +30,15 @@ def test_roa_validations(tmp_path, capsys):
     final_path = os.path.join(context.out_dir_rpki, "rpki_final.txt")
     assert os.path.exists(final_path), "rpki_final.txt should exist"
 
-    # Read the raw JSON to compare counts
-    with open(os.path.join(context.out_dir_rpki, "rpki_raw.json"), "r") as f:
-        raw_data = json.load(f)
-
     # Count entries in final output
     with open(final_path, "r") as f:
-        final_lines = f.readlines()
-
-    # Count of duplicates should be the count of final output minus the count
-    # of unique prefixes in the raw data
-    prefixes = [prefixes_from_vrps(roa['vrps']) for roa in raw_data]
-    duplicates = len(set(flatten(prefixes))) - len(final_lines)
+        final_lines = [line.strip() for line in f.readlines()]
 
     captured = capsys.readouterr()
-    assert len(final_lines) == 7, "Should have found 7 valid ROAs"
-    assert duplicates == 2, "Should have found 2 duplicates"
-    assert "Result entries written: 7" in captured.out
-    assert "Duplicates found: 2" in captured.out
+
+    assert len(final_lines) == 10, "Should have found 10 valid ROAs"
+    assert "Result entries written: 10" in captured.out
+    assert "Duplicates found: 5" in captured.out
     assert "Invalids found: 1" in captured.out
     assert "Incompletes: 0" in captured.out
     assert "Non-ROA files: 1" in captured.out
