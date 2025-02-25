@@ -29,14 +29,56 @@ created:        1970-01-01T00:00:00Z
 last-modified:  2023-06-05T20:59:06Z
 source:         RIPE
 
-route:          212.80.191.0/24
-descr:          Cable&Wireless EUROPE
-descr:          assigned internal use
-origin:         AS12542
-notify:         ipadmin@cweurope.net
-notify:         aaron.hamilton@cweurope.net
-mnt-by:         EVOLUTIOCLOUD-MNT
-created:        1970-01-01T00:00:00Z
-last-modified:  2023-06-05T20:59:06Z
+route:          212.16.0.0/24
+descr:          Test Network 1
+origin:         AS12345
+mnt-by:         TEST-MNT
+created:        2023-01-01T00:00:00Z
+last-modified:  2023-01-01T00:00:00Z
+source:         RIPE
+
+route:          212.16.0.0/24
+descr:          Test Network 1 Duplicate
+origin:         AS12346
+mnt-by:         TEST-MNT
+created:        2023-01-01T00:00:00Z
+last-modified:  2023-01-02T00:00:00Z
+source:         RIPE
+
+route:          212.17.0.0/24
+descr:          Test Network 2 - Same timestamp lower ASN
+origin:         AS12347
+mnt-by:         TEST-MNT
+created:        2023-01-01T00:00:00Z
+last-modified:  2023-01-01T00:00:00Z
+source:         RIPE
+
+route:          212.17.0.0/24
+descr:          Test Network 2 - Same timestamp higher ASN
+origin:         AS12348
+mnt-by:         TEST-MNT
+created:        2023-01-01T00:00:00Z
+last-modified:  2023-01-01T00:00:00Z
+source:         RIPE
+
+route6:         2345:2ca::/32
+descr:          Test IPv6 Network
+origin:         AS12345
+mnt-by:         TEST-MNT
+created:        2023-01-01T00:00:00Z
+last-modified:  2023-01-01T00:00:00Z
+source:         RIPE
+
+route:          212.18.0.0/24
+descr:          Test Network Wrong Source
+origin:         AS12345
+mnt-by:         TEST-MNT
+created:        2023-01-01T00:00:00Z
+last-modified:  2023-01-01T00:00:00Z
+source:         ARIN
+
+route:          212.19.0.0/24
+descr:          Test Incomplete Entry
+origin:         AS12345
 source:         RIPE
 

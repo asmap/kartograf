@@ -17,10 +17,42 @@ def test_parse_basic(tmp_path):
     result_file = Path(context.out_dir_irr) / "irr_final.txt"
     assert result_file.exists()
 
-    content = []
     with open(str(result_file), 'r') as f:
-        for l in f.readlines():
-            content.append(l.strip())
-    assert content == ["193.254.30.0/24 AS12726", "212.166.64.0/19 AS12321", "212.80.191.0/24 AS12541"]
-    # removed duplicate network with higher ASN
-    assert "212.80.191.0/24 AS12542" not in content
+        content = [ l.strip() for l in f.readlines() ]
+    assert content == ["193.254.30.0/24 AS12726", "212.166.64.0/19 AS12321", "212.80.191.0/24 AS12541", "212.16.0.0/24 AS12346", "212.17.0.0/24 AS12347", "2345:2ca::/32 AS12345" ]
+
+
+def test_parse_validation_cases(tmp_path):
+    """
+    Test various IRR parsing validation cases:
+    - Timestamp based conflict resolution
+    - ASN based conflict resolution
+    - IPv6 handling
+    - Wrong source filtering
+    - Incomplete entry filtering
+    """
+    context = build_test_context(tmp_path)
+    parse_irr(context)
+
+    result_file = Path(context.out_dir_irr) / "irr_final.txt"
+    assert result_file.exists()
+
+    with open(str(result_file), 'r') as f:
+        content = [l.strip() for l in f.readlines()]
+
+    # Test duplicate network, newer timestamp wins
+    assert "212.16.0.0/24 AS12346" in content  #
+    assert "212.16.0.0/24 AS12345" not in content
+
+    # Test same timestamp resolution, lower ASN wins
+    assert "212.17.0.0/24 AS12347" in content
+    assert "212.17.0.0/24 AS12348" not in content
+
+    # Test IPv6 inclusion
+    assert "2345:2ca::/32 AS12345" in content
+
+    # Test wrong source exclusion: ARIN in RIPE file
+    assert "212.18.0.0/24 AS12345" not in content
+
+    # Test incomplete entry
+    assert "212.19.0.0/24 AS12345" not in content
