@@ -37,7 +37,7 @@ class Context:
                 self.args.reproduce += '/'
             self.data_dir = self.args.reproduce
         else:
-            self.data_dir = str(cwd / "data" / self.epoch_dir)
+            self.data_dir = str(Path("data") / self.epoch_dir)
 
         if Path(self.data_dir).exists() and not self.reproduce:
             print("Not so fast, a folder with that epoch already exists.")
