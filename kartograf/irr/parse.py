@@ -79,7 +79,7 @@ def parse_irr(context):
                     if context.max_encode and is_out_of_encoding_range(origin, context.max_encode):
                         continue
 
-                    # There are dublicates and multiple entries for some
+                    # There are duplicates and multiple entries for some
                     # prefixes in the IRR DBs, so we need to deal with them
                     # here.
                     if output_cache.get(route):
