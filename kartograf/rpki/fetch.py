@@ -2,6 +2,7 @@ import subprocess
 import sys
 
 from concurrent.futures import ThreadPoolExecutor, as_completed
+import json
 from threading import Lock
 from pathlib import Path
 import requests
@@ -125,19 +126,18 @@ def validate_rpki_db(context):
         batches.append(batch)
 
     total_batches = len(batches)
-    completed = 0
+    results = []
     with ThreadPoolExecutor() as executor:
         futures = [executor.submit(process_files_batch, batch) for batch in batches]
-        with open(result_path, "w") as res_file:
-            res_file.write("[")
-            for future in tqdm(as_completed(futures), total=total_batches):
-                result = future.result()
-                if result:
-                    normalized = result.replace(b"\n}\n{\n\t", b"\n},\n{\n").decode('utf-8').strip()
-                    res_file.write(normalized)
-                    completed += 1
-                    if completed < total_batches:
-                        res_file.write(",")
-            res_file.write("]")
+        for future in tqdm(as_completed(futures), total=total_batches):
+            result = future.result()
+            if result:
+                normalized = result.replace(b"\n}\n{\n\t", b"\n},\n{\n").decode('utf-8').strip()
+                results.append(normalized)
+        results_json = json.loads("[" + ",".join(results) + "]")
+        s = sorted(results_json, key=lambda result: result["hash_id"])
 
-    print(f"RKPI ROAs validated and saved to {result_path}, file hash: {calculate_sha256(result_path)}")
+        with open(result_path, 'w') as f:
+            json.dump(s, f)
+
+    print(f"{len(results_json)} RKPI ROAs validated and saved to {result_path}, file hash: {calculate_sha256(result_path)}")
