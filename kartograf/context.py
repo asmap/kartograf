@@ -35,9 +35,11 @@ class Context:
         if self.reproduce:
             if not self.args.reproduce.endswith('/'):
                 self.args.reproduce += '/'
-            self.data_dir = self.args.reproduce
+            abs_path = Path(self.args.reproduce).absolute()
+            self.data_dir = str(abs_path)
         else:
-            self.data_dir = str(cwd / "data" / self.epoch_dir)
+            abs_path = (Path("data") / self.epoch_dir).absolute()
+            self.data_dir = str(abs_path)
 
         if Path(self.data_dir).exists() and not self.reproduce:
             print("Not so fast, a folder with that epoch already exists.")

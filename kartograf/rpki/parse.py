@@ -64,7 +64,7 @@ def parse_rpki(context):
                 if not prefix or is_bogon_pfx(prefix) or is_bogon_asn(asn):
                     if context.debug_log:
                         with open(context.debug_log, 'a') as logs:
-                            logs.write(f"RPKI: parser encountered an invalid IP network: {prefix}")
+                            logs.write(f"RPKI: parser encountered an invalid IP network: {prefix}\n")
                     continue
 
                 if context.max_encode and is_out_of_encoding_range(asn, context.max_encode):

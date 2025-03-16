@@ -1,7 +1,8 @@
 import subprocess
 import sys
 
-from concurrent.futures import ThreadPoolExecutor
+from concurrent.futures import ThreadPoolExecutor, as_completed
+import json
 from threading import Lock
 from pathlib import Path
 import requests
@@ -97,7 +98,7 @@ def validate_rpki_db(context):
         with open(context.debug_log, 'a') as logs:
             logs.write("\n\n=== RPKI Validation ===\n")
 
-    def process_file(file):
+    def process_files_batch(batch):
         result = subprocess.run(["rpki-client",
                                  "-j",
                                  "-n",
@@ -106,7 +107,7 @@ def validate_rpki_db(context):
                                  "-P",
                                  context.epoch,
                                  ] + tal_options +
-                                 ["-f", file],  # -f has to be last
+                                 ["-f"] + batch,  # -f has to be last
                                  capture_output=True,
                                  check=False)
 
@@ -114,18 +115,29 @@ def validate_rpki_db(context):
             stderr_output = result.stderr.decode()
             with debug_file_lock:
                 with open(context.debug_log, 'a') as logs:
-                    logs.write(f'\nfile: {file}\n')
                     logs.write(stderr_output)
         return result.stdout
 
+    total = len(files)
+    batch_size = 250
+    batches = []
+    for i in range(0, total, batch_size):
+        batch = [str(f) for f in files[i:i + batch_size]]
+        batches.append(batch)
+
+    total_batches = len(batches)
+    results = []
     with ThreadPoolExecutor() as executor:
-        results = list(tqdm(executor.map(process_file, files), total=len(files)))
+        futures = [executor.submit(process_files_batch, batch) for batch in batches]
+        for future in tqdm(as_completed(futures), total=total_batches):
+            result = future.result()
+            if result:
+                normalized = result.replace(b"\n}\n{\n\t", b"\n},\n{\n").decode('utf-8').strip()
+                results.append(normalized)
+        results_json = json.loads("[" + ",".join(results) + "]")
+        s = sorted(results_json, key=lambda result: result["hash_id"])
 
-    json_results = [result.decode() for result in results if result]
+        with open(result_path, 'w') as f:
+            json.dump(s, f)
 
-    with open(result_path, "w") as res_file:
-        res_file.write("[")
-        res_file.write(",".join(json_results))
-        res_file.write("]")
-
-    print(f"{len(json_results)} RKPI ROAs validated and saved to {result_path}, file hash: {calculate_sha256(result_path)}")
+    print(f"{len(results_json)} RKPI ROAs validated and saved to {result_path}, file hash: {calculate_sha256(result_path)}")

@@ -56,6 +56,8 @@ def test_directory_creation(parser, tmp_path):
     os.chdir(tmp_path)
     context = Context(args)
 
+    assert Path(context.data_dir).is_absolute()
+
     rpki_cache = context.data_dir_rpki_cache
     assert isinstance(rpki_cache, str)
     assert Path(rpki_cache).exists()
