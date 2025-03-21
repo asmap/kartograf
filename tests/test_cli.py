@@ -41,6 +41,13 @@ def test_map_with_options(parser):
     assert args.reproduce == '/path'
     assert args.epoch == '123'
 
+def test_map_with_past_wait(capsys):
+    args = ['map', '-w', '1225411200']
+    with pytest.raises(SystemExit):
+        main(args)
+    captured = capsys.readouterr()
+    assert captured.err.startswith("usage:")
+
 def test_merge_command(parser):
     args = parser.parse_args(['merge'])
     assert args.command == 'merge'

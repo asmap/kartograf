@@ -3,6 +3,7 @@
 import argparse
 import os
 import sys
+import time
 import kartograf
 from kartograf.kartograf import Kartograf
 
@@ -89,6 +90,9 @@ def main(args=None):
 
         if args.wait and args.reproduce:
             parser.error("--reproduce is not compatible with --wait.")
+
+        if args.wait and (int(args.wait) < time.time()):
+            parser.error(f"Cannot wait for a timestamp in the past ({args.wait})")
 
     if args.command == "map":
         Kartograf.map(args)
