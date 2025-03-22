@@ -76,10 +76,16 @@ def create_parser():
 
     return parser
 
+def is_root():
+    # Get current the Effective UID. On Unix systems the root user EUID is 0.
+    return os.geteuid() == 0
 
 def main(args=None):
     parser = create_parser()
     args = parser.parse_args(args)
+
+    if is_root():
+        sys.exit("Kartograf must be run as a non-root user.")
 
     if args.command == "map":
         if not args.reproduce and args.epoch:
