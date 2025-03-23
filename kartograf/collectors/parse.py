@@ -13,6 +13,7 @@ from kartograf.util import parse_pfx
 def parse_routeviews_pfx2as(context):
     raw_file = Path(context.out_dir_collectors) / "pfx2asn.txt"
     clean_file = Path(context.out_dir_collectors) / "pfx2asn_clean.txt"
+    written_lines = 0
 
     print("Cleaning " + str(raw_file))
     with open(raw_file, 'r') as raw, open(clean_file, 'w') as clean:
@@ -38,6 +39,7 @@ def parse_routeviews_pfx2as(context):
                     continue
 
                 clean.write(f"{prefix} {asn}\n")
+                written_lines += 1
                 continue
 
             # If the line contains a mulit-origin route (signified by the _)
@@ -67,3 +69,6 @@ def parse_routeviews_pfx2as(context):
                 continue
 
             clean.write(f"{prefix} {asn}\n")
+            written_lines += 1
+
+    print("Entries after cleanup:", written_lines)
