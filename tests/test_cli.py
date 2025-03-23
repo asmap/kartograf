@@ -25,13 +25,13 @@ def test_reproduce_args_failure(capsys):
     with pytest.raises(SystemExit):
         main(args)
     captured = capsys.readouterr()
-    assert captured.err.startswith("usage:")
+    assert "--epoch is required when --reproduce is set." in captured.err
 
     args = ['map', '-t', '123456789']
     with pytest.raises(SystemExit):
         main(args)
     captured = capsys.readouterr()
-    assert captured.err.startswith("usage:")
+    assert "--reproduce is required when --epoch is set." in captured.err
 
 def test_map_with_options(parser):
     args = parser.parse_args(['map', '-c', '-irr', '-rv', '-r', '/path', '-t', '123'])
@@ -40,6 +40,13 @@ def test_map_with_options(parser):
     assert args.routeviews is True
     assert args.reproduce == '/path'
     assert args.epoch == '123'
+
+def test_map_with_past_wait(capsys):
+    args = ['map', '-w', '1225411200']
+    with pytest.raises(SystemExit):
+        main(args)
+    captured = capsys.readouterr()
+    assert "Cannot wait for a timestamp in the past (1225411200)" in captured.err
 
 def test_merge_command(parser):
     args = parser.parse_args(['merge'])
@@ -66,7 +73,7 @@ def test_invalid_command(parser, capsys):
     with pytest.raises(SystemExit):
         parser.parse_args(['invalid'])
     captured = capsys.readouterr()
-    assert captured.err.startswith("usage:")
+    assert "invalid choice: 'invalid' (choose from 'map', 'merge', 'cov')" in captured.err
 
 def test_version_flag(parser, capsys):
     with pytest.raises(SystemExit) as excinfo:
