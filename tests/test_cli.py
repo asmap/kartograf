@@ -46,7 +46,7 @@ def test_map_with_past_wait(capsys):
     with pytest.raises(SystemExit):
         main(args)
     captured = capsys.readouterr()
-    assert captured.err.startswith("usage:")
+    assert "Cannot wait for a timestamp in the past (1225411200)" in captured.err
 
 def test_merge_command(parser):
     args = parser.parse_args(['merge'])
