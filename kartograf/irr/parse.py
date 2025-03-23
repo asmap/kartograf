@@ -34,6 +34,7 @@ def parse_irr(context):
 
         entry_list = []
         current_entry = {}
+        prev_count = len(output_cache)
 
         # Parse the RPSL objects in the IRR DB into Python Dicts
         for line in lines:
@@ -98,6 +99,8 @@ def parse_irr(context):
 
                     else:
                         output_cache[route] = [origin, last_modified]
+
+        print("Found in this file:", len(output_cache) - prev_count)
 
     print("Found valid, unique entries:", len(output_cache))
 
