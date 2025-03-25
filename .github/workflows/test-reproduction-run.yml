@@ -1,0 +1,29 @@
+name: Test Reproduction Run
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+    branches: [master]
+
+jobs:
+  test-full-run:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Install Nix
+      uses: DeterminateSystems/nix-installer-action@v3
+
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Checkout Sample Data
+      uses: actions/checkout@v4
+      with:
+        repository: asmap/sample-data
+        ref: main
+        path: tests/data
+
+    - name: Run with reproduction data
+      run: |
+        nix develop --command ./run map -r tests/data/1742127147 -t 1742127147
