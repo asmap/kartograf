@@ -80,5 +80,4 @@ source:         ARIN
 route:          212.19.0.0/24
 descr:          Test Incomplete Entry
 origin:         AS12345
-source:         RIPE
 

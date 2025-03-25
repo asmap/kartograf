@@ -39,7 +39,7 @@ def test_parse_validation_cases(tmp_path):
     # Test wrong source exclusion: ARIN in RIPE file
     assert "212.18.0.0/24 AS12345" not in content
 
-    # Test incomplete entry
+    # Test incomplete entry (no source in data)
     assert "212.19.0.0/24 AS12345" not in content
 
     # Test expected set
