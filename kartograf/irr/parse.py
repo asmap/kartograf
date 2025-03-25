@@ -34,6 +34,7 @@ def parse_irr(context):
 
         entry_list = []
         current_entry = {}
+        prev_count = len(output_cache)
 
         # Parse the RPSL objects in the IRR DB into Python Dicts
         for line in lines:
@@ -46,7 +47,7 @@ def parse_irr(context):
                     current_entry[k.strip()] = v.strip()
 
         for entry in entry_list:
-            is_complete = all(k in entry for k in ("origin", "source", "last-modified"))
+            is_complete = all(k in entry for k in ("origin", "source"))
             has_route = any(k in entry for k in ("route", "route6"))
             if is_complete and has_route:
                 # Some RIRs mirror some other RIRs in their DBs, ignore the
@@ -64,7 +65,9 @@ def parse_irr(context):
 
                     route = parse_pfx(route)
 
-                    last_modified = datetime.strptime(entry["last-modified"], '%Y-%m-%dT%H:%M:%SZ')
+                    # AFRINIC and LACNIC appear to not use last modified anymore
+                    last_modified = entry.get("last-modified", "2009-01-03T19:15:05Z")
+                    last_modified = datetime.strptime(last_modified, '%Y-%m-%dT%H:%M:%SZ')
                     last_modified = last_modified.replace(tzinfo=timezone.utc)
                     last_modified = last_modified.timestamp()
 
@@ -98,6 +101,8 @@ def parse_irr(context):
 
                     else:
                         output_cache[route] = [origin, last_modified]
+
+        print("Found in this file:", len(output_cache) - prev_count)
 
     print("Found valid, unique entries:", len(output_cache))
 
