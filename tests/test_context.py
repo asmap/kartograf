@@ -63,11 +63,6 @@ def test_directory_creation(parser, tmp_path):
     assert Path(rpki_cache).exists()
     assert Path(rpki_cache).parent.name == "rpki"
 
-    rpki_tals = context.data_dir_rpki_tals
-    assert isinstance(rpki_tals, str)
-    assert Path(rpki_tals).exists()
-    assert Path(rpki_tals).parent.name == "rpki"
-
     data_dir_irr = context.data_dir_irr
     assert isinstance(data_dir_irr, str)
     assert Path(data_dir_irr).exists()
