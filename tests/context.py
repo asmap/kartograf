@@ -59,11 +59,13 @@ def create_test_context(tmp_path, epoch):
     context.data_dir = Path(tmp_path) / "data" / context.epoch_dir
     context.data_dir_rpki = Path(context.data_dir) / "rpki"
     context.data_dir_irr = Path(context.data_dir) / "irr"
+    context.data_dir_collectors = Path(context.data_dir) / "collectors"
     context.out_dir = Path(tmp_path) / "out" / context.epoch_dir
     context.out_dir_rpki = Path(context.out_dir) / "rpki"
     context.out_dir_irr = Path(context.out_dir) / "irr"
+    context.out_dir_collectors = Path(context.out_dir) / "collectors"
 
-    for p in [context.data_dir_rpki, context.data_dir_irr, context.out_dir_rpki, context.out_dir_irr]:
+    for p in [context.data_dir_rpki, context.data_dir_irr, context.data_dir_collectors, context.out_dir_rpki, context.out_dir_irr, context.out_dir_collectors]:
         Path.mkdir(p, exist_ok=True, parents=True)
 
     os.chdir(current_path)
