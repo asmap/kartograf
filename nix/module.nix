@@ -3,7 +3,6 @@ flake: { config, pkgs, lib, ... }:
 with lib;
 
 let
-  inherit (flake.packages.${pkgs.stdenv.hostPlatform.system}) kartograf;
   cfg = config.services.kartograf;
   postScript = pkgs.writeScriptBin "post-script" /* bash */ ''
     #!/${pkgs.bash}/bin/bash
@@ -17,6 +16,11 @@ in
 {
   options.services.kartograf = {
     enable = mkEnableOption "kartograf";
+    package = mkOption {
+      type = types.package;
+      default = (flake.packages.${pkgs.stdenv.hostPlatform.system}).kartograf;
+      description = mdDoc "kartograf binary to use";
+    };
     clean = mkEnableOption "cleaning up of temporary artifacts after processing." // { default = true; };
     useIRR = mkEnableOption "using Internet Routing Registry (IRR) data" // { default = true; };
     useRV = mkEnableOption "using RouteViews (RV) data" // { default = true; };
@@ -60,7 +64,7 @@ in
       serviceConfig = {
         Environment = "PYTHONUNBUFFERED=1";
         ExecStopPost = "${postScript}/bin/post-script";
-        ExecStart = ''${kartograf}/bin/kartograf map \
+        ExecStart = ''${cfg.package}/bin/kartograf map \
           ${optionalString cfg.clean "--cleanup" } \
           ${optionalString cfg.useIRR "--irr" } \
           ${optionalString cfg.useRV "--routeviews" } \
