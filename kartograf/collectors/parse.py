@@ -42,9 +42,9 @@ def parse_routeviews_pfx2as(context):
                 written_lines += 1
                 continue
 
-            # If the line contains a mulit-origin route (signified by the _)
+            # If the line contains a multi-origin route (signified by the _)
             # then we use the first origin as CAIDA orders the origins
-            # automatically in the order of corrence and the first one should
+            # automatically in the order of occurrence and the first one should
             # be the one we prefer.
             line = line.split("_")[0]
 
