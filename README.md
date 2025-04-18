@@ -59,7 +59,7 @@ Kartograf has not been tested on Windows.
 To check whether you have all the dependencies required to use Kartograf, you can run the following from the root of the project directory:
 
 ```
-python check.py
+python -m scripts.check
 ```
 
 ## Usage
