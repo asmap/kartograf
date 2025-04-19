@@ -21,7 +21,7 @@
     utils.lib.eachDefaultSystem (system: let
       pkgs = nixpkgs.legacyPackages.${system};
 
-      rpki-client = rpki-cli.defaultPackage.${system};
+      rpki-client = rpki-cli.packages.${system}.default;
       pythonBuildDeps = pkgs.python311.withPackages (ps: [
         ps.beautifulsoup4
         ps.pandas
@@ -72,7 +72,7 @@
             wrapProgram $out/bin/kartograf \
               --set PYTHONPATH $out/lib:$PYTHONPATH
             wrapProgram $out/bin/kartograf \
-              --set PATH ${rpki-cli.defaultPackage.${system}}/bin:$PATH
+              --set PATH ${rpki-client}/bin:$PATH
           '';
           meta = with pkgs.lib; {
             description = "Kartograf: IP to ASN mapping for everyone";
