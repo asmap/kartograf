@@ -23,6 +23,7 @@ def coverage(map_file, ip_list_file):
 
     net_masks = np.array(rpki_masks)
     network_addresses = np.array(rpki_nets)
+    zipped = list(zip(net_masks, network_addresses))
 
     addrs = []
     for line in ip_list_file:
@@ -35,11 +36,9 @@ def coverage(map_file, ip_list_file):
     df = pd.DataFrame({'ADDRS': addrs})
 
     def check_coverage(addr):
-        cov_list = (addr & net_masks) == network_addresses
-
-        if np.any(cov_list):
-            return 1
-
+        for mask, net_addr in zipped:
+            if (addr & mask) == net_addr:
+                return 1
         return 0
 
     df['COVERED'] = df.ADDRS.progress_apply(check_coverage)
