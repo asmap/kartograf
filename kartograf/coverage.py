@@ -14,8 +14,11 @@ def coverage(map_file, ip_list_file):
         try:
             ipn = ipaddress.ip_network(pfx)
         except ValueError:
-            print(f"Invalid IP network provided: {line}")
-            continue
+            raise ValueError(f"""
+                  Invalid IP network provided: {line}
+                  Please remove and re-run.
+                  """)
+
         netw = int(ipn.network_address)
         mask = int(ipn.netmask)
         rpki_masks.append(mask)
@@ -31,7 +34,10 @@ def coverage(map_file, ip_list_file):
             ip = ipaddress.ip_address(line.rstrip('\n'))
             addrs.append(int(ip))
         except ValueError:
-            continue
+            raise ValueError(f"""
+                  Invalid IPv4/IPv6 address provided: {line}.
+                  Please remove and re-run.
+                  """)
 
     df = pd.DataFrame({'ADDRS': addrs})
 
