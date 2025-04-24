@@ -33,17 +33,17 @@
         "utils": "utils"
       },
       "locked": {
-        "lastModified": 1744625000,
+        "lastModified": 1744636087,
         "narHash": "sha256-/GB5ZN+Da5XWDnqmc0gJKEG2+8ZNHJQYZgxZx0lN+Jc=",
-        "ref": "refs/heads/upgrade-rpki-9.5",
-        "rev": "224beb9695c9e3629ad8d2de3b0e3b97c04fbc15",
-        "revCount": 33,
-        "type": "git",
-        "url": "file:///home/base/code/asmap/rpki-client-nix"
+        "owner": "asmap",
+        "repo": "rpki-client-nix",
+        "rev": "3c270f6a8da96bcb7395dc6991ceef7a3036796b",
+        "type": "github"
       },
       "original": {
-        "type": "git",
-        "url": "file:///home/base/code/asmap/rpki-client-nix"
+        "owner": "asmap",
+        "repo": "rpki-client-nix",
+        "type": "github"
       }
     },
     "rpki-client-src": {
