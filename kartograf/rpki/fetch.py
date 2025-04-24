@@ -59,22 +59,23 @@ def fetch_rpki_db(context):
     download_rir_tals(context)
     tal_options = [item for path in data_tals(context) for item in ('-t', path)]
     print("Downloading RPKI Data, this may take a while.")
-    if context.debug_log:
-        with open(context.debug_log, 'a') as logs:
-            logs.write("=== RPKI Download ===\n")
-            logs.flush()  # Without this the line above is not appearing first in the logs
+    while context.rpki_cache_sync():
+        if context.debug_log:
+            with open(context.debug_log, 'a') as logs:
+                logs.write("=== RPKI Download ===\n")
+                logs.flush()  # Without this the line above is not appearing first in the logs
+                subprocess.run(["rpki-client",
+                                "-d", context.data_dir_rpki_cache
+                                ] + tal_options,
+                               stdout=logs,
+                               stderr=logs,
+                               check=False)
+        else:
             subprocess.run(["rpki-client",
                             "-d", context.data_dir_rpki_cache
                             ] + tal_options,
-                           stdout=logs,
-                           stderr=logs,
+                           capture_output=True,
                            check=False)
-    else:
-        subprocess.run(["rpki-client",
-                        "-d", context.data_dir_rpki_cache
-                        ] + tal_options,
-                       capture_output=True,
-                       check=False)
 
     print(f"Downloaded RPKI Data, hash sum: {calculate_sha256_directory(context.data_dir_rpki_cache)}")
 
