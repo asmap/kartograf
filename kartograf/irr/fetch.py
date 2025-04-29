@@ -48,6 +48,11 @@ def fetch_irr(context):
                     print(f"Downloaded {file_name}, file hash: {calculate_sha256(local_file_path)}")
                     break
 
+            except ConnectionRefusedError:
+                print(f"Connection refused by host {host}. Retrying... (Attempt {attempt + 1}/{max_retries})")
+                attempt += 1
+                time.sleep(retry_delay)
+
             except EOFError:
                 print(f"Connection lost while downloading {file_name}. Retrying... (Attempt {attempt + 1}/{max_retries})")
                 attempt += 1
