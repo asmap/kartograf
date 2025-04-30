@@ -4,6 +4,8 @@ import sys
 import time
 
 
+CACHE_SYNC_DEFAULT = 10 * 60
+
 class Context:
     '''Keeps the context information of the current run'''
     def __init__(self, args):
@@ -78,6 +80,9 @@ class Context:
         else:
             self.debug_log = ""
 
+        self.cache_sync_counter = 0
+        self.last_loop_start_time = 0
+
 
     def _set_epoch_dirs(self):
         '''
@@ -92,3 +97,47 @@ class Context:
         else:
             self.epoch_dir = self.epoch
             self.epoch_datetime = datetime.utcfromtimestamp(int(self.epoch))
+
+    def sync_sleep(self, duration):
+        print(f"(now sleeping {duration} seconds)")
+        time.sleep(duration)
+
+    def sync_run(self):
+        self.cache_sync_counter += 1
+        self.last_loop_start_time = int(time.time())
+        print(f"RPKI sync #{self.cache_sync_counter}")
+
+    def rpki_cache_sync(self):
+        now = int(time.time())
+        if self.cache_sync_counter > 0:
+            print(f"...took {now - self.last_loop_start_time} seconds")
+        if self.cache_sync_counter == 0:
+            # Unconditionally run the first time.
+            self.sync_run()
+            return True
+        if self.cache_sync_counter == 1 and not self.args.wait:
+            # We don't do a collaborative run, so we just run once
+            return False
+        epoch = int(self.epoch)
+        if now >= epoch + CACHE_SYNC_DEFAULT:
+            return False
+        if self.cache_sync_counter == 1:
+            if now - self.last_loop_start_time > CACHE_SYNC_DEFAULT * 0.7:
+                # We already took over 70% of the warmup time with the first
+                # run. Trying a second run now might take too long. Wait until
+                # warmup period expires and run one more time then.
+                self.sync_sleep(epoch + CACHE_SYNC_DEFAULT - now)
+                self.sync_run()
+                return True
+            # Otherwise run a second time immediately
+            self.sync_run()
+            return True
+        if self.cache_sync_counter == 2:
+            # We already ran twice, just do a third run when warm up
+            # period expires.
+            self.sync_sleep(epoch + CACHE_SYNC_DEFAULT - now)
+            self.sync_run()
+            return True
+
+        # This should never be reached
+        return False
