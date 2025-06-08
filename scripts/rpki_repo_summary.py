@@ -1,7 +1,7 @@
 """
 Compute summary statistics on a download of RPKI data.
 In kartograf, this folder is under `data/{UNIX_TS}/rpki`.
-This folder must be passed as the argument to this script.
+The timestamp folder `data/{UNIX_TS}` must be passed as the argument to this script.
 """
 
 from argparse import ArgumentParser
@@ -10,7 +10,6 @@ from collections import defaultdict
 
 def count_rpki_files(path: Path) -> dict:
     file_counts = defaultdict(int)
-    # Walk through all files in the directory
     for file in path.rglob('*'):
         if file.suffix in ['.roa', '.mft', '.crl', '.cer']:
             file_counts[file.suffix[1:]] += 1
