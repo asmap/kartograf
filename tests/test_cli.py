@@ -41,6 +41,16 @@ def test_map_with_options(parser):
     assert args.reproduce == '/path'
     assert args.epoch == '123'
 
+def test_stable_repos_flag(parser):
+    args = parser.parse_args(['map'])
+    assert args.stable_repos is False
+
+    args = parser.parse_args(['map', '-s'])
+    assert args.stable_repos is True
+
+    args = parser.parse_args(['map', '--stable-repos'])
+    assert args.stable_repos is True
+
 def test_map_with_past_wait(capsys):
     args = ['map', '-w', '1225411200']
     with pytest.raises(SystemExit):

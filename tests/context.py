@@ -14,7 +14,8 @@ TEST_ARGS = SimpleNamespace(**{
     "max_encode": 33521664,
     "debug": False,
     "cleanup": False,
-    "epoch": None
+    "epoch": None,
+    "stable_repos": False
 })
 
 def irr_fixtures():
