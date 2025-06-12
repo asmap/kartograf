@@ -45,6 +45,10 @@ def create_parser():
     # folder
     # parser_map.add_argument("-o", "--output", action="store_true", default=os.getcwd())
 
+    # Use only a subset of known stable RPKI repositories instead of all sources
+    parser_map.add_argument("-s", "--stable-repos", action="store_true", default=False,
+                          help="Use only known stable RPKI repositories")
+
     # TODO:
     # Filter RPKI and IRR data by checking against RIPE RIS and Routeviews data
     # and removing all entries that have not been seen announced to those

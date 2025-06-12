@@ -22,6 +22,21 @@ TAL_URLS = {
     "ripe": "https://tal.rpki.ripe.net/ripe-ncc.tal"
 }
 
+# Largest RPKI repositories
+STABLE_REPO_URLS = [
+    "rpki.arin.net",
+    "rpki-rps.arin.net"
+    "rpki.ripe.net",
+    "rsync.paas.rpki.ripe.net",
+    "rpki.apnic.net",
+    "repository.lacnic.net",
+    "rpki.afrinic.net",
+    "rpki-repo.registro.br",
+    "rpki-rsync.us-east-2.amazonaws.com",
+    "rpki-repository.nic.ad.jp",
+    "rpkica.twnic.tw",
+    "rpki.cnnic.cn",
+]
 
 def download_rir_tals(context):
     tals = []
@@ -78,15 +93,23 @@ def fetch_rpki_db(context):
 
     print(f"Downloaded RPKI Data, hash sum: {calculate_sha256_directory(context.data_dir_rpki_cache)}")
 
-
 @timed
 def validate_rpki_db(context):
     print("Validating RPKI ROAs")
-    files = [path for path in Path(context.data_dir_rpki_cache).rglob('*')
-             if path.is_file() and ((path.suffix == ".roa")
-                                    or (path.name == ".roa"))]
+    cache_paths = list(Path(context.data_dir_rpki_cache).iterdir())
+    if context.stable_repos:
+        rpki_dirs = [path for path in cache_paths if path.name in STABLE_REPO_URLS]
+        print("Filtered to include only stable repositories.")
+    else:
+        rpki_dirs = cache_paths
+
+    files = []
+    for rpki_dir in rpki_dirs:
+        files = files + [path for path in Path(rpki_dir).rglob('*')
+        if path.is_file() and ((path.suffix == ".roa") or (path.name == ".roa"))]
 
     print(f"{len(files)} raw RKPI ROA files found.")
+
     rpki_raw_file = 'rpki_raw.json'
     result_path = Path(context.out_dir_rpki) / rpki_raw_file
 
