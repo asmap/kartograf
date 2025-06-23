@@ -19,6 +19,7 @@ def test_basic_map_context(parser, tmp_path):
     assert context.args.cleanup is False
     assert context.args.irr is False
     assert context.args.routeviews is False
+    assert context.stable_repos is False
     assert isinstance(context.epoch, str)
     assert isinstance(int(context.epoch), int)
     assert context.max_encode == 33521664
@@ -50,6 +51,13 @@ def test_map_context_with_wait(parser, tmp_path):
     assert context.epoch == '1225411200'
     assert context.epoch_dir == '1225411200'
     assert not context.reproduce
+
+def test_map_stable_repos(parser, tmp_path):
+    args = parser.parse_args(['map', '-s'])
+    os.chdir(tmp_path)
+    context = Context(args)
+
+    assert context.stable_repos is True
 
 def test_directory_creation(parser, tmp_path):
     args = parser.parse_args(['map', '-irr', '-rv'])
