@@ -1,7 +1,8 @@
 import os
+import time
 from pathlib import Path
 import pytest
-from kartograf.context import Context
+from kartograf.context import Context, CACHE_SYNC_DEFAULT
 from kartograf.cli import create_parser
 
 @pytest.fixture(name="parser")
@@ -92,3 +93,57 @@ def test_directory_creation(parser, tmp_path):
     assert isinstance(out_dir_collectors, str)
     assert Path(out_dir_collectors).exists()
     assert Path(out_dir_collectors).name == "collectors"
+
+def test_rpki_cache_sync_loop(parser, tmp_path):
+    now = int(time.time())
+    args = parser.parse_args(['map', '-w', str(now)])
+    os.chdir(tmp_path)
+    context = Context(args)
+
+    # Check initialization values
+    assert context.cache_sync_counter == 0
+    assert context.last_loop_start_time == 0
+
+    # The first sync should always run
+    assert context.rpki_cache_sync()
+    assert context.cache_sync_counter == 1
+    assert context.last_loop_start_time > 0
+
+    # The sync should never run after time has expired
+    context.epoch = now - CACHE_SYNC_DEFAULT
+    assert not context.rpki_cache_sync()
+
+    # The second run starts right away if not too much time has passed
+    context.epoch = now - int(CACHE_SYNC_DEFAULT * 0.6)
+    assert context.rpki_cache_sync()
+    assert context.cache_sync_counter == 2
+
+    # If too much time has passed after the first run, the second will start
+    # after a delay
+    context.epoch = now - int(CACHE_SYNC_DEFAULT - 2)
+    context.cache_sync_counter = 1
+    assert context.rpki_cache_sync()
+    assert context.cache_sync_counter == 2
+
+    # If too much time has passed after the second run, the third will start
+    # after a delay
+    context.epoch = now - int(CACHE_SYNC_DEFAULT - 2)
+    assert context.rpki_cache_sync()
+    assert context.cache_sync_counter == 3
+
+    # Sync should never run after the third time
+    assert not context.rpki_cache_sync()
+
+def test_rpki_cache_sync_loop_no_wait(parser, tmp_path):
+    args = parser.parse_args(['map'])
+    os.chdir(tmp_path)
+    context = Context(args)
+
+    # The first sync should always run, even when there is no wait configured
+    # i.e. there is no collaborative run happening
+    assert context.rpki_cache_sync()
+    assert context.cache_sync_counter == 1
+    assert context.last_loop_start_time > 0
+
+    # No second sync if there is not collaborative run
+    assert not context.rpki_cache_sync()
