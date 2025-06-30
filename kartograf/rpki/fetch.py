@@ -35,6 +35,7 @@ STABLE_REPO_URLS = [
     "rpki-repository.nic.ad.jp",
     "rpkica.twnic.tw",
     "rpki.cnnic.cn",
+    "repo-rpki.idnic.net"
 ]
 
 def download_rir_tals(context):
