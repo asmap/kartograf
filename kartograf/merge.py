@@ -1,6 +1,7 @@
 from pathlib import Path
 import ipaddress
 import shutil
+import os
 import pandas as pd
 
 from kartograf.timed import timed
@@ -98,6 +99,8 @@ def merge_pfx2as(context):
         out_file
     )
     shutil.copy2(out_file, context.final_result_file)
+    os.remove(rv_file)
+    os.remove(rv_filtered_file)
 
 
 def extra_file_to_df(extra_file_path):
