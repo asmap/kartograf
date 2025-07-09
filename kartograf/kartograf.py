@@ -3,6 +3,8 @@ from datetime import timezone
 import shutil
 import time
 
+from kartograf.cleanup import cleanup_out_files
+
 from kartograf.context import Context
 from kartograf.coverage import coverage
 from kartograf.collectors.routeviews import extract_routeviews_pfx2as, fetch_routeviews_pfx2as
@@ -92,6 +94,9 @@ class Kartograf:
 
         print_section_header("Sorting results")
         sort_result_by_pfx(context)
+
+        if not context.args.debug:
+            cleanup_out_files(context)
 
         print_section_header("Finishing Kartograf")
 

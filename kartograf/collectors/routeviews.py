@@ -110,6 +110,8 @@ def extract_routeviews_pfx2as(context):
     v6_file = Path(context.out_dir_collectors) / v6_file_name
     out_file = Path(context.out_dir_collectors) / "pfx2asn.txt"
 
+    context.cleanup_out_files += [v4_file, v6_file, out_file]
+
     with open(v4_file, 'r') as v4, \
             open(v6_file, 'r') as v6, \
             open(out_file, 'w') as out:

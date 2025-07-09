@@ -20,6 +20,7 @@ def test_basic_map_context(parser, tmp_path):
     assert context.args.irr is False
     assert context.args.routeviews is False
     assert context.stable_repos is False
+    assert not context.cleanup_out_files
     assert isinstance(context.epoch, str)
     assert isinstance(int(context.epoch), int)
     assert context.max_encode == 33521664

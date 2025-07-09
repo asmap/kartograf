@@ -75,6 +75,7 @@ def merge_irr(context):
         out_file
     )
     shutil.copy2(out_file, context.final_result_file)
+    context.cleanup_out_files.append(irr_filtered_file)
 
 
 @timed
@@ -98,6 +99,7 @@ def merge_pfx2as(context):
         out_file
     )
     shutil.copy2(out_file, context.final_result_file)
+    context.cleanup_out_files.append(rv_filtered_file)
 
 
 def extra_file_to_df(extra_file_path):

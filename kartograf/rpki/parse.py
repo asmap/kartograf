@@ -102,6 +102,8 @@ def parse_rpki(context):
             asmap.write(line_out + '\n')
             out_count += 1
 
+    context.cleanup_out_files.append(raw_input)
+
     print(f'Result entries written: {out_count}')
     print(f'Duplicates found: {dups_count}')
     print(f'Invalids found: {invalids}')
