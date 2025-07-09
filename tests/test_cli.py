@@ -8,7 +8,7 @@ def fixture_parser():
 def test_map_command(parser):
     args = parser.parse_args(['map'])
     assert args.command == 'map'
-    assert args.debug is True  # default is True
+    assert args.debug is False # default is False
     assert args.cleanup is False  # default is False
     assert args.irr is False  # default is False
     assert args.routeviews is False  # default is False

@@ -19,8 +19,8 @@ def create_parser():
     # Write extended logging information to a debug.log file
     # TODO: This is always enabled for now but this should be changed when the
     # tool is more stable
-    parser_map.add_argument("-d", "--debug", action="store_true", default=True)
-    # Delete artifacts from building the requested map
+    parser_map.add_argument("-d", "--debug", action="store_true", default=False)
+    # Delete artifacts from data directory after run
     parser_map.add_argument("-c", "--cleanup", action="store_true", default=False)
 
     parser_map.add_argument("-irr", "--irr", action="store_true", default=False)

@@ -15,7 +15,7 @@ def test_basic_map_context(parser, tmp_path):
 
     assert context.args.command == 'map'
     assert context.reproduce is False
-    assert context.args.debug is True
+    assert context.args.debug is False
     assert context.args.cleanup is False
     assert context.args.irr is False
     assert context.args.routeviews is False
@@ -23,7 +23,7 @@ def test_basic_map_context(parser, tmp_path):
     assert isinstance(context.epoch, str)
     assert isinstance(int(context.epoch), int)
     assert context.max_encode == 33521664
-    assert Path(context.debug_log).name == 'debug.log'
+    assert Path(context.debug_log).name == ''
 
 def test_map_context_with_reproduce(parser, tmp_path):
     # Setup a mock reproduction directory
