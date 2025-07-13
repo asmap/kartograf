@@ -147,10 +147,21 @@ def general_merge(
     df_extra = extra_file_to_df(extra_file)
 
     print("Merging extra prefixes that were not included in the base file.")
+    chunk_size = 10000
     extra_included = []
-    for row in df_extra.itertuples(index=False):
-        result = base.contains_row(row)
-        extra_included.append(result)
+
+    total_rows = len(df_extra)
+
+    for start_idx in range(0, total_rows, chunk_size):
+        end_idx = min(start_idx + chunk_size, total_rows)
+        chunk = df_extra.iloc[start_idx:end_idx]
+
+        chunk_results = []
+        for row in chunk.itertuples(index=False):
+            result = base.contains_row(row)
+            chunk_results.append(result)
+
+        extra_included.extend(chunk_results)
 
     df_extra["INCLUDED"] = extra_included
     df_filtered = df_extra[df_extra.INCLUDED == 0]
