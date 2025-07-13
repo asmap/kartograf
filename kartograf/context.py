@@ -47,7 +47,6 @@ class Context:
 
         self.data_dir_irr = str(Path(self.data_dir) / "irr")
         self.data_dir_rpki_cache = str(Path(self.data_dir) / "rpki" / "cache")
-        self.data_dir_rpki_tals = str(Path(self.data_dir) / "rpki" / "tals")
         self.data_dir_collectors = str(Path(self.data_dir) / "collectors")
         # Out dir
         self.out_dir = str(cwd / "out" / self.epoch_dir)
@@ -58,7 +57,6 @@ class Context:
         # We skip creating the folders if we are reproducing a run.
         if not self.reproduce:
             Path(self.data_dir_rpki_cache).mkdir(parents=True)
-            Path(self.data_dir_rpki_tals).mkdir(parents=True)
             if self.args.irr:
                 Path(self.data_dir_irr).mkdir(parents=True)
             if self.args.routeviews:
