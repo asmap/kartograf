@@ -13,9 +13,10 @@ TEST_ARGS = SimpleNamespace(**{
     "routeviews": False,
     "max_encode": 33521664,
     "debug": False,
-    "cleanup": False,
-    "epoch": None,
-    "stable_repos": False
+    "stable_repos": False,
+    "wipe_data_dir": False,
+    "cleanup_out_files": [],
+    "epoch": None
 })
 
 def irr_fixtures():

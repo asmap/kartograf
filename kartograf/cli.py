@@ -16,12 +16,11 @@ def create_parser():
 
     parser_map = subparsers.add_parser("map")
 
-    # Write extended logging information to a debug.log file
-    # TODO: This is always enabled for now but this should be changed when the
-    # tool is more stable
+    # Write extended logging information to a debug.log file and
+    # keep intermediate files used to build up the final result
     parser_map.add_argument("-d", "--debug", action="store_true", default=False)
     # Delete artifacts from data directory after run
-    parser_map.add_argument("-c", "--cleanup", action="store_true", default=False)
+    parser_map.add_argument("-wd", "--wipe_data_dir", action="store_true", default=False)
 
     parser_map.add_argument("-irr", "--irr", action="store_true", default=False)
     parser_map.add_argument("-rv", "--routeviews", action="store_true", default=False)

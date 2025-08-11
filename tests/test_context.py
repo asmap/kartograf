@@ -16,7 +16,7 @@ def test_basic_map_context(parser, tmp_path):
     assert context.args.command == 'map'
     assert context.reproduce is False
     assert context.args.debug is False
-    assert context.args.cleanup is False
+    assert context.args.wipe_data_dir is False
     assert context.args.irr is False
     assert context.args.routeviews is False
     assert context.stable_repos is False

@@ -100,9 +100,9 @@ class Kartograf:
 
         print_section_header("Finishing Kartograf")
 
-        if context.args.cleanup:
+        if context.args.wipe_data_dir:
             shutil.rmtree(context.data_dir)
-            print("Cache directory cleaned")
+            print("Data directory cleaned")
 
         result_hash = calculate_sha256(context.final_result_file)
         print(f"The SHA-256 hash of the result file is: {result_hash}")
