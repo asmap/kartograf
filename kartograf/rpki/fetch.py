@@ -22,6 +22,21 @@ TAL_URLS = {
     "ripe": "https://tal.rpki.ripe.net/ripe-ncc.tal"
 }
 
+STABLE_REPO_URLS = [
+    "rpki.arin.net",
+    "rpki-rps.arin.net",
+    "rpki.ripe.net",
+    "rsync.paas.rpki.ripe.net",
+    "rpki.apnic.net",
+    "repository.lacnic.net",
+    "rpki.afrinic.net",
+    "rpki-repo.registro.br",
+    "rpki-rsync.us-east-2.amazonaws.com",
+    "rpki-repository.nic.ad.jp",
+    "rpkica.twnic.tw",
+    "rpki.cnnic.cn",
+    "repo-rpki.idnic.net"
+]
 
 def download_rir_tals(context):
     tals = []
@@ -58,21 +73,24 @@ def fetch_rpki_db(context):
     # Download TALs and presist them in the RPKI data folder
     download_rir_tals(context)
     tal_options = [item for path in data_tals(context) for item in ('-t', path)]
+    run_args = ["rpki-client", "-d", context.data_dir_rpki_cache] + tal_options
     print("Downloading RPKI Data, this may take a while.")
+
+    if context.stable_repos:
+        for url in STABLE_REPO_URLS:
+            run_args += ["-H", url]
+        print("Using only stable RPKI repositories.")
+
     if context.debug_log:
         with open(context.debug_log, 'a') as logs:
             logs.write("=== RPKI Download ===\n")
             logs.flush()  # Without this the line above is not appearing first in the logs
-            subprocess.run(["rpki-client",
-                            "-d", context.data_dir_rpki_cache
-                            ] + tal_options,
+            subprocess.run(run_args,
                            stdout=logs,
                            stderr=logs,
                            check=False)
     else:
-        subprocess.run(["rpki-client",
-                        "-d", context.data_dir_rpki_cache
-                        ] + tal_options,
+        subprocess.run(run_args,
                        capture_output=True,
                        check=False)
 

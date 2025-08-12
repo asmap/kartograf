@@ -55,6 +55,10 @@ class Context:
         self.out_dir_rpki = str(Path(self.out_dir) / "rpki")
         self.out_dir_collectors = str(Path(self.out_dir) / "collectors")
 
+        self.stable_repos = False
+        if self.args.stable_repos:
+            self.stable_repos = True
+
         # We skip creating the folders if we are reproducing a run.
         if not self.reproduce:
             Path(self.data_dir_rpki_cache).mkdir(parents=True)
