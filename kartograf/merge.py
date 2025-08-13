@@ -67,6 +67,7 @@ def merge_irr(context):
     irr_file = Path(context.out_dir_irr) / "irr_final.txt"
     irr_filtered_file = Path(context.out_dir_irr) / "irr_filtered.txt"
     out_file = Path(context.out_dir) / "merged_file_rpki_irr.txt"
+    context.cleanup_out_files += [irr_filtered_file, out_file]
 
     general_merge(
         rpki_file,
@@ -75,7 +76,6 @@ def merge_irr(context):
         out_file
     )
     shutil.copy2(out_file, context.final_result_file)
-    context.cleanup_out_files.append(irr_filtered_file)
 
 
 @timed
@@ -91,6 +91,7 @@ def merge_pfx2as(context):
 
     rv_file = Path(context.out_dir_collectors) / "pfx2asn_clean.txt"
     rv_filtered_file = Path(context.out_dir_collectors) / "pfx2asn_filtered.txt"
+    context.cleanup_out_files += [rv_filtered_file, out_file]
 
     general_merge(
         base_file,
@@ -99,7 +100,6 @@ def merge_pfx2as(context):
         out_file
     )
     shutil.copy2(out_file, context.final_result_file)
-    context.cleanup_out_files.append(rv_filtered_file)
 
 
 def extra_file_to_df(extra_file_path):
