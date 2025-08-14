@@ -25,6 +25,7 @@ in
     useIRR = mkEnableOption "using Internet Routing Registry (IRR) data" // { default = true; };
     useRV = mkEnableOption "using RouteViews (RV) data" // { default = true; };
     debug = mkEnableOption "enable debug, retaining output files and debug.log" // { default = false; };
+    runPostScript = mkEnableOption "delete all temporary files, and put final result in /home/kartograf dir" // { default = true; };
     schedule = mkOption {
       type = types.str;
       default = "*-*-01 00:00:00 UTC";
@@ -64,7 +65,9 @@ in
       after = [ "network-online.target" ];
       serviceConfig = {
         Environment = "PYTHONUNBUFFERED=1";
-        ExecStopPost = "${postScript}/bin/post-script";
+        ExecStopPost = let
+          postScriptBin = "${postScript}/bin/post-script";
+        in "${optionalString cfg.runPostScript postScriptBin }";
         ExecStart = ''${cfg.package}/bin/kartograf map \
           ${optionalString cfg.wipeDataDir "--wipe_data_dir" } \
           ${optionalString cfg.useIRR "--irr" } \
