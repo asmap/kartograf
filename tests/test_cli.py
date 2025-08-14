@@ -8,8 +8,8 @@ def fixture_parser():
 def test_map_command(parser):
     args = parser.parse_args(['map'])
     assert args.command == 'map'
-    assert args.debug is True  # default is True
-    assert args.cleanup is False  # default is False
+    assert args.debug is False # default is False
+    assert args.wipe_data_dir is False  # default is False
     assert args.irr is False  # default is False
     assert args.routeviews is False  # default is False
     assert args.reproduce is None
@@ -34,8 +34,8 @@ def test_reproduce_args_failure(capsys):
     assert "--reproduce is required when --epoch is set." in captured.err
 
 def test_map_with_options(parser):
-    args = parser.parse_args(['map', '-c', '-irr', '-rv', '-r', '/path', '-t', '123'])
-    assert args.cleanup is True
+    args = parser.parse_args(['map', '-wd', '-irr', '-rv', '-r', '/path', '-t', '123'])
+    assert args.wipe_data_dir is True
     assert args.irr is True
     assert args.routeviews is True
     assert args.reproduce == '/path'

@@ -1,6 +1,5 @@
 import ipaddress
 from pathlib import Path
-import shutil
 
 from kartograf.timed import timed
 
@@ -48,4 +47,4 @@ def sort_result_by_pfx(context):
                 net = ipaddress.IPv4Network((net_address, prefixlen))
             file.write(f'{str(net)} {asn}\n')
 
-    shutil.copy2(sorted_out_file, context.final_result_file)
+    sorted_out_file.rename(Path(context.final_result_file))

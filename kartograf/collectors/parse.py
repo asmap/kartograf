@@ -13,6 +13,7 @@ from kartograf.util import parse_pfx
 def parse_routeviews_pfx2as(context):
     raw_file = Path(context.out_dir_collectors) / "pfx2asn.txt"
     clean_file = Path(context.out_dir_collectors) / "pfx2asn_clean.txt"
+    context.cleanup_out_files.append(raw_file)
     written_lines = 0
 
     print("Cleaning " + str(raw_file))

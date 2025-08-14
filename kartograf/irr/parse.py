@@ -21,6 +21,7 @@ def parse_irr(context):
                  if os.path.isfile(path)
                  and (os.path.splitext(path)[1] != ".gz")]
 
+    context.cleanup_out_files += irr_files
     output_cache: Dict[str, str] = {}
 
     for file in irr_files:

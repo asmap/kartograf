@@ -61,7 +61,7 @@ in
         Environment = "PYTHONUNBUFFERED=1";
         ExecStopPost = "${postScript}/bin/post-script";
         ExecStart = ''${kartograf}/bin/kartograf map \
-          ${optionalString cfg.clean "--cleanup" } \
+          ${optionalString cfg.clean "--wipe_data_dir" } \
           ${optionalString cfg.useIRR "--irr" } \
           ${optionalString cfg.useRV "--routeviews" } \
         '';

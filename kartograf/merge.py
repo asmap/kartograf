@@ -67,6 +67,7 @@ def merge_irr(context):
     irr_file = Path(context.out_dir_irr) / "irr_final.txt"
     irr_filtered_file = Path(context.out_dir_irr) / "irr_filtered.txt"
     out_file = Path(context.out_dir) / "merged_file_rpki_irr.txt"
+    context.cleanup_out_files += [irr_filtered_file, out_file]
 
     general_merge(
         rpki_file,
@@ -90,6 +91,7 @@ def merge_pfx2as(context):
 
     rv_file = Path(context.out_dir_collectors) / "pfx2asn_clean.txt"
     rv_filtered_file = Path(context.out_dir_collectors) / "pfx2asn_filtered.txt"
+    context.cleanup_out_files += [rv_filtered_file, out_file]
 
     general_merge(
         base_file,

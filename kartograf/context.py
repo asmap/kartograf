@@ -59,6 +59,8 @@ class Context:
         if self.args.stable_repos:
             self.stable_repos = True
 
+        self.cleanup_out_files = []
+
         # We skip creating the folders if we are reproducing a run.
         if not self.reproduce:
             Path(self.data_dir_rpki_cache).mkdir(parents=True)
