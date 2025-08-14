@@ -9,7 +9,7 @@ let
     timestamp=$(${pkgs.findutils}/bin/find out -mindepth 1 -maxdepth 1 -type d | ${pkgs.coreutils}/bin/cut -d/ -f2)
     mv out/$timestamp/final_result.txt ${cfg.resultPath}/asmap-$timestamp.txt
     echo "Copied result from /out/$timestamp/final_result.txt to ${cfg.resultPath}/asmap-$timestamp.txt"
-    rm -rf data out
+    rm -rf out
     echo "Cleaned up temporary directories."
   '';
 in
@@ -21,9 +21,10 @@ in
       default = (flake.packages.${pkgs.stdenv.hostPlatform.system}).kartograf;
       description = mdDoc "kartograf binary to use";
     };
-    clean = mkEnableOption "cleaning up of temporary artifacts after processing." // { default = true; };
+    wipeDataDir = mkEnableOption "delete data directory (inputs to the final map)" // { default = true; };
     useIRR = mkEnableOption "using Internet Routing Registry (IRR) data" // { default = true; };
     useRV = mkEnableOption "using RouteViews (RV) data" // { default = true; };
+    debug = mkEnableOption "enable debug, retaining output files and debug.log" // { default = false; };
     schedule = mkOption {
       type = types.str;
       default = "*-*-01 00:00:00 UTC";
@@ -64,10 +65,11 @@ in
       serviceConfig = {
         Environment = "PYTHONUNBUFFERED=1";
         ExecStopPost = "${postScript}/bin/post-script";
-        ExecStart = ''${kartograf}/bin/kartograf map \
-          ${optionalString cfg.clean "--wipe_data_dir" } \
+        ExecStart = ''${cfg.package}/bin/kartograf map \
+          ${optionalString cfg.wipeDataDir "--wipe_data_dir" } \
           ${optionalString cfg.useIRR "--irr" } \
           ${optionalString cfg.useRV "--routeviews" } \
+          ${optionalString cfg.debug "--debug" }
         '';
         MemoryDenyWriteExecute = true;
         WorkingDirectory = cfg.resultPath;
