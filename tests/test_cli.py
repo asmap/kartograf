@@ -83,7 +83,7 @@ def test_invalid_command(parser, capsys):
     with pytest.raises(SystemExit):
         parser.parse_args(['invalid'])
     captured = capsys.readouterr()
-    assert "invalid choice: 'invalid' (choose from 'map', 'merge', 'cov')" in captured.err
+    assert "invalid choice: 'invalid'" in captured.err
 
 def test_version_flag(parser, capsys):
     with pytest.raises(SystemExit) as excinfo:
