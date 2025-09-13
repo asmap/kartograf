@@ -60,7 +60,9 @@ def parse_routeviews_pfx2as(context):
             prefix = parse_pfx(prefix)
             asn = asn.upper().rstrip('\n')
 
-            if not prefix or is_bogon_pfx(prefix) or is_bogon_asn(asn):
+            if not prefix:
+                continue
+            if is_bogon_pfx(prefix) or is_bogon_asn(asn):
                 if context.debug_log:
                     with open(context.debug_log, 'a') as logs:
                         logs.write(f"Routeviews: parser encountered an invalid IP network: {prefix}")
