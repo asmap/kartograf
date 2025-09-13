@@ -16,7 +16,6 @@ def parse_routeviews_pfx2as(context):
     context.cleanup_out_files.append(raw_file)
     written_lines = 0
 
-    print("Cleaning " + str(raw_file))
     with open(raw_file, 'r') as raw, open(clean_file, 'w') as clean:
         lines = raw.readlines()
         for line in lines:
