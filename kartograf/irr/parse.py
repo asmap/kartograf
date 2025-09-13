@@ -25,7 +25,6 @@ def parse_irr(context):
     output_cache: Dict[str, str] = {}
 
     for file in irr_files:
-        print(f"Parsing {file}")
         # We need to know the RIR of the file to check if it is equal to the
         # source later
         rir = rir_from_str(str(file))
@@ -105,7 +104,7 @@ def parse_irr(context):
                     else:
                         output_cache[route] = [origin, last_modified]
 
-        print("Found in this file:", len(output_cache) - prev_count)
+        print(f"Parsed {file.name}, found: {len(output_cache) - prev_count}")
 
     print("Found valid, unique entries:", len(output_cache))
 
