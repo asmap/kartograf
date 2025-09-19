@@ -138,14 +138,13 @@ def general_merge(
     """
     Merge lists of IP networks into a base file.
     """
-    print("Parse base file to dictionary")
+    print("Parsing base file to dictionary")
     base = BaseNetworkIndex()
     with open(base_file, "r") as file:
         for line in file:
             pfx, _ = line.split(" ")
             base.update(pfx)
 
-    print("Parse extra file to Pandas DataFrame")
     df_extra = extra_file_to_df(extra_file)
 
     print("Merging extra prefixes that were not included in the base file.")
@@ -157,13 +156,7 @@ def general_merge(
     df_extra["INCLUDED"] = extra_included
     df_filtered = df_extra[df_extra.INCLUDED == 0]
 
-    print("Finished merging extra prefixes.")
-
     if extra_filtered_file:
-        print(
-            f"Finished filtering! Originally {len(df_extra.index)} "
-            f"entries filtered down to {len(df_filtered.index)}"
-        )
         df_filtered.to_csv(
             extra_filtered_file,
             sep=" ",
@@ -175,17 +168,14 @@ def general_merge(
         with open(extra_filtered_file, "r") as extra:
             extra_contents = extra.read()
     else:
-        print(
-            f"Finished filtering! Originally {len(df_extra.index)} entries "
-            f"filtered down to {len(df_filtered.index)}"
-        )
         extra_contents = df_filtered.to_csv(
             None, sep=" ", index=False, columns=["PFXS", "ASNS"], header=False
         )
 
-    print("Merging base file with filtered extra file")
     with open(base_file, "r") as base:
         base_contents = base.read()
+
+    print("Finished merging extra prefixes.")
 
     with open(out_file, "w") as merge_file:
         merge_file.write(base_contents + extra_contents)
