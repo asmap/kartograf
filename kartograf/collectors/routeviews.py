@@ -71,7 +71,7 @@ def extract(file, context):
     gz_file = Path(context.data_dir_collectors) / (file + ".gz")
     file = Path(context.out_dir_collectors) / file
 
-    print(f'Extracting {gz_file}')
+    print(f'Extracting {gz_file.name}')
     with gzip.open(gz_file, 'rb') as f_in:
         with open(file, 'wb') as f_out:
             shutil.copyfileobj(f_in, f_out)

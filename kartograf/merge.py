@@ -138,7 +138,7 @@ def general_merge(
     """
     Merge lists of IP networks into a base file.
     """
-    print("Parsing base file to dictionary")
+    print("Merging extra prefixes that were not included in the base file.")
     base = BaseNetworkIndex()
     with open(base_file, "r") as file:
         for line in file:
@@ -147,7 +147,6 @@ def general_merge(
 
     df_extra = extra_file_to_df(extra_file)
 
-    print("Merging extra prefixes that were not included in the base file.")
     extra_included = []
     for row in df_extra.itertuples(index=False):
         result = base.contains_row(row)
@@ -174,8 +173,6 @@ def general_merge(
 
     with open(base_file, "r") as base:
         base_contents = base.read()
-
-    print("Finished merging extra prefixes.")
 
     with open(out_file, "w") as merge_file:
         merge_file.write(base_contents + extra_contents)
