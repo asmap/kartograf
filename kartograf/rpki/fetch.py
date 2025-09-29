@@ -1,12 +1,9 @@
 import subprocess
 import sys
 
-from concurrent.futures import ThreadPoolExecutor, as_completed
-import json
 from threading import Lock
 from pathlib import Path
 import requests
-from tqdm import tqdm
 
 from kartograf.timed import timed
 from kartograf.util import (
@@ -99,11 +96,7 @@ def fetch_rpki_db(context):
 
 @timed
 def validate_rpki_db(context):
-    files = [path for path in Path(context.data_dir_rpki_cache).rglob('*')
-             if path.is_file() and ((path.suffix == ".roa")
-                                    or (path.name == ".roa"))]
-
-    print(f"{len(files)} raw RKPI ROA files found.")
+    print("Validating RPKI ROAs")
     rpki_raw_file = 'rpki_raw.json'
     result_path = Path(context.out_dir_rpki) / rpki_raw_file
 
@@ -115,46 +108,34 @@ def validate_rpki_db(context):
         with open(context.debug_log, 'a') as logs:
             logs.write("\n\n=== RPKI Validation ===\n")
 
-    def process_files_batch(batch):
+    def process_rpki_cache():
         result = subprocess.run(["rpki-client",
                                  "-j",
                                  "-n",
                                  "-d",
                                  context.data_dir_rpki_cache,
+                                 "-p 16",
                                  "-P",
                                  context.epoch,
-                                 ] + tal_options +
-                                 ["-f"] + batch,  # -f has to be last
+                                 ] + tal_options + [context.out_dir_rpki],
                                  capture_output=True,
                                  check=False)
 
-        if result.stderr and context.debug_log:
-            stderr_output = result.stderr.decode()
+        if context.debug_log:
             with debug_file_lock:
                 with open(context.debug_log, 'a') as logs:
-                    logs.write(stderr_output)
+                    if result.stderr:
+                        std_err = result.stderr.decode()
+                        logs.write(std_err)
+                    if result.stdout:
+                        logs.write("\n== RPKI Validation Summary ==\n")
+                        std_output = result.stdout.decode()
+                        for line in std_output:
+                            logs.write(line)
         return result.stdout
 
-    total = len(files)
-    batch_size = 250
-    batches = []
-    for i in range(0, total, batch_size):
-        batch = [str(f) for f in files[i:i + batch_size]]
-        batches.append(batch)
+    process_rpki_cache()
+    default_out_dir = Path(context.out_dir_rpki) / "json"
+    default_out_dir.rename(result_path)
 
-    total_batches = len(batches)
-    results = []
-    with ThreadPoolExecutor() as executor:
-        futures = [executor.submit(process_files_batch, batch) for batch in batches]
-        for future in tqdm(as_completed(futures), total=total_batches):
-            result = future.result()
-            if result:
-                normalized = result.replace(b"\n}\n{\n\t", b"\n},\n{\n").decode('utf-8').strip()
-                results.append(normalized)
-        results_json = json.loads("[" + ",".join(results) + "]")
-        s = sorted(results_json, key=lambda result: result["hash_id"])
-
-        with open(result_path, 'w') as f:
-            json.dump(s, f)
-
-    print(f"{len(results_json)} RKPI ROAs validated\nSaved to: {result_path.name}\nFile hash: {calculate_sha256(result_path)}")
+    print(f"RKPI ROAs validated and saved to {result_path}, file hash: {calculate_sha256(result_path)}")

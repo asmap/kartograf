@@ -1,4 +1,3 @@
-import json
 import os
 
 from kartograf.rpki.parse import parse_rpki
