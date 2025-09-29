@@ -1,3 +1,4 @@
+from concurrent.futures import ThreadPoolExecutor, as_completed
 import gzip
 import shutil
 import time
@@ -22,34 +23,51 @@ IRR_FILE_ADDRESSES = [
     "https://ftp.ripe.net/ripe/dbase/split/ripe.db.route6.gz",
 ]
 
-
-@timed
-def fetch_irr(context):
+def download_single_irr_file(url, context):
+    """Download a single IRR file with retry logic"""
+    file_name = url.rsplit('/', maxsplit=1)[-1]
+    local_file_path = Path(context.data_dir_irr) / file_name
+    attempt = 0
     max_retries = 5
-    retry_delay = 2  # Seconds
+    retry_delay = 2
 
-    for url in IRR_FILE_ADDRESSES:
-        file_name = url.rsplit('/', maxsplit=1)[-1]
-        local_file_path = Path(context.data_dir_irr) / file_name
-        attempt = 0
-
-        print("Downloading " + file_name)
-        while attempt < max_retries:
-            try:
-                response = requests.get(url, stream=True, timeout=(15, 120))
-                response.raise_for_status()  # Raise exception for HTTP errors
-                with open(local_file_path, 'wb') as f:
-                    for chunk in response.iter_content(chunk_size=8192):
-                        f.write(chunk)
-                print(f"file hash: {calculate_sha256(local_file_path)}")
-                break
-            except (requests.RequestException, ConnectionError) as e:
-                print(f"Connection issue while downloading {file_name}: {e}. Retrying... (Attempt {attempt + 1}/{max_retries})")
-                attempt += 1
+    print(f"Starting download: {file_name}")
+    while attempt < max_retries:
+        try:
+            response = requests.get(url, stream=True, timeout=(15, 120))
+            response.raise_for_status()
+            with open(local_file_path, 'wb') as f:
+                for chunk in response.iter_content(chunk_size=8192):
+                    f.write(chunk)
+            file_hash = calculate_sha256(local_file_path)
+            print(f"Downloaded {file_name}, file hash: {file_hash}")
+            return {'status': 'success'}
+        except (requests.RequestException, ConnectionError) as e:
+            print(f"Connection issue while downloading {file_name}: {e}. Retrying... (Attempt {attempt + 1}/{max_retries})")
+            attempt += 1
+            if attempt < max_retries:
                 time.sleep(retry_delay)
 
-        if attempt == max_retries:
-            raise Exception(f"Fatal: Failed to download {file_name} after {max_retries} attempts.")
+    error_msg = f"Error: Failed to download {file_name} after {max_retries} attempts."
+    print(f"✗ {error_msg}")
+    return {'status': 'failed'}
+
+
+@timed
+def fetch_irr(context, max_concurrent=8):
+    """Fetch IRR databases concurrently"""
+    with ThreadPoolExecutor(max_workers=max_concurrent) as executor:
+        future_to_url = {
+            executor.submit(download_single_irr_file, url, context): url
+            for url in IRR_FILE_ADDRESSES
+        }
+
+        for future in as_completed(future_to_url):
+            result = future.result()
+            if result['status'] == 'failed':
+                raise Exception("Failed to download all required IRR database(s).")
+
+    print("All IRR databases downloaded successfully.")
 
 
 def extract_irr(context):
