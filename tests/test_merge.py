@@ -3,7 +3,7 @@ Test merging multiple sets of networks, as if they were independent AS files.
 '''
 from pathlib import Path
 
-from kartograf.merge import general_merge
+from kartograf.merge import general_merge, pick_chunk_size
 
 from .util.generate_data import (
     build_file_lines,
@@ -122,3 +122,14 @@ def test_merge_joint(tmp_path):
 
     # no subnets from irr_ips are included in the final merged network list
     assert set(final_ips).isdisjoint(set(irr_ips))
+
+def test_pick_chunk_size():
+    '''
+    Test picking a chunk size for the merge function.
+    '''
+    assert pick_chunk_size(100, workers=16) == 7
+    assert pick_chunk_size(100, workers=4) == 25
+    # min_chunk wins
+    assert pick_chunk_size(10, workers=4) == 5
+    # min_chunk wins
+    assert pick_chunk_size(0) == 5

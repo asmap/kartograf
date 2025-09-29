@@ -1,6 +1,10 @@
+from concurrent.futures import ProcessPoolExecutor
 from pathlib import Path
 import ipaddress
+import math
+import os
 import shutil
+from types import SimpleNamespace
 import pandas as pd
 
 from kartograf.timed import timed
@@ -47,7 +51,7 @@ class BaseNetworkIndex:
         is equal to the base network IP.
         """
         for net, mask in self._dict[version][root_net]:
-            if row[0] & mask == net:
+            if row.INETS & mask == net:
                 return 1
         return 0
 
@@ -60,6 +64,18 @@ class BaseNetworkIndex:
             return self.check_inclusion(row, root_net, version)
         return 0
 
+    def get_serializable_dict(self):
+        """Return the internal dict for serialization to worker processes."""
+        return self._dict
+
+    @classmethod
+    def from_dict(cls, data_dict):
+        """Reconstruct a BaseNetworkIndex from a serialized dict."""
+        instance = cls()
+        instance._dict = data_dict
+        instance._v4_keys = instance._dict[4].keys()
+        instance._v6_keys = instance._dict[6].keys()
+        return instance
 
 @timed
 def merge_irr(context):
@@ -131,6 +147,26 @@ def extra_file_to_df(extra_file_path):
 
     return df_extra
 
+def process_chunk_worker(chunk_data, base_dict):
+    base = BaseNetworkIndex.from_dict(base_dict)
+
+    results = []
+    for original_idx, (net_int, pfx, pfx_leading) in chunk_data:
+        row = SimpleNamespace(PFXS=pfx, PFXS_LEADING=pfx_leading, INETS=net_int)
+
+        result = base.contains_row(row)
+        results.append((original_idx, result))
+    return results
+
+
+def pick_chunk_size(n_rows: int, workers: int | None = None,
+                    min_chunk: int = 5,
+                    max_chunk: int = 200_000) -> int:
+    if workers is None:
+        workers = os.cpu_count() or 4
+    chunk = math.ceil(n_rows / workers)
+    return max(min_chunk, min(max_chunk, chunk))
+
 
 def general_merge(
     base_file, extra_file, extra_filtered_file, out_file
@@ -139,20 +175,49 @@ def general_merge(
     Merge lists of IP networks into a base file.
     """
     print("Merging extra prefixes that were not included in the base file.")
-    base = BaseNetworkIndex()
+    base_network_index = BaseNetworkIndex()
     with open(base_file, "r") as file:
         for line in file:
             pfx, _ = line.split(" ")
-            base.update(pfx)
+            base_network_index.update(pfx)
 
     df_extra = extra_file_to_df(extra_file)
 
-    extra_included = []
-    for row in df_extra.itertuples(index=False):
-        result = base.contains_row(row)
-        extra_included.append(result)
+    len_df_extra = len(df_extra)
+    chunk_size = pick_chunk_size(len_df_extra)
+    chunks = []
+    chunk_data = []
+    for i, row in df_extra.iterrows():
+        if i == 0:
+            chunk_data.append((i, (row.INETS, row.PFXS, row.PFXS_LEADING)))
+            continue
+        # reached the chunk size
+        if i > 0 and ((i % chunk_size) == 0):
+            chunk_data.append((i, (row.INETS, row.PFXS, row.PFXS_LEADING)))
+            chunks.append(chunk_data)
+        # reached the final row
+        elif i == (len_df_extra - 1):
+            chunk_data.append((i, (row.INETS, row.PFXS, row.PFXS_LEADING)))
+            chunks.append(chunk_data)
+        else:
+            chunk_data.append((i, (row.INETS, row.PFXS, row.PFXS_LEADING)))
+            continue
+        # reset chunk data
+        chunk_data = []
 
-    df_extra["INCLUDED"] = extra_included
+    all_results = []
+    with ProcessPoolExecutor() as executor:
+        base_dict = base_network_index.get_serializable_dict()
+        futures = [executor.submit(process_chunk_worker, chunk, base_dict) for chunk in chunks]
+
+        for future in futures:
+            all_results.extend(future.result())
+
+    # Sort by original index
+    all_results.sort(key=lambda x: x[0])
+
+    df_extra["INCLUDED"] = [result for _, result in all_results]
+
     df_filtered = df_extra[df_extra.INCLUDED == 0]
 
     if extra_filtered_file:
