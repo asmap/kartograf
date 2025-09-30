@@ -71,12 +71,11 @@ def extract(file, context):
     gz_file = Path(context.data_dir_collectors) / (file + ".gz")
     file = Path(context.out_dir_collectors) / file
 
-    print(f'Unzipping {gz_file}')
+    print(f'Extracting {gz_file.name}')
     with gzip.open(gz_file, 'rb') as f_in:
         with open(file, 'wb') as f_out:
             shutil.copyfileobj(f_in, f_out)
 
-    print(f'Formatting {file}')
     with open(file, "r") as read:
         lines = read.readlines()
 
@@ -94,9 +93,9 @@ def fetch_routeviews_pfx2as(context):
     v6_file_gz = path / "routeviews_pfx2asn_ip6.txt.gz"
 
     download(latest_link(PFX2AS_V4), v4_file_gz)
-    print(f"Downloaded {v4_file_gz}, file hash: {calculate_sha256(v4_file_gz)}")
+    print(f"Downloaded {v4_file_gz.name}, file hash: {calculate_sha256(v4_file_gz)}")
     download(latest_link(PFX2AS_V6), v6_file_gz)
-    print(f"Downloaded {v6_file_gz}, file hash: {calculate_sha256(v6_file_gz)}")
+    print(f"Downloaded {v6_file_gz.name}, file hash: {calculate_sha256(v6_file_gz)}")
 
 
 def extract_routeviews_pfx2as(context):

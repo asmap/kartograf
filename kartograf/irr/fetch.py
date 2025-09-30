@@ -41,7 +41,7 @@ def fetch_irr(context):
                 with open(local_file_path, 'wb') as f:
                     for chunk in response.iter_content(chunk_size=8192):
                         f.write(chunk)
-                print(f"Downloaded {file_name}, file hash: {calculate_sha256(local_file_path)}")
+                print(f"file hash: {calculate_sha256(local_file_path)}")
                 break
             except (requests.RequestException, ConnectionError) as e:
                 print(f"Connection issue while downloading {file_name}: {e}. Retrying... (Attempt {attempt + 1}/{max_retries})")
@@ -53,13 +53,13 @@ def fetch_irr(context):
 
 
 def extract_irr(context):
+    print("Extracting IRR DBs")
     for file in IRR_FILE_ADDRESSES:
         _, file_path = file.split("/", 1)
         _, file_name = file_path.rsplit("/", 1)
         local_file_path = Path(context.data_dir_irr) / file_name
         extracted_file_path = Path(context.out_dir_irr) / file_name.rstrip(".gz")
 
-        print("Extracting " + file_name)
         with gzip.open(local_file_path, 'rb') as r:
             with open(extracted_file_path, 'wb') as w:
                 shutil.copyfileobj(r, w)

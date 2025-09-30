@@ -25,7 +25,6 @@ def parse_irr(context):
     output_cache: Dict[str, str] = {}
 
     for file in irr_files:
-        print(f"Parsing {file}")
         # We need to know the RIR of the file to check if it is equal to the
         # source later
         rir = rir_from_str(str(file))
@@ -64,7 +63,12 @@ def parse_irr(context):
                     else:
                         continue
 
-                    route = parse_pfx(route)
+                    parsed_route = parse_pfx(route)
+                    if not parsed_route:
+                        if context.debug_log:
+                            with open(context.debug_log, 'a') as logs:
+                                logs.write(f"Could not parse prefix from line: {route}")
+                        continue
 
                     # AFRINIC and LACNIC appear to not use last modified anymore
                     last_modified = entry.get("last-modified", "2009-01-03T19:15:05Z")
@@ -74,10 +78,10 @@ def parse_irr(context):
 
                     # Bogon prefixes and ASNs are excluded since they can not
                     # be used for routing.
-                    if not route or is_bogon_pfx(route) or is_bogon_asn(origin):
+                    if is_bogon_pfx(parsed_route) or is_bogon_asn(origin):
                         if context.debug_log:
                             with open(context.debug_log, 'a') as logs:
-                                logs.write(f"IRR: parser encountered an invalid route: {route}")
+                                logs.write(f"IRR: parser encountered an invalid route: {parsed_route}\n")
                         continue
 
                     if context.max_encode and is_out_of_encoding_range(origin, context.max_encode):
@@ -103,7 +107,7 @@ def parse_irr(context):
                     else:
                         output_cache[route] = [origin, last_modified]
 
-        print("Found in this file:", len(output_cache) - prev_count)
+        print(f"Parsed {file.name}, found: {len(output_cache) - prev_count}")
 
     print("Found valid, unique entries:", len(output_cache))
 

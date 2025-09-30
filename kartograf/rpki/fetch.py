@@ -50,7 +50,7 @@ def download_rir_tals(context):
             with open(tal_path, 'wb') as file:
                 file.write(response.content)
 
-            print(f"Downloaded TAL for {rir.upper()} to {tal_path}, file hash: {calculate_sha256(tal_path)}")
+            print(f"Downloaded TAL for {rir.upper()} to {tal_path.name}, file hash: {calculate_sha256(tal_path)}")
             tals.append(tal_path)
 
         except requests.RequestException as e:
@@ -99,7 +99,6 @@ def fetch_rpki_db(context):
 
 @timed
 def validate_rpki_db(context):
-    print("Validating RPKI ROAs")
     files = [path for path in Path(context.data_dir_rpki_cache).rglob('*')
              if path.is_file() and ((path.suffix == ".roa")
                                     or (path.name == ".roa"))]
@@ -158,4 +157,4 @@ def validate_rpki_db(context):
         with open(result_path, 'w') as f:
             json.dump(s, f)
 
-    print(f"{len(results_json)} RKPI ROAs validated and saved to {result_path}, file hash: {calculate_sha256(result_path)}")
+    print(f"{len(results_json)} RKPI ROAs validated\nSaved to: {result_path.name}\nFile hash: {calculate_sha256(result_path)}")

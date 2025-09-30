@@ -58,10 +58,14 @@ def parse_rpki(context):
             for vrp in roa['vrps']:
                 asn = vrp['asid']
                 prefix = parse_pfx(vrp['prefix'])
-
+                if not prefix:
+                    if context.debug_log:
+                        with open(context.debug_log, 'a') as logs:
+                            logs.write(f"Could not parse prefix from line: {vrp['prefix']}")
+                    continue
                 # Bogon prefixes and ASNs are excluded since they can not
                 # be used for routing.
-                if not prefix or is_bogon_pfx(prefix) or is_bogon_asn(asn):
+                if is_bogon_pfx(prefix) or is_bogon_asn(asn):
                     if context.debug_log:
                         with open(context.debug_log, 'a') as logs:
                             logs.write(f"RPKI: parser encountered an invalid IP network: {prefix}\n")
