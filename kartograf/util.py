@@ -6,7 +6,7 @@ import re
 import subprocess
 import time
 
-RPKI_VERSION = 9.5
+RPKI_VERSION = 9.6
 
 
 def calculate_sha256(file_path):
