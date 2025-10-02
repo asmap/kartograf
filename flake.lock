@@ -33,11 +33,11 @@
         "utils": "utils"
       },
       "locked": {
-        "lastModified": 1744636087,
-        "narHash": "sha256-/GB5ZN+Da5XWDnqmc0gJKEG2+8ZNHJQYZgxZx0lN+Jc=",
+        "lastModified": 1758726314,
+        "narHash": "sha256-Thu55W7jor/F2RTQtLGvIz1hZAJzw30N5fzhP3HoVNU=",
         "owner": "asmap",
         "repo": "rpki-client-nix",
-        "rev": "3c270f6a8da96bcb7395dc6991ceef7a3036796b",
+        "rev": "dde0ccc247f92d254befed01401de7b9085807ad",
         "type": "github"
       },
       "original": {
@@ -49,34 +49,34 @@
     "rpki-client-src": {
       "flake": false,
       "locked": {
-        "lastModified": 1744153109,
-        "narHash": "sha256-BYfJwSVm+w7AZu34HD0XY5ORkxYNEtYDK6cn8h8WrQY=",
+        "lastModified": 1758369324,
+        "narHash": "sha256-emwYvo4sayLOBMLuqwk+HiJfyZ+UsVh4wZsk6ol0k1M=",
         "owner": "rpki-client",
         "repo": "rpki-client-portable",
-        "rev": "36abf5dbc510ef98e5139f776806b723d3bcc705",
+        "rev": "5f446a23b2df68b821fdba4310399465e8e0247c",
         "type": "github"
       },
       "original": {
         "owner": "rpki-client",
         "repo": "rpki-client-portable",
-        "rev": "36abf5dbc510ef98e5139f776806b723d3bcc705",
+        "rev": "5f446a23b2df68b821fdba4310399465e8e0247c",
         "type": "github"
       }
     },
     "rpki-openbsd-src": {
       "flake": false,
       "locked": {
-        "lastModified": 1744104505,
-        "narHash": "sha256-OUfBK+mwOZ4KkvAWKFfrHU/c0iv2hmFisLOBg+Tfu34=",
+        "lastModified": 1758366358,
+        "narHash": "sha256-Zef7uxD0jh1xdqPh+7R0bMNSPHucfXkDDU0q2JC6kGg=",
         "owner": "rpki-client",
         "repo": "rpki-client-openbsd",
-        "rev": "f89bbe32af942a4dac8d2f9c13058ff63afa11d3",
+        "rev": "9729e89d562260b1102a76d3623d8757f20e01e3",
         "type": "github"
       },
       "original": {
         "owner": "rpki-client",
         "repo": "rpki-client-openbsd",
-        "rev": "f89bbe32af942a4dac8d2f9c13058ff63afa11d3",
+        "rev": "9729e89d562260b1102a76d3623d8757f20e01e3",
         "type": "github"
       }
     },
@@ -115,11 +115,11 @@
         "systems": "systems"
       },
       "locked": {
-        "lastModified": 1694529238,
-        "narHash": "sha256-zsNZZGTGnMOf9YpHKJqMSsa0dXbfmxeoJ7xHlrt+xmY=",
+        "lastModified": 1731533236,
+        "narHash": "sha256-l0KFg5HjrsfsO/JpG+r7fRrqm12kzFHyUHqHCVpMMbI=",
         "owner": "numtide",
         "repo": "flake-utils",
-        "rev": "ff7b65b44d01cf9ba6a71320833626af21126384",
+        "rev": "11707dc2f618dd54ca8739b309ec4fc024de578b",
         "type": "github"
       },
       "original": {
