@@ -8,6 +8,12 @@ Free software projects that maintain a P2P network aim for diversity of peers to
 
 Kartograf is a free software project that generates such map files, for the start IP to AS maps, in a trust-minimized and transparent way. It pulls data from different public sources and combines them in a purely functional way to minimize the possibility of accidental BGP leaks or malicious hijacks ending up in the resulting map. Additionally, the software provides informative, easy-to-parse logging and preserves intermittent artifacts. Projects utilizing Kartograf will then publish this information which allows their users to audit the generation process of the map and verify the integrity of the shipped result file by repeating the process, similar to reproducible build systems.
 
+The following data sources can be used, and when enabled, will be used in decreasing order of priority:
+
+- [RPKI](https://www.ripe.net/manage-ips-and-asns/resource-management/rpki/what-is-rpki/)
+- [IRR DBs of all five RIRs](https://www.arin.net/resources/manage/irr/)
+- BGP announcements from [Routeviews](https://publicdata.caida.org/datasets/routing/routeviews-prefix2as/README.txt)
+
 ## Requirements
 
 The recommended method of installation is with [Nix](https://nixos.org/download.html). You can read about why [here](./nix.md). You may however install from any method below.
