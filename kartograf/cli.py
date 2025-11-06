@@ -112,3 +112,6 @@ def main(args=None):
     else:
         parser.print_help()
         sys.exit("Please provide a command.")
+
+if __name__ == "__main__":
+    main()
