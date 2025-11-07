@@ -14,7 +14,7 @@ The recommended method of installation is with [Nix](https://nixos.org/download.
 
 ### Nix
 
-The Nix flake in this repo exposes a development shell, with the `rpki-client` binary, Python 3.10, and the Python packages required to run kartograf.
+The Nix flake in this repo exposes a development shell, with the `rpki-client` binary, Python 3.11, and the Python packages required to run kartograf.
 
 If you have Nix installed with flakes enabled, clone this repo, and run `nix develop`. You can now proceed to [Usage](#usage).
 
