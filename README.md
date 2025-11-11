@@ -142,7 +142,7 @@ Tests are located under `tests`, and can be run with `pytest`. Run `pytest tests
 
 ## Acknowledgements
 
-[Job Snijders](https://twitter.com/JobSnijders)
+[Job Snijders](https://github.com/job)
 
 ## Legal note
 
