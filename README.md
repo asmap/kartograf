@@ -100,7 +100,7 @@ This uses an pre-existing data folder and creates a map from it, allowing to rep
 
 ### Merging IP prefix to ASN maps
 
-This merges on map into another map. The mappings of the base file have preference over those in the extra file.
+This merges one map into another map. The mappings of the base file have preference over those in the extra file.
 
 ```
 ./run merge -b /path/to/base_file.txt -e /path/to/extra_file.txt -o /path/to/output.txt
@@ -116,7 +116,7 @@ Check the coverage of a given list of IPs for a given IP prefix to ASN map:
 
 ## File format examples
 
-Kartograf expects files input files to be in the following formatting and also produces output files that follow this format.
+Kartograf expects input files to be in the following formatting and also produces output files that follow this format.
 
 ### Map files
 
