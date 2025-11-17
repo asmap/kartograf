@@ -188,22 +188,10 @@ def general_merge(
     chunks = []
     chunk_data = []
     for i, row in df_extra.iterrows():
-        if i == 0:
-            chunk_data.append((i, (row.INETS, row.PFXS, row.PFXS_LEADING)))
-            continue
-        # reached the chunk size
-        if i > 0 and ((i % chunk_size) == 0):
-            chunk_data.append((i, (row.INETS, row.PFXS, row.PFXS_LEADING)))
+        chunk_data.append((i, (row.INETS, row.PFXS, row.PFXS_LEADING)))
+        if (i + 1) % chunk_size == 0 or i == len_df_extra - 1:
             chunks.append(chunk_data)
-        # reached the final row
-        elif i == (len_df_extra - 1):
-            chunk_data.append((i, (row.INETS, row.PFXS, row.PFXS_LEADING)))
-            chunks.append(chunk_data)
-        else:
-            chunk_data.append((i, (row.INETS, row.PFXS, row.PFXS_LEADING)))
-            continue
-        # reset chunk data
-        chunk_data = []
+            chunk_data = []
 
     all_results = []
     with ProcessPoolExecutor() as executor:
