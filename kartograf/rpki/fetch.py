@@ -1,3 +1,4 @@
+import os
 import subprocess
 import sys
 
@@ -102,6 +103,9 @@ def validate_rpki_db(context):
 
     tal_options = [item for path in data_tals(context) for item in ('-t', path)]
 
+    cpu_count = os.cpu_count()
+    threads = cpu_count if cpu_count else 4
+
     debug_file_lock = Lock()
 
     if context.debug_log:
@@ -114,7 +118,7 @@ def validate_rpki_db(context):
                                  "-n",
                                  "-d",
                                  context.data_dir_rpki_cache,
-                                 "-p 16",
+                                 f"-p {threads}",
                                  "-P",
                                  context.epoch,
                                  ] + tal_options + [context.out_dir_rpki],
