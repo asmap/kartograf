@@ -9,6 +9,7 @@ from kartograf.timed import timed
 from kartograf.util import (
     calculate_sha256,
     calculate_sha256_directory,
+    get_threads,
 )
 
 TAL_URLS = {
@@ -101,6 +102,7 @@ def validate_rpki_db(context):
     result_path = Path(context.out_dir_rpki) / rpki_raw_file
 
     tal_options = [item for path in data_tals(context) for item in ('-t', path)]
+    threads = get_threads()
 
     debug_file_lock = Lock()
 
@@ -114,7 +116,7 @@ def validate_rpki_db(context):
                                  "-n",
                                  "-d",
                                  context.data_dir_rpki_cache,
-                                 "-p 16",
+                                 f"-p {threads}",
                                  "-P",
                                  context.epoch,
                                  ] + tal_options + [context.out_dir_rpki],
