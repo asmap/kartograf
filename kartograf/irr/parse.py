@@ -90,22 +90,22 @@ def parse_irr(context):
                     # There are duplicates and multiple entries for some
                     # prefixes in the IRR DBs, so we need to deal with them
                     # here.
-                    if output_cache.get(route):
-                        [old_origin, old_last_modified] = output_cache[route]
+                    if output_cache.get(parsed_route):
+                        [old_origin, old_last_modified] = output_cache[parsed_route]
 
                         # If there are two entries for the same prefix, we
                         # prefer the one with the newer last-modified date.
                         if int(last_modified) > int(old_last_modified):
-                            output_cache[route] = [origin, last_modified]
+                            output_cache[parsed_route] = [origin, last_modified]
 
                         # If the last-modified date is the same, we use the
                         # lower ASN as a deterministic tie-breaker.
                         if int(last_modified) == int(old_last_modified):
                             if int(origin[2:]) < int(old_origin[2:]):
-                                output_cache[route] = [origin, last_modified]
+                                output_cache[parsed_route] = [origin, last_modified]
 
                     else:
-                        output_cache[route] = [origin, last_modified]
+                        output_cache[parsed_route] = [origin, last_modified]
 
         print(f"Parsed {file.name}, found: {len(output_cache) - prev_count}")
 
