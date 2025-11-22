@@ -17,20 +17,25 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v4
 
-    - name: Checkout Sample Data
-      uses: actions/checkout@v4
-      with:
-        repository: asmap/sample-data
-        ref: main
-        path: tests/data
-
-    - name: Run with reproduction data
-      id: run_cmd
+    - name: Download reproduction data hosted as release asset
       run: |
-        output=$(nix develop --command ./run map -r tests/data/1742127147 -t 1742127147 | tr '\n' ' ')
-        echo "output=$output" >> $GITHUB_OUTPUT
+        sudo apt-get update
+        sudo apt-get install -y zstd
 
-    - name: Check output hash
-      if: contains(steps.run_cmd.outputs.output, '76835fb5d0002930ede434f396b38ab690e2b38193a516a5fb513ad2aa22e5af')
+        mkdir -p tests/data
+        curl -L \
+          -o tests/data/1762444800-data.tar.zst \
+          "https://github.com/asmap/sample-data/releases/download/1762444800/1762444800-data.tar.zst"
+
+        zstd -d tests/data/1762444800-data.tar.zst -c | tar -xf - -C tests/data
+
+    - name: Run with reproduction data and check hash
+      shell: bash
       run: |
+        set -euo pipefail
+
+        output=$(nix develop --command ./run map -r tests/data/1762444800 -t 1762444800 2>&1)
+        echo "$output"
+
+        echo "$output" | grep -q '8dec174852e3dad0854d41319f60dad03b017c61e822680bf9c3f8fd3ea8fc6d'
         echo "Output matches the expected value"
