@@ -2,13 +2,12 @@ from concurrent.futures import ProcessPoolExecutor
 from pathlib import Path
 import ipaddress
 import math
-import os
 import shutil
 from types import SimpleNamespace
 import pandas as pd
 
 from kartograf.timed import timed
-from kartograf.util import get_root_network
+from kartograf.util import get_root_network, get_threads
 
 
 class BaseNetworkIndex:
@@ -163,7 +162,7 @@ def pick_chunk_size(n_rows: int, workers: int | None = None,
                     min_chunk: int = 5,
                     max_chunk: int = 200_000) -> int:
     if workers is None:
-        workers = os.cpu_count() or 4
+        workers = get_threads()
     chunk = math.ceil(n_rows / workers)
     return max(min_chunk, min(max_chunk, chunk))
 
