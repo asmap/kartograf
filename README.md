@@ -33,6 +33,25 @@ experimental-features = nix-command flakes
 
 to enable flakes in your Nix config, then run `nix develop`.
 
+### Container
+
+The repository provies a `Containerfile` that builds a container with kartograf, the `rpki-client` binary, Python 3.11, and the Python packages required to run kartograf.
+
+If you have podman installed, you can run the utility with:
+
+```
+podman build --tag kartograf .
+podman run --rm -it kartograf map --help
+```
+
+To (optionally) copy out the compiled output, you can use:
+```
+podman run --name kartograf-run -it kartograf map -d
+podman cp kartograf-run:/out out   # (main output)
+podman cp kartograf-run:/data data # (to get intermediate data)
+podman rm kartograf-run
+```
+
 ### Linux/BSD/macOS
 
 #### rpki-client
