@@ -3,23 +3,29 @@ flake: { config, pkgs, lib, ... }:
 with lib;
 
 let
-  inherit (flake.packages.${pkgs.stdenv.hostPlatform.system}) kartograf;
   cfg = config.services.kartograf;
   postScript = pkgs.writeScriptBin "post-script" /* bash */ ''
     #!/${pkgs.bash}/bin/bash
     timestamp=$(${pkgs.findutils}/bin/find out -mindepth 1 -maxdepth 1 -type d | ${pkgs.coreutils}/bin/cut -d/ -f2)
     mv out/$timestamp/final_result.txt ${cfg.resultPath}/asmap-$timestamp.txt
     echo "Copied result from /out/$timestamp/final_result.txt to ${cfg.resultPath}/asmap-$timestamp.txt"
-    rm -rf data out
+    rm -rf out
     echo "Cleaned up temporary directories."
   '';
 in
 {
   options.services.kartograf = {
     enable = mkEnableOption "kartograf";
-    clean = mkEnableOption "cleaning up of temporary artifacts after processing." // { default = true; };
+    package = mkOption {
+      type = types.package;
+      default = (flake.packages.${pkgs.stdenv.hostPlatform.system}).kartograf;
+      description = mdDoc "kartograf binary to use";
+    };
+    wipeDataDir = mkEnableOption "delete data directory (inputs to the final map)" // { default = true; };
     useIRR = mkEnableOption "using Internet Routing Registry (IRR) data" // { default = true; };
     useRV = mkEnableOption "using RouteViews (RV) data" // { default = true; };
+    debug = mkEnableOption "enable debug, retaining output files and debug.log" // { default = false; };
+    runPostScript = mkEnableOption "delete all temporary files, and put final result in /home/kartograf dir" // { default = true; };
     schedule = mkOption {
       type = types.str;
       default = "*-*-01 00:00:00 UTC";
@@ -59,11 +65,14 @@ in
       after = [ "network-online.target" ];
       serviceConfig = {
         Environment = "PYTHONUNBUFFERED=1";
-        ExecStopPost = "${postScript}/bin/post-script";
-        ExecStart = ''${kartograf}/bin/kartograf map \
-          ${optionalString cfg.clean "--wipe_data_dir" } \
+        ExecStopPost = let
+          postScriptBin = "${postScript}/bin/post-script";
+        in "${optionalString cfg.runPostScript postScriptBin }";
+        ExecStart = ''${cfg.package}/bin/kartograf map \
+          ${optionalString cfg.wipeDataDir "--wipe_data_dir" } \
           ${optionalString cfg.useIRR "--irr" } \
           ${optionalString cfg.useRV "--routeviews" } \
+          ${optionalString cfg.debug "--debug" }
         '';
         MemoryDenyWriteExecute = true;
         WorkingDirectory = cfg.resultPath;
