@@ -161,6 +161,18 @@ Kartograf expects input files to be in the following formatting and also produce
 2001:067c:0750:0000:0000:0000:0010:0001
 ```
 
+## Scheduling recurring runs
+
+If you want to run kartograf on a recurring schedule, you can use `cron` on most Unix systems.
+
+Given a local environment with all required dependencies as above, open your `cron` schedule with `crontab -e`. To run kartograf every day at midnight for example, add the following entry: `0 0 * * * /path/to/kartograf/run map`.
+
+If you don't care to keep the (usually sizable) data used to build the map, and just want to keep the output of the run, use the `-wd` or `--wipe_data_dir` flag.
+
+With Nix:
+- `nix build` will output a binary in the current directory under `result/bin/`, which you can give to `cron` to run directly.
+- if you are adding kartograf to a NixOS machine, the flake exposes a module called `nixosModules.kartograf`. One of its `options` is a `schedule` which takes a systemd timer expression, running the program at the specified time. See `module.nix`.
+
 ## Testing
 
 Tests are located under `tests`, and can be run with `pytest`. Run `pytest tests` or specify a specific test with `pytest tests/TEST_NAME.py`.
