@@ -99,11 +99,15 @@ Generate a fresh map of IP prefix to ASN using only RPKI:
 ./run map
 ```
 
-You can enhance the RPKI maps with RIRs IRR data or Routeviews data using the `-irr` and `-rv` flags:
+You can enhance the RPKI maps with RIRs IRR data and Routeviews data using the flags `-irr` and `-rv` respectively (or both together):
 
 ```
-./run map -rv
+./run map -irr -rv
 ```
+
+The input data downloaded from the sources will be stored under `data/` and the output data under `out/` in the project directory. Each run stores its input and output data under its start Unix timestamp. For example, the AS map for the run at time `1764864000` will be output to `out/1764864000/final_result.txt`.
+
+To not save the input data (up to 2 GB per run), use the `--wipe_data_dir` or `-wd` flag.
 
 ### Coordinated launch for building IP prefix to ASN maps
 
