@@ -91,7 +91,7 @@ python -m scripts.check
 
 ### Building IP prefix to ASN maps
 
-Please be aware that the full process currently takes about 6 hours with an M1 Macbook Pro and fiber optic connection.
+Building an IP-to-AS map can take between a few minutes to over half an hour, depending on the amount of data sources used, your machine specs (in particular the number of cores available to parallelize work) and network bandwidth.
 
 Generate a fresh map of IP prefix to ASN using only RPKI:
 
