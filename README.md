@@ -165,6 +165,18 @@ Kartograf expects input files to be in the following formatting and also produce
 2001:067c:0750:0000:0000:0000:0010:0001
 ```
 
+## Running a cron
+
+If you want to run kartograf on a cron, there are several options.
+
+Given a local environment with all required dependencies as above, one can `cd` to the kartograf directory and run the program. For example, to run kartograf every day at midnight:
+- `0 0 * * * cd /path/to/kartograf && ./run map`
+- or `0 0 * * * cd /path/to/kartograf && python -m kartograf.cli map`
+
+With Nix:
+- `nix build` will output a binary you can give to a crontab to run directly.
+- if you are adding kartograf to a NixOS machine, the flake exposes a module called `nixosModules.kartograf`. One of its `options` is a `schedule` which takes a systemd timer expression, running the program at the specified time. See `module.nix`.
+
 ## Testing
 
 Tests are located under `tests`, and can be run with `pytest`. Run `pytest tests` or specify a specific test with `pytest tests/TEST_NAME.py`.
