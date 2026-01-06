@@ -7,8 +7,8 @@ from tqdm import tqdm
 def coverage(map_file, ip_list_file, output_file=None):
     tqdm.pandas()
 
-    rpki_nets = []
-    rpki_masks = []
+    nets = []
+    masks = []
     for line in map_file:
         pfx, _ = line.split()
         try:
@@ -21,11 +21,11 @@ def coverage(map_file, ip_list_file, output_file=None):
 
         netw = int(ipn.network_address)
         mask = int(ipn.netmask)
-        rpki_masks.append(mask)
-        rpki_nets.append(netw)
+        masks.append(mask)
+        nets.append(netw)
 
-    net_masks = np.array(rpki_masks)
-    network_addresses = np.array(rpki_nets)
+    net_masks = np.array(masks)
+    network_addresses = np.array(nets)
     zipped = list(zip(net_masks, network_addresses))
 
     addrs = []
