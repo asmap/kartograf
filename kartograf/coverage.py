@@ -9,8 +9,9 @@ def coverage(map_file, ip_list_file, output_file=None):
 
     nets = []
     masks = []
+    asns = []
     for line in map_file:
-        pfx, _ = line.split()
+        pfx, asn = line.split()
         try:
             ipn = ipaddress.ip_network(pfx)
         except ValueError:
@@ -23,10 +24,11 @@ def coverage(map_file, ip_list_file, output_file=None):
         mask = int(ipn.netmask)
         masks.append(mask)
         nets.append(netw)
+        asns.append(asn)
 
     net_masks = np.array(masks)
     network_addresses = np.array(nets)
-    zipped = list(zip(net_masks, network_addresses))
+    zipped = list(zip(net_masks, network_addresses, asns))
 
     addrs = []
     for line in ip_list_file:
@@ -42,13 +44,13 @@ def coverage(map_file, ip_list_file, output_file=None):
     df = pd.DataFrame({'ADDRS': addrs})
 
     def check_coverage(addr):
-        for mask, net_addr in zipped:
+        for mask, net_addr, asn in zipped:
             if (addr & mask) == net_addr:
-                return 1
+                return asn
         return 0
 
     df['COVERED'] = df.ADDRS.progress_apply(check_coverage)
-    df_cov = df[df.COVERED == 1]
+    df_cov = df[df.COVERED != 0]
 
     covered = len(df_cov)
     total = len(df)
@@ -58,7 +60,7 @@ def coverage(map_file, ip_list_file, output_file=None):
 
     if output_file:
         with open(output_file, 'w') as f:
-            for addr in df_cov['ADDRS']:
+            for addr, asn in zip(df_cov['ADDRS'], df_cov['COVERED']):
                 formatted = str(ipaddress.ip_address(addr))
-                f.write(f"{formatted}\n")
+                f.write(f"{formatted} {asn}\n")
         print(f"Wrote {covered} IP addresses to {output_file}")
