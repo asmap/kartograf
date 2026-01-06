@@ -4,7 +4,7 @@ import pandas as pd
 from tqdm import tqdm
 
 
-def coverage(map_file, ip_list_file):
+def coverage(map_file, ip_list_file, output_file=None):
     tqdm.pandas()
 
     rpki_nets = []
@@ -55,3 +55,10 @@ def coverage(map_file, ip_list_file):
     percentage = (covered / total) * 100
     print(f"A total of {covered} IPs out of {total} are covered by the map. "
           f"That's {percentage:.2f}%")
+
+    if output_file:
+        with open(output_file, 'w') as f:
+            for addr in df_cov['ADDRS']:
+                formatted = str(ipaddress.ip_address(addr))
+                f.write(f"{formatted}\n")
+        print(f"Wrote {covered} IP addresses to {output_file}")
