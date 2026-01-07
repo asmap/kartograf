@@ -73,15 +73,21 @@ def test_cov_command_error(parser, capsys):
     captured = capsys.readouterr()
     assert captured.err.startswith("usage:")
 
+def test_cov_conflicting_flags(parser, capsys):
+    with pytest.raises(SystemExit):
+        parser.parse_args(['cov', '-c', 'output.txt', '-uc', 'alsooutput.txt'])
+    captured = capsys.readouterr()
+    assert captured.err.startswith("usage:")
+
 def test_cov_command(parser):
     fixtures_path = Path("tests/data")
     map_file_arg = Path(fixtures_path / "map_file.txt")
     ip_file_arg = Path(fixtures_path / "ip_list.txt")
-    args = ["cov", str(map_file_arg), str(ip_file_arg), "-o", "outputfile.txt"]
+    args = ["cov", str(map_file_arg), str(ip_file_arg), "-oc", "outputfile.txt"]
     parsed_args = parser.parse_args(args)
     assert parsed_args.map.name == str(map_file_arg)
     assert parsed_args.list.name == str(ip_file_arg)
-    assert parsed_args.output == "outputfile.txt"
+    assert parsed_args.output_covered == "outputfile.txt"
 
 def test_help(capsys):
     with pytest.raises(SystemExit) as e:
