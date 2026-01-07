@@ -4,7 +4,7 @@ import pandas as pd
 from tqdm import tqdm
 
 
-def coverage(map_file, ip_list_file, output_file=None):
+def coverage(map_file, ip_list_file, output_covered=None, output_uncovered=None):
     tqdm.pandas()
 
     nets = []
@@ -52,15 +52,34 @@ def coverage(map_file, ip_list_file, output_file=None):
     df['COVERED'] = df.ADDRS.progress_apply(check_coverage)
     df_cov = df[df.COVERED != 0]
 
-    covered = len(df_cov)
+    len_covered = len(df_cov)
     total = len(df)
-    percentage = (covered / total) * 100
-    print(f"A total of {covered} IPs out of {total} are covered by the map. "
+    percentage = (len_covered / total) * 100
+    print(f"A total of {len_covered} IPs out of {total} are covered by the map. "
           f"That's {percentage:.2f}%")
 
-    if output_file:
-        with open(output_file, 'w') as f:
-            for addr, asn in zip(df_cov['ADDRS'], df_cov['COVERED']):
-                formatted = str(ipaddress.ip_address(addr))
-                f.write(f"{formatted} {asn}\n")
-        print(f"Wrote {covered} IP addresses to {output_file}")
+    if output_covered:
+        if percentage > 0:
+            write_covered(df_cov, output_covered, len_covered)
+        else:
+            print(f"No covered IPs, nothing to write to {output_covered}.")
+    if output_uncovered:
+        if percentage < 100:
+            df_uncov = df[df.COVERED == 0]
+            write_uncovered(df_uncov, output_uncovered, total - len_covered)
+        else:
+            print(f"All IPs covered, nothing to write to {output_uncovered}.")
+
+def write_covered(df_cov, output_file, output_len):
+    with open(output_file, 'w+') as f:
+        for addr, asn in zip(df_cov['ADDRS'], df_cov['COVERED']):
+            formatted = str(ipaddress.ip_address(addr))
+            f.write(f"{formatted} {asn}\n")
+        print(f"Wrote {output_len} IP addresses to {output_file}")
+
+def write_uncovered(df_uncov, output_file, output_len):
+    with open(output_file, 'w+') as f:
+        for addr in df_uncov['ADDRS']:
+            formatted = str(ipaddress.ip_address(addr))
+            f.write(f"{formatted}\n")
+        print(f"Wrote {output_len} IP addresses to {output_file}")

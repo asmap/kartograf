@@ -113,7 +113,7 @@ class Kartograf:
 
     @staticmethod
     def cov(args):
-        coverage(args.map, args.list, args.output)
+        coverage(args.map, args.list, args.output_covered, args.output_uncovered)
 
     @staticmethod
     def merge(args):
