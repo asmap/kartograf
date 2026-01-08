@@ -79,11 +79,15 @@ def test_cov_output_missing_arg(parser, capsys):
     captured = capsys.readouterr()
     assert captured.err.endswith("error: argument -oc/--output-covered: expected one argument\n")
 
-def test_cov_conflicting_flags(parser, capsys):
+def test_cov_conflicting_flags(capsys):
+    fixtures_path = Path("tests/data")
+    map_file_arg = Path(fixtures_path / "map_file.txt")
+    ip_file_arg = Path(fixtures_path / "ip_list.txt")
+    args = ["cov", str(map_file_arg), str(ip_file_arg), "-oc", "outputfile.txt", "-ou", "alsooutput.txt"]
     with pytest.raises(SystemExit):
-        parser.parse_args(['cov', '-c', 'output.txt', '-uc', 'alsooutput.txt'])
+        main(args)
     captured = capsys.readouterr()
-    assert captured.err.startswith("usage:")
+    assert captured.err.endswith("error: covered and uncovered flags conflict, choose one\n")
 
 def test_cov_command(parser):
     fixtures_path = Path("tests/data")
