@@ -73,6 +73,12 @@ def test_cov_command_error(parser, capsys):
     captured = capsys.readouterr()
     assert captured.err.startswith("usage:")
 
+def test_cov_output_missing_arg(parser, capsys):
+    with pytest.raises(SystemExit):
+        parser.parse_args(['cov', '-oc'])
+    captured = capsys.readouterr()
+    assert captured.err.endswith("error: argument -oc/--output-covered: expected one argument\n")
+
 def test_cov_conflicting_flags(parser, capsys):
     with pytest.raises(SystemExit):
         parser.parse_args(['cov', '-c', 'output.txt', '-uc', 'alsooutput.txt'])
