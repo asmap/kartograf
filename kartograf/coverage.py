@@ -1,7 +1,8 @@
 import ipaddress
 from kartograf.trie import IPTrie
+from kartograf.timed import timed
 
-
+@timed
 def coverage(map_file, ip_list_file, output_covered=None, output_uncovered=None):
     print("Running coverage check...\n")
 
