@@ -30,3 +30,27 @@ def test_coverage(capsys):
         coverage(map_items, ip_items)
         captured = capsys.readouterr()
         assert "Invalid IP network provided" in captured.err
+
+def test_covered_ips_output():
+    map_file_path, ip_list_path = fixtures()
+    cov_output_file = "cov_output.txt"
+    with open(map_file_path, 'r') as f:
+        map_items = f.readlines()
+    with open(ip_list_path, 'r') as f:
+        ip_items = f.readlines()
+    coverage(map_items, ip_items, output_covered=cov_output_file, output_uncovered=None)
+    with open(cov_output_file, 'r') as f:
+        cov_output = f.readlines()
+    assert "192.253.209.69 AS12389\n" in cov_output
+
+def test_not_covered_ips_output():
+    map_file_path, ip_list_path = fixtures()
+    cov_output_file = "not_cov_output.txt"
+    with open(map_file_path, 'r') as f:
+        map_items = f.readlines()
+    with open(ip_list_path, 'r') as f:
+        ip_items = f.readlines()
+    coverage(map_items, ip_items, output_covered=None, output_uncovered=cov_output_file)
+    with open(cov_output_file, 'r') as f:
+        cov_output = f.readlines()
+    assert "134.26.21.1\n" in cov_output
