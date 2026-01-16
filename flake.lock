@@ -32,11 +32,11 @@
         "utils": "utils"
       },
       "locked": {
-        "lastModified": 1758726314,
-        "narHash": "sha256-Thu55W7jor/F2RTQtLGvIz1hZAJzw30N5fzhP3HoVNU=",
+        "lastModified": 1768397982,
+        "narHash": "sha256-sXOnoziE74/xFHwVhpOh71xbPmwcgRr1exbrSHvC/A4=",
         "owner": "asmap",
         "repo": "rpki-client-nix",
-        "rev": "dde0ccc247f92d254befed01401de7b9085807ad",
+        "rev": "2f7a4dd32ee723e64fa29d98555e2a26867ce36c",
         "type": "github"
       },
       "original": {
@@ -48,34 +48,34 @@
     "rpki-client-src": {
       "flake": false,
       "locked": {
-        "lastModified": 1758369324,
-        "narHash": "sha256-emwYvo4sayLOBMLuqwk+HiJfyZ+UsVh4wZsk6ol0k1M=",
+        "lastModified": 1768329507,
+        "narHash": "sha256-2tZDPAinemEzpV+drJ3LYKG9YA6QmyWFlz+PcT7cwZc=",
         "owner": "rpki-client",
         "repo": "rpki-client-portable",
-        "rev": "5f446a23b2df68b821fdba4310399465e8e0247c",
+        "rev": "f2739829894cfab2711593e41a41dc79410f2d4b",
         "type": "github"
       },
       "original": {
         "owner": "rpki-client",
         "repo": "rpki-client-portable",
-        "rev": "5f446a23b2df68b821fdba4310399465e8e0247c",
+        "rev": "f2739829894cfab2711593e41a41dc79410f2d4b",
         "type": "github"
       }
     },
     "rpki-openbsd-src": {
       "flake": false,
       "locked": {
-        "lastModified": 1758366358,
-        "narHash": "sha256-Zef7uxD0jh1xdqPh+7R0bMNSPHucfXkDDU0q2JC6kGg=",
+        "lastModified": 1768215410,
+        "narHash": "sha256-1H3naG9LjO5wEmEfy5lKt3toDuRlP0o/34jheky91sY=",
         "owner": "rpki-client",
         "repo": "rpki-client-openbsd",
-        "rev": "9729e89d562260b1102a76d3623d8757f20e01e3",
+        "rev": "a5a4b737770b3dc586330bbda9f0aeceebfcc961",
         "type": "github"
       },
       "original": {
         "owner": "rpki-client",
         "repo": "rpki-client-openbsd",
-        "rev": "9729e89d562260b1102a76d3623d8757f20e01e3",
+        "rev": "a5a4b737770b3dc586330bbda9f0aeceebfcc961",
         "type": "github"
       }
     },
