@@ -1,3 +1,4 @@
+from pathlib import Path
 import pytest
 from kartograf.cli import create_parser, main
 
@@ -65,12 +66,39 @@ def test_merge_command(parser):
     assert args.extra.endswith('extra_file.txt')
     assert args.output.endswith('out_file.txt')
 
-def test_cov_command(parser, capsys):
+def test_cov_command_error(parser, capsys):
     with pytest.raises(SystemExit):
         # Should fail without required arguments
         parser.parse_args(['cov'])
     captured = capsys.readouterr()
     assert captured.err.startswith("usage:")
+
+def test_cov_output_missing_arg(parser, capsys):
+    with pytest.raises(SystemExit):
+        parser.parse_args(['cov', '-oc'])
+    captured = capsys.readouterr()
+    assert captured.err.endswith("error: argument -oc/--output-covered: expected one argument\n")
+
+def test_cov_command(parser):
+    fixtures_path = Path("tests/data")
+    map_file_arg = Path(fixtures_path / "map_file.txt")
+    ip_file_arg = Path(fixtures_path / "ip_list.txt")
+    args = ["cov", str(map_file_arg), str(ip_file_arg), "-oc", "outputfile.txt"]
+    parsed_args = parser.parse_args(args)
+    assert parsed_args.map.name == str(map_file_arg)
+    assert parsed_args.list.name == str(ip_file_arg)
+    assert parsed_args.output_covered == "outputfile.txt"
+
+def test_cov_both_flags(parser):
+    fixtures_path = Path("tests/data")
+    map_file_arg = Path(fixtures_path / "map_file.txt")
+    ip_file_arg = Path(fixtures_path / "ip_list.txt")
+    args = ["cov", str(map_file_arg), str(ip_file_arg), "-oc", "outputfile.txt", "-ou", "alsooutput.txt"]
+    parsed_args = parser.parse_args(args)
+    assert parsed_args.map.name == str(map_file_arg)
+    assert parsed_args.list.name == str(ip_file_arg)
+    assert parsed_args.output_covered == "outputfile.txt"
+    assert parsed_args.output_uncovered == "alsooutput.txt"
 
 def test_help(capsys):
     with pytest.raises(SystemExit) as e:

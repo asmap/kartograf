@@ -72,6 +72,10 @@ def create_parser():
     # List of IPs to be used for the coverage report.
     parser_cov.add_argument("list", type=argparse.FileType("r"))
 
+    # Return covered or uncovered IP addresses (optional)
+    parser_cov.add_argument("-oc", "--output-covered", default=None, type=str, help="output covered IP addresses and their associated ASN to an output file")
+    parser_cov.add_argument("-ou", "--output-uncovered", default=None, type=str, help="output not covered IP addresses to an output file")
+
     parser.add_argument(
         "--version",
         action="version",
