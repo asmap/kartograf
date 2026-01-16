@@ -1,57 +1,58 @@
 import ipaddress
-import numpy as np
-import pandas as pd
-from tqdm import tqdm
+from kartograf.trie import IPTrie
+from kartograf.timed import timed
 
+@timed
+def coverage(map_file, ip_list_file, output_covered=None, output_uncovered=None):
+    print("Running coverage check...\n")
 
-def coverage(map_file, ip_list_file):
-    tqdm.pandas()
-
-    rpki_nets = []
-    rpki_masks = []
-    for line in map_file:
-        pfx, _ = line.split()
-        try:
-            ipn = ipaddress.ip_network(pfx)
-        except ValueError:
-            raise ValueError(f"""
-                  Invalid IP network provided: {line}
-                  Please remove and re-run.
-                  """)
-
-        netw = int(ipn.network_address)
-        mask = int(ipn.netmask)
-        rpki_masks.append(mask)
-        rpki_nets.append(netw)
-
-    net_masks = np.array(rpki_masks)
-    network_addresses = np.array(rpki_nets)
-    zipped = list(zip(net_masks, network_addresses))
-
+    trie = IPTrie()
+    trie.from_map_file(map_file)
     addrs = []
     for line in ip_list_file:
+        line = line.rstrip('\n')
+        if not line:
+            continue
         try:
-            ip = ipaddress.ip_address(line.rstrip('\n'))
-            addrs.append(int(ip))
+            ip = ipaddress.ip_address(line)
+            addrs.append((ip, line))
         except ValueError:
             raise ValueError(f"""
                   Invalid IPv4/IPv6 address provided: {line}.
                   Please remove and re-run.
                   """)
 
-    df = pd.DataFrame({'ADDRS': addrs})
+    covered_pairs = []
+    not_covered_ips = []
+    for ip, raw_addr in addrs:
+        asn = trie.lookup(ip)
+        if asn is not None:
+            covered_pairs.append((raw_addr, asn))
+        else:
+            not_covered_ips.append(ip)
 
-    def check_coverage(addr):
-        for mask, net_addr in zipped:
-            if (addr & mask) == net_addr:
-                return 1
-        return 0
-
-    df['COVERED'] = df.ADDRS.progress_apply(check_coverage)
-    df_cov = df[df.COVERED == 1]
-
-    covered = len(df_cov)
-    total = len(df)
-    percentage = (covered / total) * 100
-    print(f"A total of {covered} IPs out of {total} are covered by the map. "
+    len_covered = len(covered_pairs)
+    total = len(addrs)
+    percentage = (len_covered / total) * 100
+    print(f"A total of {len_covered} IPs out of {total} are covered by the map. "
           f"That's {percentage:.2f}%")
+
+    if output_covered or output_uncovered:
+        if output_covered:
+            write_covered(covered_pairs, output_covered, len_covered)
+        else:
+            write_uncovered(not_covered_ips, output_uncovered, total - len_covered)
+
+def write_covered(covered_pairs, output_file, output_len):
+    with open(output_file, 'w') as f:
+        for addr, asn in covered_pairs:
+            formatted = str(ipaddress.ip_address(addr))
+            f.write(f"{formatted} {asn}\n")
+        print(f"Wrote {output_len} IP addresses to {output_file}")
+
+def write_uncovered(ips, output_file, output_len):
+    with open(output_file, 'w') as f:
+        for addr in ips:
+            formatted = str(ipaddress.ip_address(addr))
+            f.write(f"{formatted}\n")
+        print(f"Wrote {output_len} IP addresses to {output_file}")
