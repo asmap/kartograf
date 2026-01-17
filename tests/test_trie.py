@@ -222,6 +222,18 @@ def test_from_map_file_invalid_network_raises():
         trie.from_map_file(map_file)
 
 
+def test_from_map_file_invalid_asn_raises():
+    map_content = """
+    192.168.0.0/16 AS100
+    192.169.0.0/8 ASBAD
+    """
+    map_file = io.StringIO(map_content)
+    trie = IPTrie()
+
+    with pytest.raises(ValueError):
+        trie.from_map_file(map_file)
+
+
 def test_from_map_file_with_extra_whitespace():
     map_content = "  192.168.1.0/24   AS100  \n 10.0.0.0/8    AS200 "
     map_file = io.StringIO(map_content)
