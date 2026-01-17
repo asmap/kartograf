@@ -90,4 +90,13 @@ class IPTrie:
                           Invalid IP network provided: {line}
                           Please remove and re-run.
                           """)
+                try:
+                    _, number = asn.split("AS")
+                    int(number)
+                except ValueError:
+                    raise ValueError(f"""
+                        Invalid ASN provided: {asn}
+                        Please remove and re-run.
+                     """)
+
                 self.insert(prefix, asn)
