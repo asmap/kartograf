@@ -1,4 +1,4 @@
-beautifulsoup4==4.11.1
+beautifulsoup4>=4.11.1
 pandas>=2.2.3
 requests>=2.31.0
 tqdm>=4.67.0
