@@ -41,6 +41,7 @@
     in {
       default = pkgs.mkShell {
         packages = [pythonDevDeps rpki-cli.packages.${system}.default];
+        shellHook = "export PATH=$PATH:${pkgs.python313}/bin/python";
       };
     });
 
