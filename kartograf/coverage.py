@@ -1,12 +1,9 @@
 import ipaddress
 import numpy as np
 import pandas as pd
-from tqdm import tqdm
 
 
 def coverage(map_file, ip_list_file, output_covered=None, output_uncovered=None):
-    tqdm.pandas()
-
     nets = []
     masks = []
     asns = []
@@ -49,7 +46,7 @@ def coverage(map_file, ip_list_file, output_covered=None, output_uncovered=None)
                 return asn
         return 0
 
-    df['COVERED'] = df.ADDRS.progress_apply(check_coverage)
+    df['COVERED'] = df.ADDRS.apply(check_coverage)
     df_cov = df[df.COVERED != 0]
 
     len_covered = len(df_cov)
