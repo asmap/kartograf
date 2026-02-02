@@ -30,7 +30,8 @@
     # * A NixOS module
     devShells = forAllSystems (system: let
       pkgs = nixpkgsFor system;
-      pythonDevDeps = pkgs.python313.withPackages (ps: [
+      python = pkgs.python313;
+      pythonDevDeps = python.withPackages (ps: [
         ps.beautifulsoup4
         ps.pandas
         ps.pylint
@@ -40,7 +41,7 @@
       ]);
     in {
       default = pkgs.mkShell {
-        packages = [pythonDevDeps rpki-cli.packages.${system}.default];
+        packages = [python pythonDevDeps rpki-cli.packages.${system}.default];
       };
     });
 
