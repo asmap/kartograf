@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, UTC
 from pathlib import Path
 import sys
 import time
@@ -92,9 +92,9 @@ class Context:
         '''
         if self.reproduce and self.epoch:
             # both reproduce and epoch args are set: this is a reproduction run
-            repro_epoch = datetime.utcfromtimestamp(int(self.args.epoch))
+            repro_epoch = datetime.fromtimestamp(int(self.args.epoch), UTC)
             self.epoch_dir = "r" + self.epoch
             self.epoch_datetime = repro_epoch
         else:
             self.epoch_dir = self.epoch
-            self.epoch_datetime = datetime.utcfromtimestamp(int(self.epoch))
+            self.epoch_datetime = datetime.fromtimestamp(int(self.epoch), UTC)

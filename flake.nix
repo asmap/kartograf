@@ -2,7 +2,7 @@
   description = "An IP-to-AS mapping tool.";
 
   inputs = {
-    nixpkgs.url = "github:NixOS/nixpkgs/nixos-24.11";
+    nixpkgs.url = "github:NixOS/nixpkgs/nixos-25.11";
     # the rpki-client binary will be built from the flake at this URL.
     rpki-cli.url = "github:asmap/rpki-client-nix";
     rpki-cli.inputs.nixpkgs.follows = "nixpkgs";
@@ -30,7 +30,8 @@
     # * A NixOS module
     devShells = forAllSystems (system: let
       pkgs = nixpkgsFor system;
-      pythonDevDeps = pkgs.python311.withPackages (ps: [
+      python = pkgs.python313;
+      pythonDevDeps = python.withPackages (ps: [
         ps.beautifulsoup4
         ps.pandas
         ps.pylint
@@ -40,7 +41,7 @@
       ]);
     in {
       default = pkgs.mkShell {
-        packages = [pythonDevDeps rpki-cli.packages.${system}.default];
+        packages = [python pythonDevDeps rpki-cli.packages.${system}.default];
       };
     });
 
