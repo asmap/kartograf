@@ -125,4 +125,3 @@ def test_merge_rpki_supersedes_irr_subnets(tmp_path):
     assert set(final_ips).isdisjoint(set(irr_ips)), (
         f"IRR subnets should not appear in merged output: {set(final_ips) & set(irr_ips)}"
     )
-

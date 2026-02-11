@@ -267,3 +267,17 @@ def test_lookup_rejects_invalid_string():
 
     with pytest.raises(TypeError):
         trie.lookup("not.an.ip.address")
+
+
+def test_lookup_network():
+    trie = IPTrie()
+    base = ip_network("10.1.0.0/16")
+    downstream = ip_network("10.1.0.0/21")
+    upstream = ip_network("10.0.0.0/8")
+    not_covered = ip_network("10.2.0.0/16")
+    trie.insert(base, "AS100")
+
+    assert trie.lookup(base)
+    assert trie.lookup(downstream)
+    assert not trie.lookup(upstream)
+    assert not trie.lookup(not_covered)
