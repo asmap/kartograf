@@ -20,28 +20,26 @@ class BaseNetworkIndex:
     def __init__(self):
         self._trie = IPTrie()
 
-    def update(self, pfx):
+    def update(self, pfx, asn):
         try:
             ipn = ipaddress.ip_network(pfx, strict=False)
         except ValueError:
             print(f"Invalid prefix provided: {pfx}")
             return
-        self._trie.insert(pfx, ipn.prefixlen)
+        self._trie.insert(ipn, asn)
 
     def contains_row(self, row):
         """
         Check if the prefix in the row is covered by any prefix in the base file.
         A candidate prefix is covered if:
-        1. Its network address matches a base prefix in the trie
-        2. The matching base prefix length <= candidate prefix length
-           (i.e., base prefix is equal or broader than candidate)
+        Its network address matches a base prefix in the trie
         """
         try:
             candidate = ipaddress.ip_network(row.PFXS, strict=False)
         except ValueError:
             return 0
-        base_prefixlen = self._trie.lookup(candidate.network_address)
-        if base_prefixlen is not None and base_prefixlen <= candidate.prefixlen:
+        asn = self._trie.lookup(candidate)
+        if asn is not None:
             return 1
         return 0
 
@@ -125,8 +123,8 @@ def general_merge(
     base_network_index = BaseNetworkIndex()
     with open(base_file, "r") as file:
         for line in file:
-            pfx, _ = line.split(" ")
-            base_network_index.update(pfx)
+            pfx, asn = line.split(" ")
+            base_network_index.update(pfx, asn.strip())
 
     df_extra = extra_file_to_df(extra_file)
 

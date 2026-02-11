@@ -44,9 +44,27 @@ class IPTrie:
         node.asn = asn
 
     def lookup(self, ip):
-        if not isinstance(ip, (ipaddress.IPv4Address, ipaddress.IPv6Address)):
-            raise TypeError("lookup expects an ip_address object")
+        if isinstance(ip, (ipaddress.IPv4Network, ipaddress.IPv6Network)):
+            return self._lookup_network(ip)
+        if isinstance(ip, (ipaddress.IPv4Address, ipaddress.IPv6Address)):
+            return self._lookup_address(ip)
+        raise TypeError("lookup expects an ip_address or ip_network object")
 
+    def _check_subtree(self, node):
+        '''
+        Check if subtree contains any networks recursively.
+        '''
+        if node.asn is not None:
+            result = node.asn
+        for bit in [0, 1]:
+            if node.children[bit] is not None:
+                result = self._check_subtree(node.children[bit])
+                if result is not None:
+                    return result
+        return None
+
+    def _lookup_address(self, ip):
+        """Lookup an IP address using longest prefix match."""
         if ip.version == 4:
             root = self._ipv4_root
             max_bits = 32
@@ -70,6 +88,48 @@ class IPTrie:
             last_asn = node.asn
 
         return last_asn
+
+    def _lookup_network(self, network):
+        """Lookup an IP network and check for overlap with existing networks.
+
+        For RPKI-based merging, we consider a network 'included' if it overlaps
+        with any RPKI network (exact match, subset, or superset). We only want
+        to add networks from less trusted sources if they don't overlap at all.
+        """
+        if network.version == 4:
+            root = self._ipv4_root
+            max_bits = 32
+        else:
+            root = self._ipv6_root
+            max_bits = 128
+
+        addr_int = int(network.network_address)
+        prefix_len = network.prefixlen
+
+        node = root
+        last_asn = None
+
+        # Traverse the trie to find RPKI networks that contain this candidate network
+        for i in range(max_bits):
+            if i<= prefix_len:
+                if node.asn is not None:
+                    last_asn = node.asn
+
+                bit = (addr_int >> (max_bits - 1 - i)) & 1
+                if node.children[bit] is None:
+                    break
+                node = node.children[bit]
+
+        # a network exists containing the candidate network
+        if last_asn is not None:
+            return last_asn
+
+        # exact match -- the candidate network is already included
+        if node.asn is not None:
+            return node.asn
+
+        # check if any networks would be overlapped by the candidate network
+        return self._check_subtree(node)
 
     def from_map_file(self, map_file):
         for line in map_file:
