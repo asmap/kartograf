@@ -32,16 +32,16 @@ def load_rpki_csv_to_json(context, fixtures_path):
     with open(csv_path, 'r') as csvfile:
         reader = csv.DictReader(csvfile)
         for row in reader:
-            vrps = [{"prefix": row["prefix"], "asid": row["asid"], "maxlen": row["maxlen"]}]
-            del row["prefix"]
-            del row["asid"]
-            del row["maxlen"]
-            row["vrps"] = vrps
-            rpki_data.append(row)
+            vrps = {"prefix": row["prefix"], "asn": row["asid"], "maxlen": row["maxlen"], "expires": row["valid_until"]}
+            # del row["prefix"]
+            # del row["asid"]
+            # del row["maxlen"]
+            # row["vrps"] = vrps
+            rpki_data.append(vrps)
 
     output_path = Path(context.out_dir_rpki) / 'rpki_raw.json'
     with open(output_path, 'w') as jsonfile:
-        json.dump(rpki_data, jsonfile, indent=2)
+        json.dump({"metadata": {"roas": 24}, "roas": rpki_data}, jsonfile, indent=2)
 
 def load_irr_fixtures(context, fixtures_path):
     for file in irr_fixtures():

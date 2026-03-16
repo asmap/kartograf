@@ -173,3 +173,11 @@ def get_root_network(pfx):
         if root_net:
             return int(root_net, 16)
     return None
+
+
+def get_threads():
+    """
+    Returns the count of logical CPUs on the host machine.
+    If None are found (for some reason), defaults to 4.
+    """
+    return os.cpu_count() or 4
