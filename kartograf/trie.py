@@ -50,19 +50,6 @@ class IPTrie:
             return self._lookup_address(ip)
         raise TypeError("lookup expects an ip_address or ip_network object")
 
-    def _check_subtree(self, node):
-        '''
-        Check if subtree contains any networks recursively.
-        '''
-        if node.asn is not None:
-            result = node.asn
-        for bit in [0, 1]:
-            if node.children[bit] is not None:
-                result = self._check_subtree(node.children[bit])
-                if result is not None:
-                    return result
-        return None
-
     def _lookup_address(self, ip):
         """Lookup an IP address using longest prefix match."""
         if ip.version == 4:
@@ -109,9 +96,9 @@ class IPTrie:
         node = root
         last_asn = None
 
-        # Traverse the trie to find RPKI networks that contain this candidate network
+        # Traverse the trie to find networks that contain this candidate network
         for i in range(max_bits):
-            if i<= prefix_len:
+            if i < prefix_len:
                 if node.asn is not None:
                     last_asn = node.asn
 
@@ -128,8 +115,7 @@ class IPTrie:
         if node.asn is not None:
             return node.asn
 
-        # check if any networks would be overlapped by the candidate network
-        return self._check_subtree(node)
+        return None
 
     def from_map_file(self, map_file):
         for line in map_file:

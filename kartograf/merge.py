@@ -31,8 +31,7 @@ class BaseNetworkIndex:
     def contains_row(self, row):
         """
         Check if the prefix in the row is covered by any prefix in the base file.
-        A candidate prefix is covered if:
-        Its network address matches a base prefix in the trie
+        A candidate prefix is covered if its network address matches a prefix in the trie
         """
         try:
             candidate = ipaddress.ip_network(row.PFXS, strict=False)
