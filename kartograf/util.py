@@ -82,8 +82,8 @@ def check_compatibility():
 
     if local_version is None:
         raise RuntimeError("Could not determine rpki-client version. Is it installed?")
-    if local_version < 8.4:
-        raise Exception("Error: rpki-client version 8.4 or higher is required.")
+    if local_version < 9.6:
+        raise Exception("Error: rpki-client version 9.6 or higher is required.")
 
     if local_version == latest_version:
         print(f"Using rpki-client version {local_version} (recommended).")
