@@ -1,4 +1,5 @@
 import json
+import subprocess
 from pathlib import Path
 from typing import Dict
 
@@ -7,12 +8,16 @@ from kartograf.bogon import (
     is_bogon_asn,
     is_out_of_encoding_range,
 )
+from kartograf.rpki.fetch import data_tals, parse_ccr_hashes
 from kartograf.timed import timed
 from kartograf.util import parse_pfx
 
 
 @timed
 def parse_rpki(context):
+    if context.reproduce:
+        compute_ccr_hashes(context)
+
     raw_input = Path(context.out_dir_rpki) / "rpki_raw.json"
     rpki_res = Path(context.out_dir_rpki) / "rpki_final.txt"
 
@@ -113,3 +118,14 @@ def parse_rpki(context):
     print(f'Invalids found: {invalids}')
     print(f'Incompletes: {incompletes}')
     print(f'Non-ROA files: {not_roas}')
+
+
+def compute_ccr_hashes(context):
+    """Run rpki-client in offline mode to compute and print CCR hashes."""
+    tal_options = [item for path in data_tals(context) for item in ('-t', path)]
+    run_args = ["rpki-client", "-n", "-d", context.data_dir_rpki_cache,
+                 "-P", context.epoch] + tal_options + [context.out_dir_rpki]
+    result = subprocess.run(run_args,
+                            capture_output=True,
+                            check=False)
+    parse_ccr_hashes(result.stdout.decode() if result.stdout else "")
