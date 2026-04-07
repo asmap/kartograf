@@ -3,6 +3,7 @@ from pathlib import Path
 import gzip
 import shutil
 import sys
+import time
 
 from bs4 import BeautifulSoup
 import requests
@@ -10,41 +11,54 @@ import requests
 from kartograf.timed import timed
 from kartograf.util import calculate_sha256
 
+RETRY_ATTEMPTS = 3
+RETRY_DELAY = 120  # seconds
+
 # Routeviews Prefix to AS mappings Dataset for IPv4 and IPv6
 # https://www.caida.org/catalog/datasets/routeviews-prefix2as/
 PFX2AS_V4 = "https://publicdata.caida.org/datasets/routing/routeviews-prefix2as/"
 PFX2AS_V6 = "https://publicdata.caida.org/datasets/routing/routeviews6-prefix2as/"
 
 
+def _try_fetch_latest(base_url):
+    """Fetch directory listing and return the latest pfx2as file, or None."""
+    try:
+        response = requests.get(base_url, timeout=600)
+        response.raise_for_status()
+        latest = _pick_latest_pfx2as(response.text)
+        if latest:
+            return base_url + latest
+    except requests.exceptions.HTTPError:
+        pass
+    return None
+
+
 def latest_link(base, epoch_datetime):
     ym = year_and_month(epoch_datetime)
     url = base + ym
 
-    try:
-        response = requests.get(url, timeout=600)
-        response.raise_for_status()
-        latest = _pick_latest_pfx2as(response.text)
-        if not latest:
-            raise ValueError("no pfx2as.gz files in directory")
-    except (requests.exceptions.HTTPError, ValueError) as e:
-        print(f"The page at {url} couldn't be fetched or has no pfx2as.gz files "
-              f"({e}). Trying the previous month.")
+    for attempt in range(RETRY_ATTEMPTS):
+        result = _try_fetch_latest(url)
+        if result:
+            return result
+        if attempt < RETRY_ATTEMPTS - 1:
+            print(f"No pfx2as.gz files at {url}, "
+                  f"retrying in {RETRY_DELAY}s ({attempt + 1}/{RETRY_ATTEMPTS})")
+            time.sleep(RETRY_DELAY)
 
-        last_month = epoch_datetime - timedelta(days=epoch_datetime.day)
-        ym = year_and_month(last_month)
-        url = base + ym
+    print(f"No pfx2as.gz files at {url} after {RETRY_ATTEMPTS} attempts. "
+          f"Trying the previous month.")
 
-        try:
-            response = requests.get(url, timeout=600)
-            response.raise_for_status()
-        except requests.exceptions.HTTPError:
-            print(f"The page at {url} couldn't be fetched. "
-                  f"Download of Routeviews pfx2as data failed.")
-            sys.exit()
+    last_month = epoch_datetime - timedelta(days=epoch_datetime.day)
+    fallback_url = base + year_and_month(last_month)
 
-        latest = _pick_latest_pfx2as(response.text)
+    result = _try_fetch_latest(fallback_url)
+    if result:
+        return result
 
-    return url + latest
+    print(f"The page at {fallback_url} also has no pfx2as.gz files. "
+          f"Download of Routeviews pfx2as data failed.")
+    sys.exit()
 
 
 def _pick_latest_pfx2as(html):
