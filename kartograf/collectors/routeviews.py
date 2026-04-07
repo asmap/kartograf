@@ -16,19 +16,21 @@ PFX2AS_V4 = "https://publicdata.caida.org/datasets/routing/routeviews-prefix2as/
 PFX2AS_V6 = "https://publicdata.caida.org/datasets/routing/routeviews6-prefix2as/"
 
 
-def latest_link(base):
-    now = datetime.now()
-    ym = year_and_month(now)
+def latest_link(base, epoch_datetime):
+    ym = year_and_month(epoch_datetime)
     url = base + ym
 
     try:
         response = requests.get(url, timeout=600)
         response.raise_for_status()
-    except requests.exceptions.HTTPError:
-        print(f"The page at {url} couldn't be fetched. "
-              f"Trying the previous month.")
+        latest = _pick_latest_pfx2as(response.text)
+        if not latest:
+            raise ValueError("no pfx2as.gz files in directory")
+    except (requests.exceptions.HTTPError, ValueError) as e:
+        print(f"The page at {url} couldn't be fetched or has no pfx2as.gz files "
+              f"({e}). Trying the previous month.")
 
-        last_month = now - timedelta(days=now.day)
+        last_month = epoch_datetime - timedelta(days=epoch_datetime.day)
         ym = year_and_month(last_month)
         url = base + ym
 
@@ -40,16 +42,19 @@ def latest_link(base):
                   f"Download of Routeviews pfx2as data failed.")
             sys.exit()
 
-    soup = BeautifulSoup(response.text, 'html.parser')
+        latest = _pick_latest_pfx2as(response.text)
 
+    return url + latest
+
+
+def _pick_latest_pfx2as(html):
+    soup = BeautifulSoup(html, 'html.parser')
     links = [a["href"] for a in soup.find_all("a", href=True)]
     latest = ""
-
     for link in links:
         if link.endswith(".pfx2as.gz"):
             latest = link
-
-    return url + latest
+    return latest
 
 
 def year_and_month(now):
@@ -92,9 +97,10 @@ def fetch_routeviews_pfx2as(context):
     v4_file_gz = path / "routeviews_pfx2asn_ip4.txt.gz"
     v6_file_gz = path / "routeviews_pfx2asn_ip6.txt.gz"
 
-    download(latest_link(PFX2AS_V4), v4_file_gz)
+    epoch_dt = context.epoch_datetime
+    download(latest_link(PFX2AS_V4, epoch_dt), v4_file_gz)
     print(f"Downloaded {v4_file_gz.name}, file hash: {calculate_sha256(v4_file_gz)}")
-    download(latest_link(PFX2AS_V6), v6_file_gz)
+    download(latest_link(PFX2AS_V6, epoch_dt), v6_file_gz)
     print(f"Downloaded {v6_file_gz.name}, file hash: {calculate_sha256(v6_file_gz)}")
 
 
