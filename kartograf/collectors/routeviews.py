@@ -17,7 +17,7 @@ PFX2AS_V4 = "https://publicdata.caida.org/datasets/routing/routeviews-prefix2as/
 PFX2AS_V6 = "https://publicdata.caida.org/datasets/routing/routeviews6-prefix2as/"
 
 RETRY_ATTEMPTS = 3
-RETRY_DELAY = 30
+RETRY_DELAY = 10
 
 
 def _try_fetch_latest(base_url):
@@ -27,6 +27,8 @@ def _try_fetch_latest(base_url):
     no pfx2as.gz files.  Raises on request failures so the caller can retry.
     """
     response = requests.get(base_url, timeout=600)
+    if response.status_code == 404:
+        return None
     response.raise_for_status()
     latest = _pick_latest_pfx2as(response.text)
     if latest:
