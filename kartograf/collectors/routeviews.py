@@ -3,6 +3,7 @@ from pathlib import Path
 import gzip
 import shutil
 import sys
+import time
 
 from bs4 import BeautifulSoup
 import requests
@@ -15,25 +16,44 @@ from kartograf.util import calculate_sha256
 PFX2AS_V4 = "https://publicdata.caida.org/datasets/routing/routeviews-prefix2as/"
 PFX2AS_V6 = "https://publicdata.caida.org/datasets/routing/routeviews6-prefix2as/"
 
+RETRY_ATTEMPTS = 3
+RETRY_DELAY = 30
+
 
 def _try_fetch_latest(base_url):
-    """Fetch directory listing and return the latest pfx2as file, or None."""
-    try:
-        response = requests.get(base_url, timeout=600)
-        response.raise_for_status()
-        latest = _pick_latest_pfx2as(response.text)
-        if latest:
-            return base_url + latest
-    except requests.exceptions.HTTPError:
-        pass
+    """Fetch directory listing and return the latest pfx2as file.
+
+    Returns the full URL on success, None if the page exists but contains
+    no pfx2as.gz files.  Raises on request failures so the caller can retry.
+    """
+    response = requests.get(base_url, timeout=600)
+    response.raise_for_status()
+    latest = _pick_latest_pfx2as(response.text)
+    if latest:
+        return base_url + latest
     return None
+
+
+def _fetch_with_retry(base_url):
+    """Call _try_fetch_latest with retries for request failures only."""
+    for attempt in range(1, RETRY_ATTEMPTS + 1):
+        try:
+            return _try_fetch_latest(base_url)
+        except requests.exceptions.RequestException as e:
+            if attempt < RETRY_ATTEMPTS:
+                print(f"Request to {base_url} failed ({e}), "
+                      f"retrying in {RETRY_DELAY}s "
+                      f"(attempt {attempt}/{RETRY_ATTEMPTS})...")
+                time.sleep(RETRY_DELAY)
+            else:
+                raise
 
 
 def latest_link(base, epoch_datetime):
     ym = year_and_month(epoch_datetime)
     url = base + ym
 
-    result = _try_fetch_latest(url)
+    result = _fetch_with_retry(url)
     if result:
         return result
 
@@ -42,7 +62,7 @@ def latest_link(base, epoch_datetime):
     last_month = epoch_datetime - timedelta(days=epoch_datetime.day)
     fallback_url = base + year_and_month(last_month)
 
-    result = _try_fetch_latest(fallback_url)
+    result = _fetch_with_retry(fallback_url)
     if result:
         return result
 
