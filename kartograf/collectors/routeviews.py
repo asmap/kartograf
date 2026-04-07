@@ -3,16 +3,12 @@ from pathlib import Path
 import gzip
 import shutil
 import sys
-import time
 
 from bs4 import BeautifulSoup
 import requests
 
 from kartograf.timed import timed
 from kartograf.util import calculate_sha256
-
-RETRY_ATTEMPTS = 3
-RETRY_DELAY = 120  # seconds
 
 # Routeviews Prefix to AS mappings Dataset for IPv4 and IPv6
 # https://www.caida.org/catalog/datasets/routeviews-prefix2as/
@@ -37,17 +33,11 @@ def latest_link(base, epoch_datetime):
     ym = year_and_month(epoch_datetime)
     url = base + ym
 
-    for attempt in range(RETRY_ATTEMPTS):
-        result = _try_fetch_latest(url)
-        if result:
-            return result
-        if attempt < RETRY_ATTEMPTS - 1:
-            print(f"No pfx2as.gz files at {url}, "
-                  f"retrying in {RETRY_DELAY}s ({attempt + 1}/{RETRY_ATTEMPTS})")
-            time.sleep(RETRY_DELAY)
+    result = _try_fetch_latest(url)
+    if result:
+        return result
 
-    print(f"No pfx2as.gz files at {url} after {RETRY_ATTEMPTS} attempts. "
-          f"Trying the previous month.")
+    print(f"No pfx2as.gz files at {url}. Trying the previous month.")
 
     last_month = epoch_datetime - timedelta(days=epoch_datetime.day)
     fallback_url = base + year_and_month(last_month)
