@@ -7,7 +7,7 @@ from kartograf.cleanup import cleanup_out_files
 
 from kartograf.context import Context
 from kartograf.coverage import coverage
-from kartograf.collectors.routeviews import extract_routeviews_pfx2as, fetch_routeviews_pfx2as
+from kartograf.collectors.routeviews import extract_routeviews_pfx2as, fetch_routeviews_pfx2as, resolve_routeviews_urls
 from kartograf.collectors.parse import parse_routeviews_pfx2as
 from kartograf.irr.fetch import extract_irr, fetch_irr
 from kartograf.irr.parse import parse_irr
@@ -56,6 +56,11 @@ class Kartograf:
             repro_path = context.args.reproduce
             print(f"This is a reproduction run based on the data in "
                   f"{repro_path}")
+
+        # Resolve RouteViews URLs early so all coordinated-launch
+        # participants see the same CAIDA directory state.
+        if not context.reproduce and context.args.routeviews:
+            resolve_routeviews_urls(context)
 
         # Fetch everthing that we need to fetch first
         if not context.reproduce:
