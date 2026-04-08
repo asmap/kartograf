@@ -1,6 +1,7 @@
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 import gzip
+import re
 import shutil
 import sys
 import time
@@ -20,27 +21,41 @@ RETRY_ATTEMPTS = 3
 RETRY_DELAY = 10
 
 
-def _try_fetch_latest(base_url):
+def _parse_pfx2as_timestamp(filename):
+    """Extract a UTC datetime from a pfx2as filename.
+
+    Filenames follow the pattern: routeviews-rv2-YYYYMMDD-HHMM.pfx2as.gz
+    Returns None if the timestamp cannot be parsed.
+    """
+    m = re.search(r'(\d{8})-(\d{4})\.pfx2as\.gz$', filename)
+    if not m:
+        return None
+    return datetime.strptime(m.group(1) + m.group(2), '%Y%m%d%H%M').replace(
+        tzinfo=timezone.utc)
+
+
+def _try_fetch_latest(base_url, epoch_datetime):
     """Fetch directory listing and return the latest pfx2as file.
 
     Returns the full URL on success, None if the page exists but contains
     no pfx2as.gz files.  Raises on request failures so the caller can retry.
+    Only considers files with timestamps at or before epoch_datetime.
     """
     response = requests.get(base_url, timeout=600)
     if response.status_code == 404:
         return None
     response.raise_for_status()
-    latest = _pick_latest_pfx2as(response.text)
+    latest = _pick_latest_pfx2as(response.text, epoch_datetime)
     if latest:
         return base_url + latest
     return None
 
 
-def _fetch_with_retry(base_url):
+def _fetch_with_retry(base_url, epoch_datetime):
     """Call _try_fetch_latest with retries for request failures only."""
     for attempt in range(1, RETRY_ATTEMPTS + 1):
         try:
-            return _try_fetch_latest(base_url)
+            return _try_fetch_latest(base_url, epoch_datetime)
         except requests.exceptions.RequestException as e:
             if attempt < RETRY_ATTEMPTS:
                 print(f"Request to {base_url} failed ({e}), "
@@ -55,7 +70,7 @@ def latest_link(base, epoch_datetime):
     ym = year_and_month(epoch_datetime)
     url = base + ym
 
-    result = _fetch_with_retry(url)
+    result = _fetch_with_retry(url, epoch_datetime)
     if result:
         return result
 
@@ -64,7 +79,7 @@ def latest_link(base, epoch_datetime):
     last_month = epoch_datetime - timedelta(days=epoch_datetime.day)
     fallback_url = base + year_and_month(last_month)
 
-    result = _fetch_with_retry(fallback_url)
+    result = _fetch_with_retry(fallback_url, epoch_datetime)
     if result:
         return result
 
@@ -73,13 +88,19 @@ def latest_link(base, epoch_datetime):
     sys.exit()
 
 
-def _pick_latest_pfx2as(html):
+def _pick_latest_pfx2as(html, epoch_datetime):
+    """Pick the latest pfx2as file that existed by the epoch time."""
+    epoch_utc = epoch_datetime.replace(tzinfo=timezone.utc)
     soup = BeautifulSoup(html, 'html.parser')
     links = [a["href"] for a in soup.find_all("a", href=True)]
     latest = ""
     for link in links:
-        if link.endswith(".pfx2as.gz"):
-            latest = link
+        if not link.endswith(".pfx2as.gz"):
+            continue
+        ts = _parse_pfx2as_timestamp(link)
+        if ts and ts > epoch_utc:
+            continue
+        latest = link
     return latest
 
 
