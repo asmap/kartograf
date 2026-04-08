@@ -6,7 +6,38 @@ import re
 import subprocess
 import time
 
+import requests
+
 RPKI_VERSION = 9.7
+
+
+def download_with_retries(url, timeout=600, max_retries=3, retry_delay=10,
+                          stream=False, dest_path=None):
+    """Download a URL with retries on request failures.
+
+    Returns the Response on success.  404 is not retried and returns None.
+    Other request failures are retried up to max_retries times.
+    If dest_path is provided, the response body is streamed to that file.
+    """
+    for attempt in range(1, max_retries + 1):
+        try:
+            response = requests.get(url, stream=stream, timeout=timeout)
+            if response.status_code == 404:
+                return None
+            response.raise_for_status()
+            if dest_path:
+                with open(dest_path, 'wb') as f:
+                    for chunk in response.iter_content(chunk_size=8192):
+                        f.write(chunk)
+            return response
+        except requests.exceptions.RequestException as e:
+            if attempt < max_retries:
+                print(f"Request to {url} failed ({e}), "
+                      f"retrying in {retry_delay}s "
+                      f"(attempt {attempt}/{max_retries})...")
+                time.sleep(retry_delay)
+            else:
+                raise
 
 
 def calculate_sha256(file_path):

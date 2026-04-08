@@ -8,7 +8,7 @@ from bs4 import BeautifulSoup
 import requests
 
 from kartograf.timed import timed
-from kartograf.util import calculate_sha256
+from kartograf.util import calculate_sha256, download_with_retries
 
 # Routeviews Prefix to AS mappings Dataset for IPv4 and IPv6
 # https://www.caida.org/catalog/datasets/routeviews-prefix2as/
@@ -20,35 +20,36 @@ def latest_link(base, epoch_datetime):
     ym = year_and_month(epoch_datetime)
     url = base + ym
 
-    try:
-        response = requests.get(url, timeout=600)
-        response.raise_for_status()
-    except requests.exceptions.HTTPError:
-        print(f"The page at {url} couldn't be fetched. "
-              f"Trying the previous month.")
+    response = download_with_retries(url)
+    if response:
+        latest = _pick_latest_pfx2as(response.text)
+        if latest:
+            return url + latest
 
-        last_month = epoch_datetime - timedelta(days=epoch_datetime.day)
-        ym = year_and_month(last_month)
-        url = base + ym
+    print(f"No pfx2as.gz files at {url}. Trying the previous month.")
 
-        try:
-            response = requests.get(url, timeout=600)
-            response.raise_for_status()
-        except requests.exceptions.HTTPError:
-            print(f"The page at {url} couldn't be fetched. "
-                  f"Download of Routeviews pfx2as data failed.")
-            sys.exit()
+    last_month = epoch_datetime - timedelta(days=epoch_datetime.day)
+    fallback_url = base + year_and_month(last_month)
 
-    soup = BeautifulSoup(response.text, 'html.parser')
+    response = download_with_retries(fallback_url)
+    if response:
+        latest = _pick_latest_pfx2as(response.text)
+        if latest:
+            return fallback_url + latest
 
+    print(f"The page at {fallback_url} also has no pfx2as.gz files. "
+          f"Download of Routeviews pfx2as data failed.")
+    sys.exit()
+
+
+def _pick_latest_pfx2as(html):
+    soup = BeautifulSoup(html, 'html.parser')
     links = [a["href"] for a in soup.find_all("a", href=True)]
     latest = ""
-
     for link in links:
         if link.endswith(".pfx2as.gz"):
             latest = link
-
-    return url + latest
+    return latest
 
 
 def year_and_month(now):
