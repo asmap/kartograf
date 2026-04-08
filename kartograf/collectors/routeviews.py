@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta
+from datetime import timedelta
 from pathlib import Path
 import gzip
 import shutil
@@ -16,9 +16,8 @@ PFX2AS_V4 = "https://publicdata.caida.org/datasets/routing/routeviews-prefix2as/
 PFX2AS_V6 = "https://publicdata.caida.org/datasets/routing/routeviews6-prefix2as/"
 
 
-def latest_link(base):
-    now = datetime.now()
-    ym = year_and_month(now)
+def latest_link(base, epoch_datetime):
+    ym = year_and_month(epoch_datetime)
     url = base + ym
 
     try:
@@ -28,7 +27,7 @@ def latest_link(base):
         print(f"The page at {url} couldn't be fetched. "
               f"Trying the previous month.")
 
-        last_month = now - timedelta(days=now.day)
+        last_month = epoch_datetime - timedelta(days=epoch_datetime.day)
         ym = year_and_month(last_month)
         url = base + ym
 
@@ -92,9 +91,9 @@ def fetch_routeviews_pfx2as(context):
     v4_file_gz = path / "routeviews_pfx2asn_ip4.txt.gz"
     v6_file_gz = path / "routeviews_pfx2asn_ip6.txt.gz"
 
-    download(latest_link(PFX2AS_V4), v4_file_gz)
+    download(latest_link(PFX2AS_V4, context.epoch_datetime), v4_file_gz)
     print(f"Downloaded {v4_file_gz.name}, file hash: {calculate_sha256(v4_file_gz)}")
-    download(latest_link(PFX2AS_V6), v6_file_gz)
+    download(latest_link(PFX2AS_V6, context.epoch_datetime), v6_file_gz)
     print(f"Downloaded {v6_file_gz.name}, file hash: {calculate_sha256(v6_file_gz)}")
 
 
