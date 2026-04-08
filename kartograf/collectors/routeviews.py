@@ -1,9 +1,9 @@
-from datetime import datetime, timedelta, timezone
+from datetime import timedelta
 from pathlib import Path
 import gzip
-import re
 import shutil
 import sys
+import tempfile
 import time
 
 from bs4 import BeautifulSoup
@@ -21,48 +21,73 @@ RETRY_ATTEMPTS = 3
 RETRY_DELAY = 10
 
 
-def _parse_upload_time(text):
-    """Parse an upload timestamp from the CAIDA Apache directory listing.
+def _get_gzip_mtime(url):
+    """Download a gzip file to a temp path and return its header mtime."""
+    tmp = tempfile.NamedTemporaryFile(delete=False, suffix=".gz")
+    try:
+        response = requests.get(url, stream=True, timeout=300)
+        response.raise_for_status()
+        for chunk in response.iter_content(chunk_size=8192):
+            tmp.write(chunk)
+        tmp.close()
+        with gzip.open(tmp.name, 'rb') as f:
+            f.read(1)  # header is parsed on first read
+            return f.mtime
+    finally:
+        Path(tmp.name).unlink(missing_ok=True)
 
-    The listing shows timestamps in US/Pacific time as YYYY-MM-DD HH:MM.
-    Returns a UTC datetime, or None if the timestamp cannot be parsed.
+
+def _pick_pfx2as_files(html):
+    """Return all pfx2as.gz filenames from the directory listing, in order."""
+    soup = BeautifulSoup(html, 'html.parser')
+    files = []
+    for a in soup.find_all("a", href=True):
+        href = a["href"]
+        if href.endswith(".pfx2as.gz"):
+            files.append(href)
+    return files
+
+
+def latest_link(base, epoch_datetime):
+    """Find the latest pfx2as file that existed at or before the epoch.
+
+    Downloads the latest file and checks its gzip header timestamp.
+    If it was created after the epoch, falls back to the previous file.
     """
-    m = re.search(r'(\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2})', text)
-    if not m:
-        return None
-    # CAIDA is in San Diego (US/Pacific). Rather than pulling in pytz/
-    # zoneinfo just for this, we apply the worst-case UTC-7 (PDT) offset
-    # so the filter is conservative: a file uploaded at 09:13 Pacific is
-    # treated as 16:13 UTC regardless of DST.
-    PACIFIC_OFFSET = timedelta(hours=-7)
-    pacific = timezone(PACIFIC_OFFSET)
-    local_dt = datetime.strptime(m.group(1), '%Y-%m-%d %H:%M').replace(
-        tzinfo=pacific)
-    return local_dt.astimezone(timezone.utc)
+    epoch_ts = int(epoch_datetime.timestamp())
+    ym = year_and_month(epoch_datetime)
+    url = base + ym
+
+    result = _pick_valid_file(url, epoch_ts)
+    if result:
+        return result
+
+    print(f"No valid pfx2as.gz files at {url}. Trying the previous month.")
+
+    last_month = epoch_datetime - timedelta(days=epoch_datetime.day)
+    fallback_url = base + year_and_month(last_month)
+
+    result = _pick_valid_file(fallback_url, epoch_ts)
+    if result:
+        return result
+
+    print(f"The page at {fallback_url} also has no pfx2as.gz files. "
+          f"Download of Routeviews pfx2as data failed.")
+    sys.exit()
 
 
-def _try_fetch_latest(base_url, epoch_datetime):
-    """Fetch directory listing and return the latest pfx2as file.
+def _pick_valid_file(base_url, epoch_ts):
+    """Pick the latest pfx2as file whose gzip mtime is <= epoch_ts.
 
-    Returns the full URL on success, None if the page exists but contains
-    no pfx2as.gz files.  Raises on request failures so the caller can retry.
-    Only considers files whose upload time is at or before epoch_datetime.
+    Fetches the directory listing, then checks files from newest to oldest.
     """
-    response = requests.get(base_url, timeout=600)
-    if response.status_code == 404:
-        return None
-    response.raise_for_status()
-    latest = _pick_latest_pfx2as(response.text, epoch_datetime)
-    if latest:
-        return base_url + latest
-    return None
-
-
-def _fetch_with_retry(base_url, epoch_datetime):
-    """Call _try_fetch_latest with retries for request failures only."""
     for attempt in range(1, RETRY_ATTEMPTS + 1):
         try:
-            return _try_fetch_latest(base_url, epoch_datetime)
+            response = requests.get(base_url, timeout=600)
+            if response.status_code == 404:
+                return None
+            response.raise_for_status()
+            break
         except requests.exceptions.RequestException as e:
             if attempt < RETRY_ATTEMPTS:
                 print(f"Request to {base_url} failed ({e}), "
@@ -72,50 +97,20 @@ def _fetch_with_retry(base_url, epoch_datetime):
             else:
                 raise
 
+    files = _pick_pfx2as_files(response.text)
+    if not files:
+        return None
 
-def latest_link(base, epoch_datetime):
-    ym = year_and_month(epoch_datetime)
-    url = base + ym
-
-    result = _fetch_with_retry(url, epoch_datetime)
-    if result:
-        return result
-
-    print(f"No pfx2as.gz files at {url}. Trying the previous month.")
-
-    last_month = epoch_datetime - timedelta(days=epoch_datetime.day)
-    fallback_url = base + year_and_month(last_month)
-
-    result = _fetch_with_retry(fallback_url, epoch_datetime)
-    if result:
-        return result
-
-    print(f"The page at {fallback_url} also has no pfx2as.gz files. "
-          f"Download of Routeviews pfx2as data failed.")
-    sys.exit()
-
-
-def _pick_latest_pfx2as(html, epoch_datetime):
-    """Pick the latest pfx2as file uploaded at or before epoch_datetime.
-
-    Parses the upload timestamps shown in the CAIDA Apache directory
-    listing rather than the collection timestamps embedded in filenames.
-    """
-    epoch_utc = epoch_datetime.replace(tzinfo=timezone.utc)
-    soup = BeautifulSoup(html, 'html.parser')
-    latest = ""
-    for a in soup.find_all("a", href=True):
-        href = a["href"]
-        if not href.endswith(".pfx2as.gz"):
+    # Check from newest to oldest
+    for filename in reversed(files):
+        file_url = base_url + filename
+        mtime = _get_gzip_mtime(file_url)
+        if mtime and mtime > epoch_ts:
+            print(f"Skipping {filename} (gzip mtime {mtime} > epoch {epoch_ts})")
             continue
-        # The upload timestamp appears in the text node after the <a> tag
-        sibling_text = a.next_sibling
-        if sibling_text:
-            upload_time = _parse_upload_time(str(sibling_text))
-            if upload_time and upload_time > epoch_utc:
-                continue
-        latest = href
-    return latest
+        return file_url
+
+    return None
 
 
 def year_and_month(now):
