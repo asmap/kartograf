@@ -85,15 +85,24 @@ def extract(file, context):
             write.write(formatted + '\n')
 
 
+def resolve_routeviews_urls(context):
+    """Resolve RouteViews download URLs for this epoch."""
+    epoch_dt = context.epoch_datetime
+    context.routeviews_v4_url = latest_link(PFX2AS_V4, epoch_dt)
+    context.routeviews_v6_url = latest_link(PFX2AS_V6, epoch_dt)
+    print(f"Resolved RouteViews URLs:\n  v4: {context.routeviews_v4_url}"
+          f"\n  v6: {context.routeviews_v6_url}")
+
+
 @timed
 def fetch_routeviews_pfx2as(context):
     path = Path(context.data_dir_collectors)
     v4_file_gz = path / "routeviews_pfx2asn_ip4.txt.gz"
     v6_file_gz = path / "routeviews_pfx2asn_ip6.txt.gz"
 
-    download(latest_link(PFX2AS_V4, context.epoch_datetime), v4_file_gz)
+    download(context.routeviews_v4_url, v4_file_gz)
     print(f"Downloaded {v4_file_gz.name}, file hash: {calculate_sha256(v4_file_gz)}")
-    download(latest_link(PFX2AS_V6, context.epoch_datetime), v6_file_gz)
+    download(context.routeviews_v6_url, v6_file_gz)
     print(f"Downloaded {v6_file_gz.name}, file hash: {calculate_sha256(v6_file_gz)}")
 
 
