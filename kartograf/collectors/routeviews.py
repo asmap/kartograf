@@ -21,17 +21,24 @@ RETRY_ATTEMPTS = 3
 RETRY_DELAY = 10
 
 
-def _parse_pfx2as_timestamp(filename):
-    """Extract a UTC datetime from a pfx2as filename.
+def _parse_upload_time(text):
+    """Parse an upload timestamp from the CAIDA Apache directory listing.
 
-    Filenames follow the pattern: routeviews-rv2-YYYYMMDD-HHMM.pfx2as.gz
-    Returns None if the timestamp cannot be parsed.
+    The listing shows timestamps in US/Pacific time as YYYY-MM-DD HH:MM.
+    Returns a UTC datetime, or None if the timestamp cannot be parsed.
     """
-    m = re.search(r'(\d{8})-(\d{4})\.pfx2as\.gz$', filename)
+    m = re.search(r'(\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2})', text)
     if not m:
         return None
-    return datetime.strptime(m.group(1) + m.group(2), '%Y%m%d%H%M').replace(
-        tzinfo=timezone.utc)
+    # CAIDA is in San Diego (US/Pacific). Rather than pulling in pytz/
+    # zoneinfo just for this, we apply the worst-case UTC-7 (PDT) offset
+    # so the filter is conservative: a file uploaded at 09:13 Pacific is
+    # treated as 16:13 UTC regardless of DST.
+    PACIFIC_OFFSET = timedelta(hours=-7)
+    pacific = timezone(PACIFIC_OFFSET)
+    local_dt = datetime.strptime(m.group(1), '%Y-%m-%d %H:%M').replace(
+        tzinfo=pacific)
+    return local_dt.astimezone(timezone.utc)
 
 
 def _try_fetch_latest(base_url, epoch_datetime):
@@ -39,7 +46,7 @@ def _try_fetch_latest(base_url, epoch_datetime):
 
     Returns the full URL on success, None if the page exists but contains
     no pfx2as.gz files.  Raises on request failures so the caller can retry.
-    Only considers files with timestamps at or before epoch_datetime.
+    Only considers files whose upload time is at or before epoch_datetime.
     """
     response = requests.get(base_url, timeout=600)
     if response.status_code == 404:
@@ -89,18 +96,25 @@ def latest_link(base, epoch_datetime):
 
 
 def _pick_latest_pfx2as(html, epoch_datetime):
-    """Pick the latest pfx2as file that existed by the epoch time."""
+    """Pick the latest pfx2as file uploaded at or before epoch_datetime.
+
+    Parses the upload timestamps shown in the CAIDA Apache directory
+    listing rather than the collection timestamps embedded in filenames.
+    """
     epoch_utc = epoch_datetime.replace(tzinfo=timezone.utc)
     soup = BeautifulSoup(html, 'html.parser')
-    links = [a["href"] for a in soup.find_all("a", href=True)]
     latest = ""
-    for link in links:
-        if not link.endswith(".pfx2as.gz"):
+    for a in soup.find_all("a", href=True):
+        href = a["href"]
+        if not href.endswith(".pfx2as.gz"):
             continue
-        ts = _parse_pfx2as_timestamp(link)
-        if ts and ts > epoch_utc:
-            continue
-        latest = link
+        # The upload timestamp appears in the text node after the <a> tag
+        sibling_text = a.next_sibling
+        if sibling_text:
+            upload_time = _parse_upload_time(str(sibling_text))
+            if upload_time and upload_time > epoch_utc:
+                continue
+        latest = href
     return latest
 
 
