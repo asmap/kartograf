@@ -2,6 +2,7 @@
 Test merging multiple sets of networks, as if they were independent AS files.
 '''
 from pathlib import Path
+import pytest
 
 from kartograf.merge import general_merge, pick_chunk_size
 
@@ -59,11 +60,12 @@ def test_merge_from_fixtures(tmp_path):
     # with the expected results
     assert merged_networks == expected_networks
 
-def test_merge_identical_files(tmp_path):
+@pytest.mark.parametrize("ip_type", ["v4", "v6"])
+def test_merge_identical_files(tmp_path, ip_type):
     '''
     Assert that merging two identical files is a no-op.
     '''
-    rpki_data = generate_file_items(100)
+    rpki_data = generate_file_items(100, ip_type=ip_type)
     rpki_path, _, out_path = _tmp_paths(tmp_path)
     generate_ip_file(rpki_path, rpki_data)
 
@@ -120,8 +122,9 @@ def test_merge_rpki_supersedes_irr_subnets(tmp_path):
         lines = f.readlines()
         final_ips = [item.split()[0] for item in lines]
 
-    # no subnets from irr_ips are included in the final merged network list
-    assert set(final_ips).isdisjoint(set(irr_ips))
+    assert set(final_ips).isdisjoint(set(irr_ips)), (
+        f"IRR subnets should not appear in merged output: {set(final_ips) & set(irr_ips)}"
+    )
 
 def test_pick_chunk_size():
     '''
