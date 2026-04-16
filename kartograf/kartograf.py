@@ -9,9 +9,10 @@ from kartograf.context import Context
 from kartograf.coverage import coverage
 from kartograf.collectors.routeviews import extract_routeviews_pfx2as, fetch_routeviews_pfx2as
 from kartograf.collectors.parse import parse_routeviews_pfx2as
+from kartograf.custom.parse import parse_custom_source
 from kartograf.irr.fetch import extract_irr, fetch_irr
 from kartograf.irr.parse import parse_irr
-from kartograf.merge import merge_irr, merge_pfx2as, general_merge
+from kartograf.merge import merge_custom, merge_irr, merge_pfx2as, general_merge
 from kartograf.rpki.fetch import fetch_rpki_db, validate_rpki_db
 from kartograf.rpki.parse import parse_rpki
 from kartograf.sort import sort_result_by_pfx
@@ -76,12 +77,19 @@ class Kartograf:
         print_section_header("Parsing RPKI")
         parse_rpki(context)
 
+        if context.args.custom_source:
+            print_section_header("Parsing custom source")
+            parse_custom_source(context)
+
+            print_section_header("Merging custom source and base data")
+            merge_custom(context)
+
         if context.args.irr:
             print_section_header("Parsing IRR")
             extract_irr(context)
             parse_irr(context)
 
-            print_section_header("Merging RPKI and IRR data")
+            print_section_header("Merging IRR and base data")
             merge_irr(context)
 
         if context.args.routeviews:

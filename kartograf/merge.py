@@ -78,6 +78,23 @@ class BaseNetworkIndex:
         return instance
 
 @timed
+def merge_custom(context):
+    base_file = Path(context.final_result_file)
+    custom_file = Path(context.out_dir_custom) / "custom_clean.txt"
+    custom_filtered_file = Path(context.out_dir_custom) / "custom_filtered.txt"
+    out_file = Path(context.out_dir) / "merged_file_custom.txt"
+    context.cleanup_out_files += [custom_filtered_file, out_file]
+
+    general_merge(
+        base_file,
+        custom_file,
+        custom_filtered_file,
+        out_file
+    )
+    shutil.copy2(out_file, context.final_result_file)
+
+
+@timed
 def merge_irr(context):
     base_file = Path(context.final_result_file)
     irr_file = Path(context.out_dir_irr) / "irr_final.txt"
