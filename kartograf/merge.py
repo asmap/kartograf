@@ -79,14 +79,14 @@ class BaseNetworkIndex:
 
 @timed
 def merge_irr(context):
-    rpki_file = Path(context.out_dir_rpki) / "rpki_final.txt"
+    base_file = Path(context.final_result_file)
     irr_file = Path(context.out_dir_irr) / "irr_final.txt"
     irr_filtered_file = Path(context.out_dir_irr) / "irr_filtered.txt"
-    out_file = Path(context.out_dir) / "merged_file_rpki_irr.txt"
+    out_file = Path(context.out_dir) / "merged_file_irr.txt"
     context.cleanup_out_files += [irr_filtered_file, out_file]
 
     general_merge(
-        rpki_file,
+        base_file,
         irr_file,
         irr_filtered_file,
         out_file
@@ -96,17 +96,10 @@ def merge_irr(context):
 
 @timed
 def merge_pfx2as(context):
-    # We are always doing RPKI but IRR is optional for now so depending on this
-    # we are working off of a different base file for the merge.
-    if context.args.irr:
-        base_file = Path(context.out_dir) / "merged_file_rpki_irr.txt"
-        out_file = Path(context.out_dir) / "merged_file_rpki_irr_rv.txt"
-    else:
-        base_file = Path(context.out_dir_rpki) / "rpki_final.txt"
-        out_file = Path(context.out_dir) / "merged_file_rpki_rv.txt"
-
+    base_file = Path(context.final_result_file)
     rv_file = Path(context.out_dir_collectors) / "pfx2asn_clean.txt"
     rv_filtered_file = Path(context.out_dir_collectors) / "pfx2asn_filtered.txt"
+    out_file = Path(context.out_dir) / "merged_file_rv.txt"
     context.cleanup_out_files += [rv_filtered_file, out_file]
 
     general_merge(
