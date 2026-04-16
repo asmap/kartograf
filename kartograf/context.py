@@ -1,5 +1,6 @@
 from datetime import datetime, UTC
 from pathlib import Path
+import shutil
 import sys
 import time
 
@@ -27,6 +28,10 @@ class Context:
             # have data we try to use is, the actual args passed don't matter.
             self.args.irr = 'irr' in source_folders
             self.args.routeviews = 'collectors' in source_folders
+            self.args.custom_source = (
+                str(data_path / 'custom' / 'custom_source.txt')
+                if 'custom' in source_folders else None
+            )
 
         self._set_epoch_dirs()
 
@@ -49,11 +54,13 @@ class Context:
         self.data_dir_rpki_cache = str(Path(self.data_dir) / "rpki" / "cache")
         self.data_dir_rpki_tals = str(Path(self.data_dir) / "rpki" / "tals")
         self.data_dir_collectors = str(Path(self.data_dir) / "collectors")
+        self.data_dir_custom = str(Path(self.data_dir) / "custom")
         # Out dir
         self.out_dir = str(cwd / "out" / self.epoch_dir)
         self.out_dir_irr = str(Path(self.out_dir) / "irr")
         self.out_dir_rpki = str(Path(self.out_dir) / "rpki")
         self.out_dir_collectors = str(Path(self.out_dir) / "collectors")
+        self.out_dir_custom = str(Path(self.out_dir) / "custom")
 
         self.stable_repos = False
         if self.args.stable_repos:
@@ -69,11 +76,17 @@ class Context:
                 Path(self.data_dir_irr).mkdir(parents=True)
             if self.args.routeviews:
                 Path(self.data_dir_collectors).mkdir(parents=True)
+            if self.args.custom_source:
+                Path(self.data_dir_custom).mkdir(parents=True)
+                shutil.copy2(self.args.custom_source,
+                             Path(self.data_dir_custom) / "custom_source.txt")
         Path(self.out_dir_rpki).mkdir(parents=True)
         if self.args.irr:
             Path(self.out_dir_irr).mkdir(parents=True)
         if self.args.routeviews:
             Path(self.out_dir_collectors).mkdir(parents=True)
+        if self.args.custom_source:
+            Path(self.out_dir_custom).mkdir(parents=True)
 
         self.final_result_file = str(Path(self.out_dir) / "final_result.txt")
 
