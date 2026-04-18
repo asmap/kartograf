@@ -44,3 +44,34 @@ def test_parse_validation_cases(tmp_path):
 
     # Test expected set
     assert content == ["193.254.30.0/24 AS12726", "212.166.64.0/19 AS12321", "212.80.191.0/24 AS12541", "212.16.0.0/24 AS12346", "212.17.0.0/24 AS12347", "2345:2ca::/32 AS12345" ]
+
+
+def test_parse_irr_handles_missing_trailing_blank_line(tmp_path):
+    context = create_test_context(tmp_path, "111111113")
+    irr_input = Path(context.out_dir_irr) / "ripe_no_trailing.db.route"
+
+    irr_input.write_text(
+        "\n".join(
+            [
+                "route: 1.1.1.0/24",
+                "origin: AS13335",
+                "source: RIPE",
+                "last-modified: 2024-01-01T00:00:00Z",
+                "",
+                "",
+                "route: 8.8.8.0/24",
+                "origin: AS15169",
+                "source: RIPE",
+                "last-modified: 2024-01-02T00:00:00Z",
+            ]
+        ),
+        encoding="ISO-8859-1",
+    )
+
+    parse_irr(context)
+
+    result_file = Path(context.out_dir_irr) / "irr_final.txt"
+    with open(result_file, "r", encoding="utf-8") as f:
+        content = [line.strip() for line in f.readlines()]
+
+    assert content == ["1.1.1.0/24 AS13335", "8.8.8.0/24 AS15169"]

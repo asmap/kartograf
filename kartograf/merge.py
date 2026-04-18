@@ -10,6 +10,8 @@ import pandas as pd
 from kartograf.timed import timed
 from kartograf.util import get_root_network
 
+MAX_MERGE_WORKERS = 4
+
 
 class BaseNetworkIndex:
     '''
@@ -184,7 +186,11 @@ def general_merge(
     df_extra = extra_file_to_df(extra_file)
 
     len_df_extra = len(df_extra)
-    chunk_size = pick_chunk_size(len_df_extra)
+    workers = min(os.cpu_count() or 4, MAX_MERGE_WORKERS)
+    if len_df_extra:
+        workers = min(workers, len_df_extra)
+
+    chunk_size = pick_chunk_size(len_df_extra, workers=workers)
     chunks = []
     chunk_data = []
     for i, row in df_extra.iterrows():
@@ -194,38 +200,39 @@ def general_merge(
             chunk_data = []
 
     all_results = []
-    with ProcessPoolExecutor() as executor:
-        base_dict = base_network_index.get_serializable_dict()
-        futures = [executor.submit(process_chunk_worker, chunk, base_dict) for chunk in chunks]
+    if chunks:
+        with ProcessPoolExecutor(max_workers=workers) as executor:
+            base_dict = base_network_index.get_serializable_dict()
+            futures = [executor.submit(process_chunk_worker, chunk, base_dict) for chunk in chunks]
 
-        for future in futures:
-            all_results.extend(future.result())
+            for future in futures:
+                all_results.extend(future.result())
 
-    # Sort by original index
-    all_results.sort(key=lambda x: x[0])
+        # Sort by original index
+        all_results.sort(key=lambda x: x[0])
 
-    df_extra["INCLUDED"] = [result for _, result in all_results]
+        df_extra["INCLUDED"] = [result for _, result in all_results]
+    else:
+        df_extra["INCLUDED"] = pd.Series(dtype="int64")
 
     df_filtered = df_extra[df_extra.INCLUDED == 0]
 
-    if extra_filtered_file:
-        df_filtered.to_csv(
-            extra_filtered_file,
-            sep=" ",
-            index=False,
-            columns=["PFXS", "ASNS"],
-            header=False,
-        )
-
-        with open(extra_filtered_file, "r") as extra:
-            extra_contents = extra.read()
-    else:
-        extra_contents = df_filtered.to_csv(
-            None, sep=" ", index=False, columns=["PFXS", "ASNS"], header=False
-        )
-
-    with open(base_file, "r") as base:
-        base_contents = base.read()
+    def write_non_empty_lines(src_path, dst_handle):
+        with open(src_path, "r") as src:
+            for line in src:
+                line_without_newline = line.rstrip("\r\n")
+                if line_without_newline.strip():
+                    dst_handle.write(line_without_newline + "\n")
 
     with open(out_file, "w") as merge_file:
-        merge_file.write(base_contents + extra_contents)
+        write_non_empty_lines(base_file, merge_file)
+
+        if extra_filtered_file:
+            with open(extra_filtered_file, "w") as filtered_file:
+                for row in df_filtered.itertuples(index=False):
+                    line = f"{row.PFXS} {row.ASNS}"
+                    filtered_file.write(line + "\n")
+                    merge_file.write(line + "\n")
+        else:
+            for row in df_filtered.itertuples(index=False):
+                merge_file.write(f"{row.PFXS} {row.ASNS}\n")

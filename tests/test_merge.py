@@ -133,3 +133,66 @@ def test_pick_chunk_size():
     assert pick_chunk_size(10, workers=4) == 5
     # min_chunk wins
     assert pick_chunk_size(0) == 5
+
+
+def test_merge_output_is_deterministic(tmp_path):
+    data_dir = Path(__file__).parent / "data"
+    base_nets, _ = __read_test_vectors(data_dir / "base_file.csv")
+    extra_nets, _ = __read_test_vectors(data_dir / "extra_file.csv")
+
+    base_path = tmp_path / "base_deterministic.txt"
+    extra_path = tmp_path / "extra_deterministic.txt"
+    out_first = tmp_path / "out_first.txt"
+    out_second = tmp_path / "out_second.txt"
+
+    generate_ip_file(base_path, build_file_lines(base_nets, generate_asns(len(base_nets))))
+    generate_ip_file(extra_path, build_file_lines(extra_nets, generate_asns(len(extra_nets))))
+
+    general_merge(base_path, extra_path, None, out_first)
+    general_merge(base_path, extra_path, None, out_second)
+
+    with open(out_first, "r") as f_first:
+        first_contents = f_first.read()
+    with open(out_second, "r") as f_second:
+        second_contents = f_second.read()
+
+    assert first_contents == second_contents
+
+
+def test_merge_output_is_deterministic_with_filtered_output(tmp_path):
+    data_dir = Path(__file__).parent / "data"
+    base_nets, _ = __read_test_vectors(data_dir / "base_file.csv")
+    extra_nets, _ = __read_test_vectors(data_dir / "extra_file.csv")
+
+    base_path = tmp_path / "base_deterministic_filtered.txt"
+    extra_path = tmp_path / "extra_deterministic_filtered.txt"
+    out_first = tmp_path / "out_first_filtered.txt"
+    out_second = tmp_path / "out_second_filtered.txt"
+    filtered_first = tmp_path / "filtered_first.txt"
+    filtered_second = tmp_path / "filtered_second.txt"
+
+    generate_ip_file(base_path, build_file_lines(base_nets, generate_asns(len(base_nets))))
+    generate_ip_file(extra_path, build_file_lines(extra_nets, generate_asns(len(extra_nets))))
+
+    general_merge(base_path, extra_path, filtered_first, out_first)
+    general_merge(base_path, extra_path, filtered_second, out_second)
+
+    with open(out_first, "r") as f_first:
+        first_contents = f_first.read()
+    with open(out_second, "r") as f_second:
+        second_contents = f_second.read()
+    with open(filtered_first, "r") as f_first_filtered:
+        first_filtered_contents = f_first_filtered.read()
+    with open(filtered_second, "r") as f_second_filtered:
+        second_filtered_contents = f_second_filtered.read()
+
+    assert first_contents == second_contents
+    assert first_filtered_contents == second_filtered_contents
+    assert "\n\n" not in first_contents
+    assert "\n\n" not in second_contents
+    assert "\n\n" not in first_filtered_contents
+    assert "\n\n" not in second_filtered_contents
+    assert all(line.strip() for line in first_contents.splitlines())
+    assert all(line.strip() for line in second_contents.splitlines())
+    assert all(line.strip() for line in first_filtered_contents.splitlines())
+    assert all(line.strip() for line in second_filtered_contents.splitlines())

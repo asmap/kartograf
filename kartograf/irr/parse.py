@@ -38,13 +38,20 @@ def parse_irr(context):
 
         # Parse the RPSL objects in the IRR DB into Python Dicts
         for line in lines:
-            if line == '\n':
-                entry_list.append(current_entry)
-                current_entry = {}
-            else:
-                if ":" in line:
-                    k, v = line.strip().split(':', 1)
-                    current_entry[k.strip()] = v.strip()
+            if not line.strip():
+                if current_entry:
+                    entry_list.append(current_entry)
+                    current_entry = {}
+                continue
+
+            if ":" in line:
+                k, v = line.strip().split(':', 1)
+                current_entry[k.strip()] = v.strip()
+
+        # Make sure we don't lose the final object when the file does not end
+        # with a blank line.
+        if current_entry:
+            entry_list.append(current_entry)
 
         for entry in entry_list:
             is_complete = all(k in entry for k in ("origin", "source"))
