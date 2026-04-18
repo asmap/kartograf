@@ -6,7 +6,41 @@ import re
 import subprocess
 import time
 
-RPKI_VERSION = 9.7
+RPKI_VERSION = "9.7"
+RPKI_MAX_THREADS = 8
+
+
+class KartografConfigurationError(Exception):
+    """Raised when runtime configuration is invalid for map generation."""
+
+
+def _version_to_tuple(version):
+    if isinstance(version, tuple):
+        if len(version) < 2:
+            return None
+        try:
+            return int(version[0]), int(version[1])
+        except (TypeError, ValueError):
+            return None
+
+    if isinstance(version, str):
+        match = re.search(r"(\d+)\.(\d+)", version)
+        if not match:
+            return None
+        return int(match.group(1)), int(match.group(2))
+
+    if isinstance(version, (int, float)):
+        match = re.search(r"(\d+)\.(\d+)", str(version))
+        if not match:
+            return int(version), 0
+        return int(match.group(1)), int(match.group(2))
+
+    return None
+
+
+def _format_version(version_tuple):
+    major, minor = version_tuple
+    return f"{major}.{minor}"
 
 
 def calculate_sha256(file_path):
@@ -68,34 +102,79 @@ def get_rpki_local_version():
             r"rpki-client(?:-portable)? (\d+\.\d+)", result.stderr
         )
         if version_match:
-            version = version_match.group(1)
-            return float(version)
+            return version_match.group(1)
         return None
 
     except FileNotFoundError:
         return None
 
 
-def check_compatibility():
-    local_version = get_rpki_local_version()
-    latest_version = RPKI_VERSION
+def check_compatibility(rpki_backend="legacy"):
+    if rpki_backend not in {"legacy", "threaded"}:
+        raise KartografConfigurationError(
+            f"Unknown RPKI backend '{rpki_backend}'. Use 'legacy' or 'threaded'."
+        )
+
+    local_version_raw = get_rpki_local_version()
+    local_version = _version_to_tuple(local_version_raw)
+    latest_version = _version_to_tuple(RPKI_VERSION)
 
     if local_version is None:
-        raise RuntimeError("Could not determine rpki-client version. Is it installed?")
-    if local_version < 8.4:
-        raise Exception("Error: rpki-client version 8.4 or higher is required.")
+        raise KartografConfigurationError(
+            "Could not determine rpki-client version. Is it installed?"
+        )
+    if local_version < (8, 4):
+        raise KartografConfigurationError(
+            "rpki-client version 8.4 or higher is required."
+        )
+
+    if rpki_backend == "threaded" and local_version < (9, 6):
+        raise KartografConfigurationError(
+            "--rpki-backend threaded requires rpki-client version 9.6 or higher. "
+            "No automatic fallback to legacy backend is performed."
+        )
+
+    print(f"Selected RPKI backend: {rpki_backend}")
+
+    if rpki_backend == "legacy" and local_version >= (9, 6):
+        print(
+            "Notice: rpki-client 9.6+ detected, but using 'legacy' backend "
+            "for deterministic hashing. '--rpki-backend threaded' enables "
+            "the experimental threaded validation path."
+        )
 
     if local_version == latest_version:
-        print(f"Using rpki-client version {local_version} (recommended).")
+        print(
+            "Using rpki-client version "
+            f"{_format_version(local_version)} (recommended)."
+        )
     elif local_version > latest_version:
         print(
             "Warning: This kartograf version has not been tested with "
-            f"rpki-client versions higher than {latest_version}."
+            f"rpki-client versions higher than {_format_version(latest_version)}."
         )
     else:
         print(
-            f"Using rpki-client version {local_version}. Please beware that running with the latest tested version ({latest_version}) is recommend."
+            "Using rpki-client version "
+            f"{_format_version(local_version)}. Please beware that running "
+            "with the latest tested version "
+            f"({_format_version(latest_version)}) is recommended."
         )
+
+
+def get_rpki_thread_count(max_threads=RPKI_MAX_THREADS):
+    effective_max = max_threads
+    env_max_threads = os.getenv("RPKI_MAX_THREADS")
+    if env_max_threads:
+        try:
+            effective_max = min(max_threads, int(env_max_threads))
+        except ValueError:
+            # Ignore malformed overrides and fall back to configured defaults.
+            pass
+
+    effective_max = max(1, effective_max)
+    cpu_count = os.cpu_count() or 1
+    return max(1, min(cpu_count, effective_max))
 
 
 def wait_for_launch(wait):

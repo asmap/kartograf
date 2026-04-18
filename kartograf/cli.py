@@ -6,6 +6,7 @@ import sys
 import time
 import kartograf
 from kartograf.kartograf import Kartograf
+from kartograf.util import KartografConfigurationError
 
 
 def create_parser():
@@ -48,6 +49,18 @@ def create_parser():
     parser_map.add_argument("-s", "--stable-repos", action="store_true", default=False,
                           help="Use only known stable RPKI repositories")
 
+    # Select the RPKI validation backend. We default to legacy to preserve deterministic behavior and backwards compatibility.
+    parser_map.add_argument(
+        "--rpki-backend",
+        choices=["legacy", "threaded"],
+        default="legacy",
+        help=(
+            "RPKI validation backend to use. "
+            "Use 'legacy' for current deterministic behavior. "
+            "'threaded' is experimental and requires rpki-client >= 9.6."
+        ),
+    )
+
     # TODO:
     # Filter RPKI and IRR data by checking against RIPE RIS and Routeviews data
     # and removing all entries that have not been seen announced to those
@@ -85,8 +98,18 @@ def create_parser():
     return parser
 
 def is_root():
-    # Get current the Effective UID. On Unix systems the root user EUID is 0.
-    return os.geteuid() == 0
+    # On Windows, check Administrator privileges through the Win32 API.
+    if os.name == "nt":
+        try:
+            import ctypes
+
+            return bool(ctypes.windll.shell32.IsUserAnAdmin())
+        except Exception:
+            return False
+
+    # On Unix systems the root user EUID is 0.
+    geteuid = getattr(os, "geteuid", None)
+    return geteuid() == 0 if geteuid else False
 
 def main(args=None):
     parser = create_parser()
@@ -104,11 +127,20 @@ def main(args=None):
         if args.wait and args.reproduce:
             parser.error("--reproduce is not compatible with --wait.")
 
-        if args.wait and (int(args.wait) < time.time()):
-            parser.error(f"Cannot wait for a timestamp in the past ({args.wait})")
+        if args.wait:
+            try:
+                wait_timestamp = int(args.wait)
+            except ValueError:
+                parser.error("--wait must be a unix timestamp integer.")
+
+            if wait_timestamp < time.time():
+                parser.error(f"Cannot wait for a timestamp in the past ({args.wait})")
 
     if args.command == "map":
-        Kartograf.map(args)
+        try:
+            Kartograf.map(args)
+        except KartografConfigurationError as error:
+            sys.exit(f"Error: {error}")
     elif args.command == "cov":
         Kartograf.cov(args)
     elif args.command == "merge":

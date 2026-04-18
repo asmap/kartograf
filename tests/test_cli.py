@@ -15,6 +15,7 @@ def test_map_command(parser):
     assert args.routeviews is False  # default is False
     assert args.reproduce is None
     assert args.epoch is None
+    assert args.rpki_backend == 'legacy'
     assert args.max_encode == 33521664
 
 def test_reproduce_args_failure(capsys):
@@ -52,12 +53,31 @@ def test_stable_repos_flag(parser):
     args = parser.parse_args(['map', '--stable-repos'])
     assert args.stable_repos is True
 
+def test_rpki_backend_flag(parser):
+    args = parser.parse_args(['map'])
+    assert args.rpki_backend == 'legacy'
+
+    args = parser.parse_args(['map', '--rpki-backend', 'threaded'])
+    assert args.rpki_backend == 'threaded'
+
+def test_rpki_backend_help_mentions_threaded_status(parser):
+    map_parser = parser._subparsers._group_actions[0].choices['map']  # pylint: disable=protected-access
+    assert "requires rpki-client >= 9.6" in map_parser.format_help()
+
 def test_map_with_past_wait(capsys):
     args = ['map', '-w', '1225411200']
     with pytest.raises(SystemExit):
         main(args)
     captured = capsys.readouterr()
     assert "Cannot wait for a timestamp in the past (1225411200)" in captured.err
+
+
+def test_map_with_invalid_wait(capsys):
+    args = ['map', '-w', 'abc']
+    with pytest.raises(SystemExit):
+        main(args)
+    captured = capsys.readouterr()
+    assert "--wait must be a unix timestamp integer." in captured.err
 
 def test_merge_command(parser):
     args = parser.parse_args(['merge'])

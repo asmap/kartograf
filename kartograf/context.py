@@ -78,6 +78,7 @@ class Context:
         self.final_result_file = str(Path(self.out_dir) / "final_result.txt")
 
         self.max_encode = self.args.max_encode
+        self.rpki_backend = self.args.rpki_backend
 
         if self.args.debug:
             self.debug_log = str(Path(self.out_dir) / "debug.log")

@@ -31,7 +31,7 @@ class Kartograf:
     def map(args):
         print_section_header("Start Kartograf")
         print("Kartograf version:", __version__)
-        check_compatibility()
+        check_compatibility(args.rpki_backend)
 
         if args.wait:
             wait_epoch = datetime.datetime.utcfromtimestamp(int(args.wait))

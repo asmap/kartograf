@@ -2,7 +2,7 @@ import sys
 import re
 from importlib.metadata import distribution, PackageNotFoundError
 
-from kartograf.util import check_compatibility
+from kartograf.util import KartografConfigurationError, check_compatibility
 
 CHECK_MARK = "\U00002705"
 CROSS_MARK = "\U0000274C"
@@ -26,7 +26,7 @@ def __read_requirements_txt():
 def rpki_version():
     try:
         check_compatibility()
-    except RuntimeError as e:
+    except KartografConfigurationError as e:
         print(e)
 
 def python_version():
