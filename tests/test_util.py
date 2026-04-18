@@ -1,5 +1,11 @@
 import pytest
-from kartograf.util import parse_pfx, is_valid_pfx, get_root_network, rir_from_str
+from kartograf.util import (
+    get_root_network,
+    get_rpki_thread_count,
+    is_valid_pfx,
+    parse_pfx,
+    rir_from_str,
+)
 
 
 def test_valid_ipv4_network():
@@ -30,6 +36,13 @@ def test_invalid_ip_network():
 def test_invalid_input():
     pfx = "no.slash"
     assert parse_pfx(pfx) is None
+
+
+def test_non_string_prefix_input():
+    assert parse_pfx(None) is None
+    assert parse_pfx(1234) is None
+    assert is_valid_pfx(None) is False
+    assert is_valid_pfx(1234) is False
 
 
 def test_invalid_prefixes():
@@ -76,3 +89,15 @@ def test_rir_from_string():
     assert rir_from_str("apnic.db") == "APNIC"
     with pytest.raises(Exception):
         rir_from_str("invalid")
+
+
+def test_get_rpki_thread_count_is_capped(monkeypatch):
+    monkeypatch.setattr("kartograf.util.os.cpu_count", lambda: 128)
+    monkeypatch.setattr("kartograf.util.os.getenv", lambda _key: None)
+    assert get_rpki_thread_count() == 8
+
+
+def test_get_rpki_thread_count_uses_env_override(monkeypatch):
+    monkeypatch.setattr("kartograf.util.os.cpu_count", lambda: 4)
+    monkeypatch.setattr("kartograf.util.os.getenv", lambda key: "2" if key == "RPKI_MAX_THREADS" else None)
+    assert get_rpki_thread_count() == 2

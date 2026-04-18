@@ -7,6 +7,11 @@ import subprocess
 import time
 
 RPKI_VERSION = 9.7
+RPKI_MAX_THREADS = 8
+
+
+class KartografConfigurationError(Exception):
+    """Raised when runtime configuration is invalid for map generation."""
 
 
 def calculate_sha256(file_path):
@@ -136,6 +141,9 @@ def parse_pfx(pfx):
     Attempt to format an IP network or address.
     If invalid, return None.
     """
+    if not isinstance(pfx, str):
+        return None
+
     if is_valid_pfx(pfx):
         if "/" in pfx:
             formatted_pfx = str(ipaddress.ip_network(pfx))
@@ -154,8 +162,23 @@ def is_valid_pfx(pfx):
             return True
         ipaddress.ip_address(pfx)
         return True
-    except ValueError:
+    except (TypeError, ValueError):
         return False
+
+
+def get_rpki_thread_count(max_threads=RPKI_MAX_THREADS):
+    effective_max = max_threads
+    env_max_threads = os.getenv("RPKI_MAX_THREADS")
+    if env_max_threads:
+        try:
+            effective_max = min(max_threads, int(env_max_threads))
+        except ValueError:
+            # Ignore malformed overrides and fall back to configured defaults.
+            pass
+
+    effective_max = max(1, effective_max)
+    cpu_count = os.cpu_count() or 1
+    return max(1, min(cpu_count, effective_max))
 
 
 def get_root_network(pfx):

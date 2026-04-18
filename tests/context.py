@@ -14,6 +14,7 @@ TEST_ARGS = SimpleNamespace(**{
     "max_encode": 33521664,
     "debug": False,
     "stable_repos": False,
+    "rpki_backend": "legacy",
     "wipe_data_dir": False,
     "cleanup_out_files": [],
     "epoch": None
@@ -29,15 +30,20 @@ def load_rpki_csv_to_json(context, fixtures_path):
     '''
     csv_path = fixtures_path / "rpki_raw.csv"
     rpki_data = []
-    with open(csv_path, 'r') as csvfile:
+    with open(csv_path, 'r', encoding='utf-8') as csvfile:
         reader = csv.DictReader(csvfile)
         for row in reader:
-            vrps = [{"prefix": row["prefix"], "asid": row["asid"], "maxlen": row["maxlen"]}]
-            del row["prefix"]
-            del row["asid"]
-            del row["maxlen"]
-            row["vrps"] = vrps
-            rpki_data.append(row)
+            # Match the normalized schema produced by rpki validation.
+            if row.get("type") != "roa" or row.get("validation") != "OK":
+                continue
+
+            rpki_data.append(
+                {
+                    "prefix": row["prefix"],
+                    "asn": int(row["asid"]),
+                    "expires": int(row["valid_until"]),
+                }
+            )
 
     output_path = Path(context.out_dir_rpki) / 'rpki_raw.json'
     with open(output_path, 'w') as jsonfile:
