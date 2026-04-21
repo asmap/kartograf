@@ -1,3 +1,4 @@
+import re
 import subprocess
 import sys
 
@@ -73,7 +74,8 @@ def fetch_rpki_db(context):
     # Download TALs and presist them in the RPKI data folder
     download_rir_tals(context)
     tal_options = [item for path in data_tals(context) for item in ('-t', path)]
-    run_args = ["rpki-client", "-d", context.data_dir_rpki_cache] + tal_options
+    run_args = ["rpki-client", "-d", context.data_dir_rpki_cache,
+                 "-P", context.epoch] + tal_options
     print("Downloading RPKI Data, this may take a while.")
 
     if context.stable_repos:
@@ -81,18 +83,25 @@ def fetch_rpki_db(context):
             run_args += ["-H", url]
         print("Using only stable RPKI repositories.")
 
+    # rpki-client requires a writable output directory as a positional
+    # argument. Without one it falls back to a compiled-in default that
+    # is not writable in some environments (e.g. nix), which makes it
+    # exit before emitting the CCR hashes.
+    run_args.append(context.out_dir_rpki)
+
+    result = subprocess.run(run_args,
+                            capture_output=True,
+                            check=False)
+
     if context.debug_log:
         with open(context.debug_log, 'a') as logs:
             logs.write("=== RPKI Download ===\n")
-            logs.flush()  # Without this the line above is not appearing first in the logs
-            subprocess.run(run_args,
-                           stdout=logs,
-                           stderr=logs,
-                           check=False)
-    else:
-        subprocess.run(run_args,
-                       capture_output=True,
-                       check=False)
+            if result.stdout:
+                logs.write(result.stdout.decode())
+            if result.stderr:
+                logs.write(result.stderr.decode())
+
+    parse_ccr_hashes(result.stdout.decode() if result.stdout else "")
 
     print(f"Downloaded RPKI Data, hash sum: {calculate_sha256_directory(context.data_dir_rpki_cache)}")
 
@@ -158,3 +167,11 @@ def validate_rpki_db(context):
             json.dump(s, f)
 
     print(f"{len(results_json)} RKPI ROAs validated\nSaved to: {result_path.name}\nFile hash: {calculate_sha256(result_path)}")
+
+
+def parse_ccr_hashes(output):
+    """Extract and print CCR hashes from rpki-client stdout."""
+    for line in output.splitlines():
+        match = re.match(r"^(CCR .+ hash): (.+)$", line)
+        if match:
+            print(f"{match.group(1)}: {match.group(2)}")
