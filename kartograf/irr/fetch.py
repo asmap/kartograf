@@ -1,12 +1,10 @@
 from concurrent.futures import ThreadPoolExecutor, as_completed
 import gzip
 import shutil
-import time
 from pathlib import Path
-import requests
 
 from kartograf.timed import timed
-from kartograf.util import calculate_sha256
+from kartograf.util import calculate_sha256, download_with_retries
 
 IRR_FILE_ADDRESSES = [
     # AFRINIC
@@ -27,30 +25,18 @@ def download_single_irr_file(url, context):
     """Download a single IRR file with retry logic"""
     file_name = url.rsplit('/', maxsplit=1)[-1]
     local_file_path = Path(context.data_dir_irr) / file_name
-    attempt = 0
-    max_retries = 5
-    retry_delay = 2
 
     print(f"Starting download: {file_name}")
-    while attempt < max_retries:
-        try:
-            response = requests.get(url, stream=True, timeout=(15, 120))
-            response.raise_for_status()
-            with open(local_file_path, 'wb') as f:
-                for chunk in response.iter_content(chunk_size=8192):
-                    f.write(chunk)
-            file_hash = calculate_sha256(local_file_path)
-            print(f"Downloaded {file_name}, file hash: {file_hash}")
-            return {'status': 'success'}
-        except (requests.RequestException, ConnectionError) as e:
-            print(f"Connection issue while downloading {file_name}: {e}. Retrying... (Attempt {attempt + 1}/{max_retries})")
-            attempt += 1
-            if attempt < max_retries:
-                time.sleep(retry_delay)
-
-    error_msg = f"Error: Failed to download {file_name} after {max_retries} attempts."
-    print(f"✗ {error_msg}")
-    return {'status': 'failed'}
+    try:
+        download_with_retries(url, timeout=(15, 120), max_retries=5,
+                              retry_delay=2, stream=True,
+                              dest_path=local_file_path)
+        file_hash = calculate_sha256(local_file_path)
+        print(f"Downloaded {file_name}, file hash: {file_hash}")
+        return {'status': 'success'}
+    except Exception as e:
+        print(f"✗ Error: Failed to download {file_name}: {e}")
+        return {'status': 'failed'}
 
 
 @timed
