@@ -90,7 +90,8 @@ def check_compatibility():
     elif local_version > latest_version:
         print(
             "Warning: This kartograf version has not been tested with "
-            f"rpki-client versions higher than {latest_version}."
+            f"rpki-client versions higher than {latest_version}. "
+            f"You are running rpki-client {local_version}."
         )
     else:
         print(
