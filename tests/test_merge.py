@@ -2,6 +2,7 @@
 Test merging multiple sets of networks, as if they were independent AS files.
 '''
 from pathlib import Path
+import pytest
 
 from kartograf.merge import general_merge, pick_chunk_size
 
@@ -15,10 +16,10 @@ from .util.generate_data import (
 )
 
 
-def __tmp_paths(tmp_path):
+def _tmp_paths(tmp_path):
     return [tmp_path / p for p in ["rpki_final.txt", "irr_final.txt", "out.txt"]]
 
-def __read_test_vectors(filepath):
+def _read_test_vectors(filepath):
     '''
     Fixtures for IP networks are under tests/data.
     Read them and return the list of valid networks and the list of individual subnets in the file.
@@ -41,9 +42,9 @@ def test_merge_from_fixtures(tmp_path):
     i.e. subnets are merged into the root network appropriately.
     '''
     data_dir = Path(__file__).parent / "data"
-    base_nets, base_results = __read_test_vectors(data_dir / "base_file.csv")
+    base_nets, base_results = _read_test_vectors(data_dir / "base_file.csv")
     base_path = tmp_path / "base.txt"
-    extra_nets, extra_results = __read_test_vectors(data_dir / "extra_file.csv")
+    extra_nets, extra_results = _read_test_vectors(data_dir / "extra_file.csv")
     extra_path = tmp_path / "extra.txt"
     # write the networks to disk, generating ASNs for each network
     generate_ip_file(base_path, build_file_lines(base_nets, generate_asns(len(base_nets))))
@@ -59,12 +60,13 @@ def test_merge_from_fixtures(tmp_path):
     # with the expected results
     assert merged_networks == expected_networks
 
-def test_merge(tmp_path):
+@pytest.mark.parametrize("ip_type", ["v4", "v6"])
+def test_merge_identical_files(tmp_path, ip_type):
     '''
     Assert that merging two identical files is a no-op.
     '''
-    rpki_data = generate_file_items(100)
-    rpki_path, _, out_path = __tmp_paths(tmp_path)
+    rpki_data = generate_file_items(100, ip_type=ip_type)
+    rpki_path, _, out_path = _tmp_paths(tmp_path)
     generate_ip_file(rpki_path, rpki_data)
 
     general_merge(rpki_path, rpki_path, None, out_path)
@@ -88,7 +90,7 @@ def test_merge_disjoint(tmp_path):
     rpki_data = build_file_lines(rpki_ips, generate_asns(len(rpki_ips)))
     irr_data = build_file_lines(irr_ips, generate_asns(len(irr_ips)))
 
-    rpki_path, irr_path, out_path = __tmp_paths(tmp_path)
+    rpki_path, irr_path, out_path = _tmp_paths(tmp_path)
     generate_ip_file(rpki_path, rpki_data)
     generate_ip_file(irr_path, irr_data)
     general_merge(rpki_path, irr_path, None, out_path)
@@ -100,9 +102,9 @@ def test_merge_disjoint(tmp_path):
     assert set(final_ips) == (set(irr_ips) | set(rpki_ips))
 
 
-def test_merge_joint(tmp_path):
+def test_merge_rpki_supersedes_irr_subnets(tmp_path):
     '''
-    Test merging overlapping sets of IP networks.
+    Test that RPKI networks take priority over overlapping IRR subnets.
     '''
     overlap = 10
     rpki_data = generate_file_items(100)
@@ -111,7 +113,7 @@ def test_merge_joint(tmp_path):
     irr_ips = generate_subnets_from_base(rpki_ips, overlap)
     irr_data = build_file_lines(irr_ips, generate_asns(len(irr_ips)))
 
-    rpki_path, irr_path, out_path = __tmp_paths(tmp_path)
+    rpki_path, irr_path, out_path = _tmp_paths(tmp_path)
     generate_ip_file(rpki_path, rpki_data)
     generate_ip_file(irr_path, irr_data)
     general_merge(rpki_path, irr_path, None, out_path)
@@ -120,8 +122,9 @@ def test_merge_joint(tmp_path):
         lines = f.readlines()
         final_ips = [item.split()[0] for item in lines]
 
-    # no subnets from irr_ips are included in the final merged network list
-    assert set(final_ips).isdisjoint(set(irr_ips))
+    assert set(final_ips).isdisjoint(set(irr_ips)), (
+        f"IRR subnets should not appear in merged output: {set(final_ips) & set(irr_ips)}"
+    )
 
 def test_pick_chunk_size():
     '''

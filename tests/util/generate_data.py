@@ -16,7 +16,7 @@ def generate_ip(ip_type="v4", subnet_size="16"):
         subnet_mask = int(ipaddress.IPv4Network(f"0.0.0.0/{subnet_size}", strict=False).netmask)
     elif ip_type == "v6":
         end_ip = int(ipaddress.IPv6Address("ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff"))
-        subnet_mask = int(ipaddress.IPv6Network(f"::::::::/{subnet_size}", strict=False).netmask)
+        subnet_mask = int(ipaddress.IPv6Network(f"::/{subnet_size}", strict=False).netmask)
     else:
         raise TypeError(f"invalid IP address type provided: {ip_type}")
 
@@ -30,9 +30,14 @@ def generate_ip(ip_type="v4", subnet_size="16"):
         return ipaddress.ip_network(str(network_addr) + f"/{subnet_size}")
     return None
 
+
 def generate_ip_networks(
-    count, ip_type="v4", subnet_range_start=8, subnet_range_end=24
+    count, ip_type="v4", subnet_range_start=None, subnet_range_end=None
 ):
+    if subnet_range_start is None:
+        subnet_range_start = 16 if ip_type == "v6" else 8
+    if subnet_range_end is None:
+        subnet_range_end = 48 if ip_type == "v6" else 24
     ips = set()
     while count > 0:
         random_subnet = randint(subnet_range_start, subnet_range_end)
@@ -57,7 +62,7 @@ def generate_subnets_from_base(base_networks, count):
     subnets = []
     for network in base_networks[:count]:
         subnet = list(ipaddress.ip_network(network).subnets())[0]
-        subnets.append(str(subnet.network_address))
+        subnets.append(str(subnet))
     return subnets
 
 
