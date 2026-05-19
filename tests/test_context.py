@@ -43,6 +43,41 @@ def test_map_context_with_reproduce(parser, tmp_path):
     assert Path(context.data_dir_irr).exists()
     assert context.args.routeviews is True  # Should be True since collectors dir exists
     assert Path(context.data_dir_collectors).exists()
+    assert context.args.custom_source is None  # No custom dir in repro
+
+def test_map_context_with_reproduce_custom(parser, tmp_path, monkeypatch):
+    monkeypatch.chdir(tmp_path)
+    repro_path = tmp_path / "repro"
+    repro_path.mkdir()
+    (repro_path / "custom").mkdir()
+    (repro_path / "custom" / "custom_source.txt").write_text("1.0.0.0/24 AS13335\n")
+
+    args = parser.parse_args(['map', '-r', str(repro_path), '-t', '1225411201'])
+    context = Context(args)
+
+    assert context.args.custom_source is not None
+    assert context.args.custom_source.endswith("custom/custom_source.txt")
+    assert Path(context.args.custom_source).exists()
+
+def test_map_context_reproduce_overrides_custom_source(parser, tmp_path, monkeypatch):
+    """
+    In reproduce mode input-related arguments are derived from the reproduction
+    directory. If --custom-source is passed but the reproduction directory has
+    no custom/ subfolder, args.custom_source must be reset to None to avoid
+    parsing a file that was not part of the original run.
+    """
+    monkeypatch.chdir(tmp_path)
+    repro_path = tmp_path / "repro"
+    repro_path.mkdir()
+    unrelated = tmp_path / "unrelated.txt"
+    unrelated.write_text("1.0.0.0/24 AS13335\n")
+
+    args = parser.parse_args(
+        ['map', '-r', str(repro_path), '-t', '1225411202', '-cs', str(unrelated)]
+    )
+    context = Context(args)
+
+    assert context.args.custom_source is None
 
 def test_map_context_with_wait(parser, tmp_path):
     args = parser.parse_args(['map', '-w', '1225411200'])

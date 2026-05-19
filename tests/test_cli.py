@@ -13,6 +13,7 @@ def test_map_command(parser):
     assert args.wipe_data_dir is False  # default is False
     assert args.irr is False  # default is False
     assert args.routeviews is False  # default is False
+    assert args.custom_source is None
     assert args.reproduce is None
     assert args.epoch is None
     assert args.max_encode == 33521664
@@ -41,6 +42,39 @@ def test_map_with_options(parser):
     assert args.routeviews is True
     assert args.reproduce == '/path'
     assert args.epoch == '123'
+
+def test_custom_source_flag(parser):
+    args = parser.parse_args(['map'])
+    assert args.custom_source is None
+
+    args = parser.parse_args(['map', '-cs', '/path/to/dump.txt'])
+    assert args.custom_source == '/path/to/dump.txt'
+
+    args = parser.parse_args(['map', '--custom-source', '/path/to/dump.txt'])
+    assert args.custom_source == '/path/to/dump.txt'
+
+def test_custom_source_file_not_found(capsys):
+    args = ['map', '-cs', '/nonexistent/file.txt']
+    with pytest.raises(SystemExit):
+        main(args)
+    captured = capsys.readouterr()
+    assert "Custom source file not found" in captured.err
+
+def test_custom_source_path_is_resolved_to_absolute(tmp_path, monkeypatch):
+    dump = tmp_path / "dump.txt"
+    dump.write_text("1.0.0.0/24 AS13335\n")
+    monkeypatch.chdir(tmp_path)
+
+    captured_args = {}
+    def fake_map(args):
+        captured_args['args'] = args
+    monkeypatch.setattr("kartograf.cli.Kartograf.map", staticmethod(fake_map))
+
+    main(['map', '-cs', 'dump.txt'])
+
+    resolved = Path(captured_args['args'].custom_source)
+    assert resolved.is_absolute()
+    assert resolved.name == "dump.txt"
 
 def test_stable_repos_flag(parser):
     args = parser.parse_args(['map'])

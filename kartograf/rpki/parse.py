@@ -1,6 +1,7 @@
 import json
 import subprocess
 from pathlib import Path
+import shutil
 from typing import Dict
 
 from kartograf.bogon import (
@@ -110,6 +111,8 @@ def parse_rpki(context):
 
             asmap.write(line_out + '\n')
             out_count += 1
+
+    shutil.copy2(rpki_res, context.final_result_file)
 
     context.cleanup_out_files.append(raw_input)
 

@@ -6,16 +6,7 @@ from kartograf.timed import timed
 
 @timed
 def sort_result_by_pfx(context):
-    if context.args.irr and context.args.routeviews:
-        out_file = Path(context.out_dir) / "merged_file_rpki_irr_rv.txt"
-    elif context.args.irr:
-        out_file = Path(context.out_dir) / "merged_file_rpki_irr.txt"
-    elif context.args.routeviews:
-        out_file = Path(context.out_dir) / "merged_file_rpki_rv.txt"
-    else:
-        out_file = Path(context.out_dir_rpki) / "rpki_final.txt"
-
-    with open(out_file, 'r') as file:
+    with open(context.final_result_file, 'r') as file:
         prefixes = file.read().splitlines()
 
     # Convert prefixes to a sortable form

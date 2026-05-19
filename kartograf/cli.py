@@ -2,6 +2,7 @@
 
 import argparse
 import os
+from pathlib import Path
 import sys
 import time
 import kartograf
@@ -24,6 +25,10 @@ def create_parser():
 
     parser_map.add_argument("-irr", "--irr", action="store_true", default=False)
     parser_map.add_argument("-rv", "--routeviews", action="store_true", default=False)
+    parser_map.add_argument("-cs", "--custom-source", type=str, default=None,
+                          help="Path to a file with space-separated 'prefix ASN' "
+                          "pairs, one per line. The ASN may optionally be "
+                          "prefixed with 'AS'.")
 
     # Reproduce a map file from a previous run by using provided input files.
     # The input related arguments are ignored if this flag is set. All provided
@@ -106,6 +111,12 @@ def main(args=None):
 
         if args.wait and (int(args.wait) < time.time()):
             parser.error(f"Cannot wait for a timestamp in the past ({args.wait})")
+
+        if args.custom_source:
+            custom_source_path = Path(args.custom_source)
+            if not custom_source_path.is_file():
+                parser.error(f"Custom source file not found: {args.custom_source}")
+            args.custom_source = str(custom_source_path.absolute())
 
     if args.command == "map":
         Kartograf.map(args)

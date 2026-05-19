@@ -11,6 +11,7 @@ Kartograf is a free software project that generates such map files, for the star
 The following data sources can be used, and when enabled, will be used in decreasing order of priority:
 
 - [RPKI](https://www.ripe.net/manage-ips-and-asns/resource-management/rpki/what-is-rpki/)
+- A user-provided custom BGP dump file (see [Usage](#usage))
 - [IRR DBs of all five RIRs](https://www.arin.net/resources/manage/irr/)
 - BGP announcements from [Routeviews](https://publicdata.caida.org/datasets/routing/routeviews-prefix2as/README.txt)
 
@@ -103,6 +104,12 @@ You can enhance the RPKI maps with RIRs IRR data and Routeviews data using the f
 
 ```
 ./run map -irr -rv
+```
+
+You can also include an arbitrary BGP dump file as a custom data source via `-cs` (`--custom-source`). The file is expected to follow the [map file format](#map-files). The custom source is merged after RPKI but before IRR, so it takes precedence over IRR and Routeviews but defers to RPKI. The file is copied into the data directory for reproducibility.
+
+```
+./run map -cs /path/to/dump.txt
 ```
 
 The input data downloaded from the sources will be stored under `data/` and the output data under `out/` in the project directory. Each run stores its input and output data under its start Unix timestamp. For example, the AS map for the run at time `1764864000` will be output to `out/1764864000/final_result.txt`.
