@@ -1,6 +1,7 @@
 import json
 import subprocess
 from pathlib import Path
+from tempfile import TemporaryDirectory
 from typing import Dict
 
 from kartograf.bogon import (
@@ -122,10 +123,11 @@ def parse_rpki(context):
 
 def compute_ccr_hashes(context):
     """Run rpki-client in offline mode to compute and print CCR hashes."""
-    tal_options = [item for path in data_tals(context) for item in ('-t', path)]
-    run_args = ["rpki-client", "-n", "-d", context.data_dir_rpki_cache,
-                 "-P", context.epoch] + tal_options + [context.out_dir_rpki]
-    result = subprocess.run(run_args,
-                            capture_output=True,
-                            check=False)
-    parse_ccr_hashes(result.stdout.decode() if result.stdout else "")
+    with TemporaryDirectory(prefix="rpki-out-") as tmpdir:
+        tal_options = [item for path in data_tals(context) for item in ('-t', path)]
+        run_args = ["rpki-client", "-m", "-n", "-d", context.data_dir_rpki_cache,
+                     "-P", context.epoch] + tal_options + [tmpdir]
+        result = subprocess.run(run_args,
+                                capture_output=True,
+                                check=False)
+        parse_ccr_hashes(result.stdout.decode() if result.stdout else "")
