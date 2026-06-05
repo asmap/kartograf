@@ -35,6 +35,22 @@ def _read_test_vectors(filepath):
                 all_in_result.append(network)
     return all_networks, all_in_result
 
+
+def test_extra_more_specific_does_not_supersede_base_supernet(tmp_path):
+    base_path = tmp_path / "base.txt"
+    extra_path = tmp_path / "extra.txt"
+    out_path = tmp_path / "out.txt"
+
+    base_path.write_text("12.0.0.0/8 AS7018\n")
+    extra_path.write_text("12.0.224.0/24 AS2386\n")
+
+    general_merge(base_path, extra_path, None, out_path)
+
+    result = out_path.read_text()
+
+    assert "12.0.0.0/8 AS7018\n" in result
+    assert "12.0.224.0/24 AS2386\n" not in result
+
 def test_merge_from_fixtures(tmp_path):
     '''
     Assert that general_merge merges subnets correctly,
