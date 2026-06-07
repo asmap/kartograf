@@ -1,6 +1,7 @@
 import json
 import subprocess
 from pathlib import Path
+from tempfile import TemporaryDirectory
 from typing import Dict
 
 from kartograf.bogon import (
@@ -121,11 +122,24 @@ def parse_rpki(context):
 
 
 def compute_ccr_hashes(context):
-    """Run rpki-client in offline mode to compute and print CCR hashes."""
-    tal_options = [item for path in data_tals(context) for item in ('-t', path)]
-    run_args = ["rpki-client", "-n", "-d", context.data_dir_rpki_cache,
-                 "-P", context.epoch] + tal_options + [context.out_dir_rpki]
-    result = subprocess.run(run_args,
-                            capture_output=True,
-                            check=False)
-    parse_ccr_hashes(result.stdout.decode() if result.stdout else "")
+    """
+    Run rpki-client in offline mode to compute and print CCR hashes.
+
+    rpki-client can take a writable output directory as a positional
+    argument. Without one it falls back to a compiled-in default that
+    is not writable in some environments (e.g. nix).
+    We use python's tempdir, which gets cleaned up automatically.
+    All kartograf output we care about is written to the context.out_dir_rpki.
+
+    We use the '-m' flag to only output metrics to this temporary directory,
+    since the default writes several hundred MB of data. The metrics
+    data is not used.
+    """
+    with TemporaryDirectory(prefix="rpki-out-") as tmpdir:
+        tal_options = [item for path in data_tals(context) for item in ('-t', path)]
+        run_args = ["rpki-client", "-m", "-n", "-d", context.data_dir_rpki_cache,
+                     "-P", context.epoch] + tal_options + [tmpdir]
+        result = subprocess.run(run_args,
+                                capture_output=True,
+                                check=False)
+        parse_ccr_hashes(result.stdout.decode() if result.stdout else "")

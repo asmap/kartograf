@@ -1,6 +1,7 @@
 import re
 import subprocess
 import sys
+from tempfile import TemporaryDirectory
 
 from concurrent.futures import ThreadPoolExecutor, as_completed
 import json
@@ -71,37 +72,45 @@ def data_tals(context):
 
 @timed
 def fetch_rpki_db(context):
-    # Download TALs and presist them in the RPKI data folder
+    """
+    rpki-client can take a writable output directory as a positional
+    argument. Without one it falls back to a compiled-in default that
+    is not writable in some environments (e.g. nix).
+    We use python's tempdir, which gets cleaned up automatically.
+    All kartograf output we care about is written to the context.out_dir_rpki.
+
+    We use the '-m' flag to only output metrics to this temporary directory,
+    since the default writes several hundred MB of data. The metrics
+    data is not used.
+    """
+    # Download TALs and persist them in the RPKI data folder
     download_rir_tals(context)
-    tal_options = [item for path in data_tals(context) for item in ('-t', path)]
-    run_args = ["rpki-client", "-d", context.data_dir_rpki_cache,
-                 "-P", context.epoch] + tal_options
-    print("Downloading RPKI Data, this may take a while.")
+    with TemporaryDirectory(prefix="rpki-out-") as tmpdir:
+        tal_options = [item for path in data_tals(context) for item in ('-t', path)]
+        run_args = ["rpki-client", "-m", "-d", context.data_dir_rpki_cache,
+                     "-P", context.epoch] + tal_options
+        print("Downloading RPKI Data, this may take a while.")
 
-    if context.stable_repos:
-        for url in STABLE_REPO_URLS:
-            run_args += ["-H", url]
-        print("Using only stable RPKI repositories.")
+        if context.stable_repos:
+            for url in STABLE_REPO_URLS:
+                run_args += ["-H", url]
+            print("Using only stable RPKI repositories.")
 
-    # rpki-client requires a writable output directory as a positional
-    # argument. Without one it falls back to a compiled-in default that
-    # is not writable in some environments (e.g. nix), which makes it
-    # exit before emitting the CCR hashes.
-    run_args.append(context.out_dir_rpki)
+        run_args += [tmpdir]
 
-    result = subprocess.run(run_args,
-                            capture_output=True,
-                            check=False)
+        result = subprocess.run(run_args,
+                                capture_output=True,
+                                check=False)
 
-    if context.debug_log:
-        with open(context.debug_log, 'a') as logs:
-            logs.write("=== RPKI Download ===\n")
-            if result.stdout:
-                logs.write(result.stdout.decode())
-            if result.stderr:
-                logs.write(result.stderr.decode())
+        if context.debug_log:
+            with open(context.debug_log, 'a') as logs:
+                logs.write("=== RPKI Download ===\n")
+                if result.stdout:
+                    logs.write(result.stdout.decode())
+                if result.stderr:
+                    logs.write(result.stderr.decode())
 
-    parse_ccr_hashes(result.stdout.decode() if result.stdout else "")
+        parse_ccr_hashes(result.stdout.decode() if result.stdout else "")
 
     print(f"Downloaded RPKI Data, hash sum: {calculate_sha256_directory(context.data_dir_rpki_cache)}")
 
