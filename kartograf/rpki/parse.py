@@ -122,7 +122,19 @@ def parse_rpki(context):
 
 
 def compute_ccr_hashes(context):
-    """Run rpki-client in offline mode to compute and print CCR hashes."""
+    """
+    Run rpki-client in offline mode to compute and print CCR hashes.
+
+    rpki-client can take a writable output directory as a positional
+    argument. Without one it falls back to a compiled-in default that
+    is not writable in some environments (e.g. nix).
+    We use python's tempdir, which gets cleaned up automatically.
+    All kartograf output we care about is written to the context.out_dir_rpki.
+
+    We use the '-m' flag to only output metrics to this temporary directory,
+    since the default writes several hundred MB of data. The metrics
+    data is not used.
+    """
     with TemporaryDirectory(prefix="rpki-out-") as tmpdir:
         tal_options = [item for path in data_tals(context) for item in ('-t', path)]
         run_args = ["rpki-client", "-m", "-n", "-d", context.data_dir_rpki_cache,

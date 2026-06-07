@@ -72,7 +72,18 @@ def data_tals(context):
 
 @timed
 def fetch_rpki_db(context):
-    # Download TALs and presist them in the RPKI data folder
+    """
+    rpki-client can take a writable output directory as a positional
+    argument. Without one it falls back to a compiled-in default that
+    is not writable in some environments (e.g. nix).
+    We use python's tempdir, which gets cleaned up automatically.
+    All kartograf output we care about is written to the context.out_dir_rpki.
+
+    We use the '-m' flag to only output metrics to this temporary directory,
+    since the default writes several hundred MB of data. The metrics
+    data is not used.
+    """
+    # Download TALs and persist them in the RPKI data folder
     download_rir_tals(context)
     with TemporaryDirectory(prefix="rpki-out-") as tmpdir:
         tal_options = [item for path in data_tals(context) for item in ('-t', path)]
