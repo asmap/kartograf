@@ -121,10 +121,11 @@ def validate_rpki_db(context):
              if path.is_file() and ((path.suffix == ".roa")
                                     or (path.name == ".roa"))]
 
-    print(f"{len(files)} raw RKPI ROA files found.")
     if len(files) == 0:
         print("No RPKI files found! Exiting.")
         sys.exit(1)
+    else:
+        print(f"{len(files)} raw RPKI ROA files found.")
 
     rpki_raw_file = 'rpki_raw.json'
     result_path = Path(context.out_dir_rpki) / rpki_raw_file
