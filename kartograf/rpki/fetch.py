@@ -110,6 +110,13 @@ def fetch_rpki_db(context):
                 if result.stderr:
                     logs.write(result.stderr.decode())
 
+        if result.returncode != 0:
+            print(f"rpki-client exited with code {result.returncode} "
+                  "during fetch:")
+            if result.stderr:
+                print("\n".join(result.stderr.decode().splitlines()[-10:]))
+            sys.exit(1)
+
         parse_ccr_hashes(result.stdout.decode() if result.stdout else "")
 
     print(f"Downloaded RPKI Data, hash sum: {calculate_sha256_directory(context.data_dir_rpki_cache)}")
