@@ -158,6 +158,12 @@ def validate_rpki_db(context):
                                  capture_output=True,
                                  check=False)
 
+        if result.returncode != 0:
+            print("rpki-client validation batch failed "
+                  f"(exit {result.returncode}):")
+            print(result.stderr.decode() if result.stderr else "(no stderr)")
+            sys.exit(1)
+
         if result.stderr and context.debug_log:
             stderr_output = result.stderr.decode()
             with debug_file_lock:
@@ -186,6 +192,12 @@ def validate_rpki_db(context):
 
         with open(result_path, 'w') as f:
             json.dump(s, f)
+
+    # rpki-client emits exactly one JSON object per -f input file
+    if len(results_json) != len(files):
+        print(f"Validation incomplete: {len(results_json)} results for "
+              f"{len(files)} files! Exiting.")
+        sys.exit(1)
 
     print(f"{len(results_json)} RKPI ROAs validated\nSaved to: {result_path.name}\nFile hash: {calculate_sha256(result_path)}")
 
