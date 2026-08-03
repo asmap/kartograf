@@ -81,3 +81,10 @@ route:          212.19.0.0/24
 descr:          Test Incomplete Entry
 origin:         AS12345
 
+route:          212.20.0.0/24
+descr:          Test Network No Trailing Blank
+origin:         AS12345
+mnt-by:         TEST-MNT
+created:        2023-01-01T00:00:00Z
+last-modified:  2023-01-01T00:00:00Z
+source:         RIPE
