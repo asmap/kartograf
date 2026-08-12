@@ -42,5 +42,8 @@ def test_parse_validation_cases(tmp_path):
     # Test incomplete entry (no source in data)
     assert "212.19.0.0/24 AS12345" not in content
 
+    # Last complete object has no trailing blank in the fixture
+    assert "212.20.0.0/24 AS12345" in content
+
     # Test expected set
-    assert content == ["193.254.30.0/24 AS12726", "212.166.64.0/19 AS12321", "212.80.191.0/24 AS12541", "212.16.0.0/24 AS12346", "212.17.0.0/24 AS12347", "2345:2ca::/32 AS12345" ]
+    assert content == ["193.254.30.0/24 AS12726", "212.166.64.0/19 AS12321", "212.80.191.0/24 AS12541", "212.16.0.0/24 AS12346", "212.17.0.0/24 AS12347", "2345:2ca::/32 AS12345", "212.20.0.0/24 AS12345"]
