@@ -41,17 +41,19 @@ class BaseNetworkIndex:
 
         if (root_net in self._v4_keys) or (root_net in self._v6_keys):
             current = self._dict[v][root_net]
-            self._dict[v][root_net] = current + [(netw, mask)]
+            self._dict[v][root_net] = current + [(netw, mask, ipn.prefixlen)]
         else:
-            self._dict[v].update({root_net: [(netw, mask)]})
+            self._dict[v].update({root_net: [(netw, mask, ipn.prefixlen)]})
 
     def check_inclusion(self, row, root_net, version):
         """
         A network is a subnet of another if the bitwise AND of its IP and the base network's netmask
-        is equal to the base network IP.
+        is equal to the base network IP, and the network's prefix length is larger or equal than the base network's
+        prefix length.
         """
-        for net, mask in self._dict[version][root_net]:
-            if row.INETS & mask == net:
+        candidate = ipaddress.ip_network(row.PFXS)
+        for net, mask, prefixlen in self._dict[version][root_net]:
+            if candidate.prefixlen >= prefixlen and row.INETS & mask == net:
                 return 1
         return 0
 
