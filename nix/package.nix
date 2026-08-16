@@ -26,9 +26,9 @@ in
           '';
           fixupPhase = ''
             wrapProgram $out/bin/kartograf \
-              --set PYTHONPATH $out/lib:$PYTHONPATH
-            wrapProgram $out/bin/kartograf \
-              --set PATH ${rpki-client}/bin:$PATH
+              --set PYTHONPATH $out/lib:$PYTHONPATH \
+              --prefix PATH : ${rpki-client}/bin \
+              --prefix PATH : ${pythonBuildDeps}/bin
           '';
           meta = with pkgs.lib; {
             description = "Kartograf: IP to ASN mapping for everyone";
