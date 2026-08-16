@@ -118,7 +118,6 @@ def general_merge(
     """
     Merge lists of IP networks into a base file.
     """
-    print("Creating network index from base file.")
     base_network_index = BaseNetworkIndex()
     with open(base_file, "r") as file:
         for line in file:
