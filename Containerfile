@@ -1,6 +1,6 @@
 # Container description file for running kartograf
 FROM python:3.13
-ARG RPKI_VERSION=9.8
+ARG RPKI_VERSION=9.9
 
 # Download and install rpki-client from source
 RUN set -x && \
