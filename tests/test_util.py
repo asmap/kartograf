@@ -1,5 +1,13 @@
+import sys
+
 import pytest
-from kartograf.util import parse_pfx, is_valid_pfx, get_root_network, rir_from_str
+from kartograf.util import (
+    get_root_network,
+    is_valid_pfx,
+    parse_pfx,
+    print_progress,
+    rir_from_str,
+)
 
 
 def test_valid_ipv4_network():
@@ -76,3 +84,17 @@ def test_rir_from_string():
     assert rir_from_str("apnic.db") == "APNIC"
     with pytest.raises(Exception):
         rir_from_str("invalid")
+
+
+def test_print_progress_on_terminal(capsys, monkeypatch):
+    monkeypatch.setattr(sys.stdout, "isatty", lambda: True)
+    print_progress(1, 4)
+    print_progress(4, 4)
+    assert capsys.readouterr().out == "\r25%\r100%\n"
+
+
+def test_print_progress_without_terminal(capsys):
+    for done in range(1, 301):
+        print_progress(done, 300)
+    lines = capsys.readouterr().out.splitlines()
+    assert lines == [f"{pct}%" for pct in range(10, 101, 10)]
