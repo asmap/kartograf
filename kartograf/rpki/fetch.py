@@ -20,7 +20,7 @@ TAL_URLS = {
     "afrinic": "http://rpki.afrinic.net/tal/afrinic.tal",
     "apnic": "https://tal.apnic.net/tal-archive/apnic-rfc7730-https.tal",
     "arin": "https://www.arin.net/resources/manage/rpki/arin.tal",
-    "lacnic": "https://www.lacnic.net/rpki/lacnic.tal",
+    "lacnic": "https://www.lacnic.net/innovaportal/file/4983/1/lacnic.tal",
     "ripe": "https://tal.rpki.ripe.net/ripe-ncc.tal"
 }
 
