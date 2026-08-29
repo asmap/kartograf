@@ -61,8 +61,10 @@ def generate_asns(count):
 def generate_subnets_from_base(base_networks, count):
     subnets = []
     for network in base_networks[:count]:
-        subnet = list(ipaddress.ip_network(network).subnets())[0]
-        subnets.append(str(subnet))
+        subnet = str(list(ipaddress.ip_network(network).subnets())[0])
+        # The randomly generated base can already contain this subnet
+        if subnet not in base_networks:
+            subnets.append(subnet)
     return subnets
 
 
