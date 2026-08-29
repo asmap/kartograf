@@ -184,7 +184,3 @@ Tests are located under `tests`, and can be run with `pytest`. Run `pytest tests
 ## Acknowledgements
 
 [Job Snijders](https://github.com/job)
-
-## Legal note
-
-In order to properly validate RPKI ROAs Kartograf downloads all RIR Trust Anchors via each users TAL. Usage of the ARIN TAL file requires users of Kartograf to agree to [ARIN's Relying Party Agreement](https://www.arin.net/resources/manage/rpki/rpa.pdf).
