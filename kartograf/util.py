@@ -4,6 +4,7 @@ import ipaddress
 import os
 import re
 import subprocess
+import sys
 import time
 
 RPKI_VERSION = 9.9
@@ -37,6 +38,15 @@ def print_section_header(name):
     print()
     print("-" * 3 + f" {name} " + "-" * 3)
     print()
+
+
+def print_progress(done, total):
+    pct = 100 * done // total
+    if sys.stdout.isatty():
+        print(f"\r{pct}%", end="\n" if done == total else "", flush=True)
+    # Without a terminal (log file, CI) only print every 10% to keep the log readable
+    elif done == total or done * 10 // total != (done - 1) * 10 // total:
+        print(f"{pct}%", flush=True)
 
 
 def rir_from_str(maybe_rir):

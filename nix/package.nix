@@ -2,7 +2,6 @@
 let
       pythonBuildDeps = pkgs.python311.withPackages (ps: [
         ps.requests
-        ps.tqdm
       ]);
 in
         pkgs.stdenv.mkDerivation {

@@ -35,7 +35,6 @@
         ps.pylint
         ps.pytest
         ps.requests
-        ps.tqdm
       ]);
     in {
       default = pkgs.mkShell {
