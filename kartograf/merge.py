@@ -5,7 +5,6 @@ import math
 import os
 import shutil
 from types import SimpleNamespace
-import pandas as pd
 
 from kartograf.timed import timed
 from kartograf.util import get_root_network
@@ -120,11 +119,9 @@ def merge_pfx2as(context):
     shutil.copy2(out_file, context.final_result_file)
 
 
-def extra_file_to_df(extra_file_path):
-    extra_nets_int = []
-    extra_asns = []
-    extra_pfxs = []
-    extra_pfxs_leading = []
+def read_extra_file(extra_file_path):
+    """Return a list of (network_int, asn, prefix, root_network) tuples."""
+    rows = []
     with open(extra_file_path, "r") as file:
         for line in file:
             pfx, asn = line.split(" ")
@@ -133,21 +130,9 @@ def extra_file_to_df(extra_file_path):
             except ValueError:
                 print(f"Invalid IP network: {pfx}, skipping")
                 continue
-            netw_int = int(ipn.network_address)
-            extra_nets_int.append(netw_int)
-            extra_asns.append(asn.strip())
-            extra_pfxs.append(pfx)
-            root_net = get_root_network(pfx)
-            extra_pfxs_leading.append(root_net)
+            rows.append((int(ipn.network_address), asn.strip(), pfx, get_root_network(pfx)))
 
-    df_extra = pd.DataFrame({
-        "INETS": extra_nets_int,
-        "ASNS": extra_asns,
-        "PFXS": extra_pfxs,
-        "PFXS_LEADING": extra_pfxs_leading
-        })
-
-    return df_extra
+    return rows
 
 def process_chunk_worker(chunk_data, base_dict):
     base = BaseNetworkIndex.from_dict(base_dict)
@@ -183,17 +168,16 @@ def general_merge(
             pfx, _ = line.split(" ")
             base_network_index.update(pfx)
 
-    df_extra = extra_file_to_df(extra_file)
+    extra_rows = read_extra_file(extra_file)
 
-    len_df_extra = len(df_extra)
-    chunk_size = pick_chunk_size(len_df_extra)
+    chunk_size = pick_chunk_size(len(extra_rows))
     chunks = []
-    chunk_data = []
-    for i, row in df_extra.iterrows():
-        chunk_data.append((i, (row.INETS, row.PFXS, row.PFXS_LEADING)))
-        if (i + 1) % chunk_size == 0 or i == len_df_extra - 1:
-            chunks.append(chunk_data)
-            chunk_data = []
+    for start in range(0, len(extra_rows), chunk_size):
+        chunks.append([
+            (i, (net_int, pfx, root_net))
+            for i, (net_int, _, pfx, root_net)
+            in enumerate(extra_rows[start:start + chunk_size], start)
+        ])
 
     all_results = []
     with ProcessPoolExecutor() as executor:
@@ -206,25 +190,15 @@ def general_merge(
     # Sort by original index
     all_results.sort(key=lambda x: x[0])
 
-    df_extra["INCLUDED"] = [result for _, result in all_results]
-
-    df_filtered = df_extra[df_extra.INCLUDED == 0]
+    extra_contents = "".join(
+        f"{pfx} {asn}\n"
+        for (_, asn, pfx, _), (_, included) in zip(extra_rows, all_results, strict=True)
+        if included == 0
+    )
 
     if extra_filtered_file:
-        df_filtered.to_csv(
-            extra_filtered_file,
-            sep=" ",
-            index=False,
-            columns=["PFXS", "ASNS"],
-            header=False,
-        )
-
-        with open(extra_filtered_file, "r") as extra:
-            extra_contents = extra.read()
-    else:
-        extra_contents = df_filtered.to_csv(
-            None, sep=" ", index=False, columns=["PFXS", "ASNS"], header=False
-        )
+        with open(extra_filtered_file, "w") as extra:
+            extra.write(extra_contents)
 
     with open(base_file, "r") as base:
         base_contents = base.read()

@@ -1,7 +1,6 @@
 {pkgs, rpki-client }:
 let
       pythonBuildDeps = pkgs.python311.withPackages (ps: [
-        ps.pandas
         ps.requests
         ps.tqdm
       ]);
