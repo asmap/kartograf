@@ -52,6 +52,35 @@ def test_extra_more_specific_does_not_supersede_base_supernet(tmp_path):
     assert "12.0.0.0/8 AS7018\n" in result
     assert "12.0.224.0/24 AS2386\n" not in result
 
+def test_merge_in_place(tmp_path):
+    '''
+    The output file may be the base file itself, e.g. when extending an
+    existing map with the merge command.
+    '''
+    base_path = tmp_path / "base.txt"
+    extra_path = tmp_path / "extra.txt"
+
+    base_path.write_text("12.0.0.0/8 AS7018\n")
+    extra_path.write_text("12.0.224.0/24 AS2386\n13.0.0.0/8 AS1239\n")
+
+    general_merge(base_path, extra_path, None, base_path)
+
+    assert base_path.read_text() == "12.0.0.0/8 AS7018\n13.0.0.0/8 AS1239\n"
+
+
+def test_merge_skips_invalid_extra_prefixes(tmp_path):
+    base_path = tmp_path / "base.txt"
+    extra_path = tmp_path / "extra.txt"
+    out_path = tmp_path / "out.txt"
+
+    base_path.write_text("12.0.0.0/8 AS7018\n")
+    extra_path.write_text("13.0.0.0/33 AS1239\n\n14.0.0.0/8 AS3356\n")
+
+    general_merge(base_path, extra_path, None, out_path)
+
+    assert out_path.read_text() == "12.0.0.0/8 AS7018\n14.0.0.0/8 AS3356\n"
+
+
 def test_merge_from_fixtures(tmp_path):
     '''
     Assert that general_merge merges subnets correctly,

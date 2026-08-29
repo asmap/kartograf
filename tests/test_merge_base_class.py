@@ -1,53 +1,40 @@
-import pandas as pd
+import pytest
+
 from kartograf.merge import BaseNetworkIndex
-
-
-def _df_from_networks(networks, asn=123):
-    '''
-    Create a one-row dataframe that holds the extra file rows in the expected format for contains_row().
-    '''
-    df = pd.DataFrame(
-        columns=["ASNS", "PFXS"],
-    )
-    for network in networks:
-        df.loc[len(df)] = [asn, network]
-    return df
 
 
 def test_base_create():
     '''
-    contains_row returns false when adding a row to an empty base file dict.
+    contains returns false for prefixes checked against an empty base index.
     '''
     base = BaseNetworkIndex()
-    ipv4_network = "10.10.0.0/16"
-    ipv6_network = "2c0f:ff90::/32"
-    df_extra = _df_from_networks([ipv4_network, ipv6_network])
-    for row in df_extra.itertuples(index=False):
-        assert not base.contains_row(row)
+    assert not base.contains("10.10.0.0/16")
+    assert not base.contains("2c0f:ff90::/32")
 
 
 def test_base_update():
     '''
-    contains_row returns true when adding a row already present in the base dict.
+    contains returns true for prefixes that were added to the base index.
     '''
     base = BaseNetworkIndex()
     ipv4_network = "10.10.0.0/16"
     ipv6_network = "2c0f:ff90::/32"
     base.update(ipv4_network, 123)
     base.update(ipv6_network, 123)
-    df_extra = _df_from_networks([ipv4_network, ipv6_network])
-    for row in df_extra.itertuples(index=False):
-        assert base.contains_row(row)
+    assert base.contains(ipv4_network)
+    assert base.contains(ipv6_network)
 
 
 def test_check_included_subnet():
     '''
-    contains_row returns true when adding a subnet of a row already present in the base dict.
+    contains returns true for a subnet of a prefix in the base index.
     '''
     base = BaseNetworkIndex()
-    network = "10.10.0.0/16"
-    base.update(network, 123)
-    subnet = "10.10.0.0/21"
-    df_extra = _df_from_networks([subnet])
-    for row in df_extra.itertuples(index=False):
-        assert base.contains_row(row)
+    base.update("10.10.0.0/16", 123)
+    assert base.contains("10.10.0.0/21")
+
+
+def test_contains_rejects_invalid_prefix():
+    base = BaseNetworkIndex()
+    with pytest.raises(ValueError):
+        base.contains("10.10.0.0/33")
