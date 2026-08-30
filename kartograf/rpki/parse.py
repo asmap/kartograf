@@ -1,6 +1,7 @@
 import json
 import subprocess
 from pathlib import Path
+import sys
 from tempfile import TemporaryDirectory
 from typing import Dict
 
@@ -119,6 +120,10 @@ def parse_rpki(context):
     print(f'Invalids found: {invalids}')
     print(f'Incompletes: {incompletes}')
     print(f'Non-ROA files: {not_roas}')
+
+    if out_count == 0:
+        print("No valid RPKI assignments found! Exiting.")
+        sys.exit(1)
 
 
 def compute_ccr_hashes(context):

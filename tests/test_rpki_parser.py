@@ -1,5 +1,6 @@
 import json
 import os
+import pytest
 
 from kartograf.rpki.parse import parse_rpki
 from .context import create_test_context, setup_test_data
@@ -50,7 +51,17 @@ def test_roa_incompletes(tmp_path, capsys):
     '''
     epoch = "111111112"
     context = create_test_context(tmp_path, epoch)
-    test_data = [
+    valid = {
+            "type": "roa",
+            "validation": "OK",
+            "aki": "some-aki",
+            "ski": "some-ski",
+            "vrps": [{"prefix": "192.0.1.0/24", "asid": "64495", "maxlen": "24"}],
+            "valid_until": "1234567890",
+            "valid_since": "1234567880"
+        }
+
+    incompletes = [
         {
             "type": "roa",
             "validation": "OK",
@@ -71,7 +82,7 @@ def test_roa_incompletes(tmp_path, capsys):
 
     # Write test data to rpki_raw.json
     with open(os.path.join(context.out_dir_rpki, "rpki_raw.json"), "w") as f:
-        json.dump(test_data, f)
+        json.dump(incompletes + [valid], f)
 
     parse_rpki(context)
 
@@ -83,7 +94,7 @@ def test_roa_incompletes(tmp_path, capsys):
     with open(final_path, "r") as f:
         final_lines = f.readlines()
 
-    assert len(final_lines) == 0, "No rows should be written"
+    assert len(final_lines) == 1, "Only 1 row should be written"
     captured = capsys.readouterr()
     assert "Incompletes: 2" in captured.out
 
@@ -131,3 +142,37 @@ def test_roa_asn_fallback(tmp_path):
 
     assert "103.0.1.0/24 AS11105" in entries, "ROA with lower ASN should be selected"
     assert not any("103.0.1.0/24 AS11106" in e for e in entries), "ROA with higher ASN should not be selected"
+
+def test_no_valid_output_exits(tmp_path, capsys):
+    """
+    When all ROAs in the input are filtered out (e.g. all incomplete
+    or all failed validation), parse_rpki should exit with code 1.
+    """
+    epoch = "111111113"
+    context = create_test_context(tmp_path, epoch)
+
+    # Every ROA is missing required keys — all get classified as "incomplete"
+    test_data = [
+        {
+            "type": "roa",
+            "validation": "OK",
+        },
+        {
+            "type": "roa",
+            "validation": "OK",
+        },
+        {
+            "type": "roa",
+            "validation": "Failed"
+        },
+    ]
+
+    with open(os.path.join(context.out_dir_rpki, "rpki_raw.json"), "w") as f:
+        json.dump(test_data, f)
+
+    with pytest.raises(SystemExit) as exc_info:
+        parse_rpki(context)
+
+    captured = capsys.readouterr()
+    assert "No valid RPKI assignments found! Exiting." in captured.out
+    assert exc_info.value.code == 1
