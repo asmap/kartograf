@@ -10,7 +10,7 @@ from kartograf.bogon import (
     is_bogon_asn,
     is_out_of_encoding_range,
 )
-from kartograf.rpki.fetch import data_tals, parse_ccr_hashes
+from kartograf.rpki.fetch import parse_ccr_hashes
 from kartograf.timed import timed
 from kartograf.util import parse_pfx
 
@@ -141,9 +141,8 @@ def compute_ccr_hashes(context):
     data is not used.
     """
     with TemporaryDirectory(prefix="rpki-out-") as tmpdir:
-        tal_options = [item for path in data_tals(context) for item in ('-t', path)]
         run_args = ["rpki-client", "-m", "-n", "-d", context.data_dir_rpki_cache,
-                     "-P", context.epoch] + tal_options + [tmpdir]
+                    "-P", context.epoch, tmpdir]
         result = subprocess.run(run_args,
                                 capture_output=True,
                                 check=False)

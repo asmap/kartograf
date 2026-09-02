@@ -1,13 +1,11 @@
 import re
 import subprocess
-import sys
 from tempfile import TemporaryDirectory
 
 from concurrent.futures import ThreadPoolExecutor, as_completed
 import json
 from threading import Lock
 from pathlib import Path
-import requests
 from tqdm import tqdm
 
 from kartograf.timed import timed
@@ -15,14 +13,6 @@ from kartograf.util import (
     calculate_sha256,
     calculate_sha256_directory,
 )
-
-TAL_URLS = {
-    "afrinic": "http://rpki.afrinic.net/tal/afrinic.tal",
-    "apnic": "https://tal.apnic.net/tal-archive/apnic-rfc7730-https.tal",
-    "arin": "https://www.arin.net/resources/manage/rpki/arin.tal",
-    "lacnic": "https://www.lacnic.net/innovaportal/file/4983/1/lacnic.tal",
-    "ripe": "https://tal.rpki.ripe.net/ripe-ncc.tal"
-}
 
 STABLE_REPO_URLS = [
     "rpki.arin.net",
@@ -40,36 +30,6 @@ STABLE_REPO_URLS = [
     "repo-rpki.idnic.net"
 ]
 
-def download_rir_tals(context):
-    tals = []
-
-    for rir, url in TAL_URLS.items():
-        try:
-            response = requests.get(url, timeout=600)
-            response.raise_for_status()
-
-            tal_path = Path(context.data_dir_rpki_tals) / f"{rir}.tal"
-            with open(tal_path, 'wb') as file:
-                file.write(response.content)
-
-            print(f"Downloaded TAL for {rir.upper()} to {tal_path.name}, file hash: {calculate_sha256(tal_path)}")
-            tals.append(tal_path)
-
-        except requests.RequestException as e:
-            print(f"Error downloading TAL for {rir.upper()}: {e}")
-            sys.exit(1)
-
-
-def data_tals(context):
-    tal_paths = list(Path(context.data_dir_rpki_tals).rglob('*.tal'))
-    # We need to have 5 TALs, one from each RIR
-    if len(tal_paths) == 5:
-        return tal_paths
-
-    print("Not all 5 TALs could be downloaded.")
-    sys.exit(1)
-
-
 @timed
 def fetch_rpki_db(context):
     """
@@ -83,12 +43,10 @@ def fetch_rpki_db(context):
     since the default writes several hundred MB of data. The metrics
     data is not used.
     """
-    # Download TALs and persist them in the RPKI data folder
-    download_rir_tals(context)
+    # Without -t, rpki-client uses the RIR TALs it ships with
     with TemporaryDirectory(prefix="rpki-out-") as tmpdir:
-        tal_options = [item for path in data_tals(context) for item in ('-t', path)]
         run_args = ["rpki-client", "-m", "-d", context.data_dir_rpki_cache,
-                     "-P", context.epoch] + tal_options
+                    "-P", context.epoch]
         print("Downloading RPKI Data, this may take a while.")
 
         if context.stable_repos:
@@ -130,8 +88,6 @@ def validate_rpki_db(context):
     rpki_raw_file = 'rpki_raw.json'
     result_path = Path(context.out_dir_rpki) / rpki_raw_file
 
-    tal_options = [item for path in data_tals(context) for item in ('-t', path)]
-
     debug_file_lock = Lock()
 
     if context.debug_log:
@@ -146,8 +102,7 @@ def validate_rpki_db(context):
                                  context.data_dir_rpki_cache,
                                  "-P",
                                  context.epoch,
-                                 ] + tal_options +
-                                 ["-f"] + batch,  # -f has to be last
+                                 "-f"] + batch,  # -f has to be last
                                  capture_output=True,
                                  check=False)
 
