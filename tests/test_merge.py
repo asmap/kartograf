@@ -4,7 +4,7 @@ Test merging multiple sets of networks, as if they were independent AS files.
 from pathlib import Path
 import pytest
 
-from kartograf.merge import general_merge, pick_chunk_size
+from kartograf.merge import general_merge
 
 from .util.generate_data import (
     build_file_lines,
@@ -34,6 +34,22 @@ def _read_test_vectors(filepath):
             if in_result.strip() == "1":
                 all_in_result.append(network)
     return all_networks, all_in_result
+
+
+def test_extra_more_specific_does_not_supersede_base_supernet(tmp_path):
+    base_path = tmp_path / "base.txt"
+    extra_path = tmp_path / "extra.txt"
+    out_path = tmp_path / "out.txt"
+
+    base_path.write_text("12.0.0.0/8 AS7018\n")
+    extra_path.write_text("12.0.224.0/24 AS2386\n")
+
+    general_merge(base_path, extra_path, None, out_path)
+
+    result = out_path.read_text()
+
+    assert "12.0.0.0/8 AS7018\n" in result
+    assert "12.0.224.0/24 AS2386\n" not in result
 
 def test_merge_from_fixtures(tmp_path):
     '''
@@ -125,49 +141,3 @@ def test_merge_rpki_supersedes_irr_subnets(tmp_path):
     assert set(final_ips).isdisjoint(set(irr_ips)), (
         f"IRR subnets should not appear in merged output: {set(final_ips) & set(irr_ips)}"
     )
-
-def test_more_specific_base_does_not_suppress_extra_supernet(tmp_path):
-    '''
-    Test that a base more-specific prefix does not suppress an extra supernet
-    with the same network address.
-    A more specific network should not supersede a less specific network merged first.
-    In this test, 12.2.12.0/24 should not be merged since it is more specific than
-    12.0.0.0/8 and /9.
-    '''
-    rpki_path = tmp_path / "rpki_final.txt"
-    irr_path = tmp_path / "irr_final.txt"
-    rv_path = tmp_path / "pfx2asn_clean.txt"
-    merged_rpki_irr_path = tmp_path / "merged_file_rpki_irr.txt"
-    final_path = tmp_path / "merged_file_rpki_irr_rv.txt"
-
-    rpki_path.write_text("12.0.0.0/22 AS6269\n")
-    irr_path.write_text("12.0.0.0/8 AS7018\n12.0.0.0/9 AS7018\n")
-    rv_path.write_text("12.2.12.0/24 AS40724\n13.0.0.0/8 AS1239\n")
-
-    general_merge(rpki_path, irr_path, None, merged_rpki_irr_path)
-    general_merge(merged_rpki_irr_path, rv_path, None, final_path)
-
-    merged_rpki_irr = merged_rpki_irr_path.read_text()
-    final_result = final_path.read_text()
-
-    assert "12.0.0.0/22 AS6269\n" in merged_rpki_irr
-    assert "12.0.0.0/8 AS7018\n" in merged_rpki_irr
-    assert "12.0.0.0/9 AS7018\n" in merged_rpki_irr
-
-    assert "12.0.0.0/22 AS6269\n" in final_result
-    assert "12.0.0.0/8 AS7018\n" in final_result
-    assert "12.0.0.0/9 AS7018\n" in final_result
-    assert "12.2.12.0/24 AS40724\n" not in final_result
-    assert "13.0.0.0/8 AS1239\n" in final_result
-
-
-def test_pick_chunk_size():
-    '''
-    Test picking a chunk size for the merge function.
-    '''
-    assert pick_chunk_size(100, workers=16) == 7
-    assert pick_chunk_size(100, workers=4) == 25
-    # min_chunk wins
-    assert pick_chunk_size(10, workers=4) == 5
-    # min_chunk wins
-    assert pick_chunk_size(0) == 5

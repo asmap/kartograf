@@ -1,15 +1,11 @@
-from concurrent.futures import ProcessPoolExecutor
 from pathlib import Path
 import ipaddress
-import math
-import os
 import shutil
-from types import SimpleNamespace
 import pandas as pd
 
 from kartograf.timed import timed
+from kartograf.trie import IPTrie
 from kartograf.util import get_root_network
-
 
 class BaseNetworkIndex:
     '''
@@ -21,63 +17,30 @@ class BaseNetworkIndex:
     instead of all the networks in the base file.
     '''
 
-
     def __init__(self):
-        self._dict = {4: {}, 6: {}}
-        self._v4_keys = self._dict[4].keys()
-        self._v6_keys = self._dict[6].keys()
+        self._trie = IPTrie()
 
-    def update(self, pfx):
+    def update(self, pfx, asn):
         try:
-            ipn = ipaddress.ip_network(pfx)
+            ipn = ipaddress.ip_network(pfx, strict=False)
         except ValueError:
             print(f"Invalid prefix provided: {pfx}")
             return
-
-        netw = int(ipn.network_address)
-        mask = int(ipn.netmask)
-        v = ipn.version
-        root_net = get_root_network(pfx)
-
-        if (root_net in self._v4_keys) or (root_net in self._v6_keys):
-            current = self._dict[v][root_net]
-            self._dict[v][root_net] = current + [(netw, mask, ipn.prefixlen)]
-        else:
-            self._dict[v].update({root_net: [(netw, mask, ipn.prefixlen)]})
-
-    def check_inclusion(self, row, root_net, version):
-        """
-        A network is a subnet of another if the bitwise AND of its IP and the base network's netmask
-        is equal to the base network IP, and the network's prefix length is larger or equal than the base network's
-        prefix length.
-        """
-        candidate = ipaddress.ip_network(row.PFXS)
-        for net, mask, prefixlen in self._dict[version][root_net]:
-            if candidate.prefixlen >= prefixlen and row.INETS & mask == net:
-                return 1
-        return 0
+        self._trie.insert(ipn, asn)
 
     def contains_row(self, row):
-        root_net = row.PFXS_LEADING
-        version = ipaddress.ip_network(row.PFXS).version
-        if version == 4 and (root_net in self._v4_keys):
-            return self.check_inclusion(row, root_net, version)
-        if version == 6 and (root_net in self._v6_keys):
-            return self.check_inclusion(row, root_net, version)
+        """
+        Check if the prefix in the row is covered by any prefix in the base file.
+        A candidate prefix is covered if its network address matches a prefix in the trie
+        """
+        try:
+            candidate = ipaddress.ip_network(row.PFXS, strict=False)
+        except ValueError:
+            return 0
+        asn = self._trie.lookup(candidate)
+        if asn is not None:
+            return 1
         return 0
-
-    def get_serializable_dict(self):
-        """Return the internal dict for serialization to worker processes."""
-        return self._dict
-
-    @classmethod
-    def from_dict(cls, data_dict):
-        """Reconstruct a BaseNetworkIndex from a serialized dict."""
-        instance = cls()
-        instance._dict = data_dict
-        instance._v4_keys = instance._dict[4].keys()
-        instance._v6_keys = instance._dict[6].keys()
-        return instance
 
 @timed
 def merge_irr(context):
@@ -149,64 +112,26 @@ def extra_file_to_df(extra_file_path):
 
     return df_extra
 
-def process_chunk_worker(chunk_data, base_dict):
-    base = BaseNetworkIndex.from_dict(base_dict)
-
-    results = []
-    for original_idx, (net_int, pfx, pfx_leading) in chunk_data:
-        row = SimpleNamespace(PFXS=pfx, PFXS_LEADING=pfx_leading, INETS=net_int)
-
-        result = base.contains_row(row)
-        results.append((original_idx, result))
-    return results
-
-
-def pick_chunk_size(n_rows: int, workers: int | None = None,
-                    min_chunk: int = 5,
-                    max_chunk: int = 200_000) -> int:
-    if workers is None:
-        workers = os.cpu_count() or 4
-    chunk = math.ceil(n_rows / workers)
-    return max(min_chunk, min(max_chunk, chunk))
-
-
 def general_merge(
     base_file, extra_file, extra_filtered_file, out_file
 ):
     """
     Merge lists of IP networks into a base file.
     """
-    print("Merging extra prefixes that were not included in the base file.")
     base_network_index = BaseNetworkIndex()
     with open(base_file, "r") as file:
         for line in file:
-            pfx, _ = line.split(" ")
-            base_network_index.update(pfx)
+            pfx, asn = line.split(" ")
+            base_network_index.update(pfx, asn.strip())
 
     df_extra = extra_file_to_df(extra_file)
 
-    len_df_extra = len(df_extra)
-    chunk_size = pick_chunk_size(len_df_extra)
-    chunks = []
-    chunk_data = []
-    for i, row in df_extra.iterrows():
-        chunk_data.append((i, (row.INETS, row.PFXS, row.PFXS_LEADING)))
-        if (i + 1) % chunk_size == 0 or i == len_df_extra - 1:
-            chunks.append(chunk_data)
-            chunk_data = []
+    print("Merging extra prefixes that were not included in the base file.")
+    extra_included = []
+    for row in df_extra.itertuples(index=False):
+        extra_included.append(base_network_index.contains_row(row))
 
-    all_results = []
-    with ProcessPoolExecutor() as executor:
-        base_dict = base_network_index.get_serializable_dict()
-        futures = [executor.submit(process_chunk_worker, chunk, base_dict) for chunk in chunks]
-
-        for future in futures:
-            all_results.extend(future.result())
-
-    # Sort by original index
-    all_results.sort(key=lambda x: x[0])
-
-    df_extra["INCLUDED"] = [result for _, result in all_results]
+    df_extra["INCLUDED"] = extra_included
 
     df_filtered = df_extra[df_extra.INCLUDED == 0]
 
