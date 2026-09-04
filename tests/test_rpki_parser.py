@@ -19,8 +19,9 @@ def test_roa_validations(tmp_path, capsys):
     The ROA validation informs the user of invalids, incompletes, not-ROAs etc
     but not data is returned to that effect, so we test stdout's messages.
     We assert on the length of the output file, and assert on duplicates.
-    The fixtures file should output 7 entries, with 2 duplicates, 1 not-ROA, and
-    1 invalid entry.
+    The fixtures file should output 8 entries, with 5 duplicates, 1 not-ROA,
+    1 invalid entry and 2 entries pruned because they sit inside
+    2602:fd60::/44 which maps to the same ASN.
     '''
     epoch = "111111111"
     context = create_test_context(tmp_path, epoch)
@@ -37,8 +38,13 @@ def test_roa_validations(tmp_path, capsys):
 
     captured = capsys.readouterr()
 
-    assert len(final_lines) == 10, "Should have found 10 valid ROAs"
-    assert "Result entries written: 10" in captured.out
+    assert len(final_lines) == 8, "Should have written 8 entries"
+    assert "2602:fd60::/44 AS396503" in final_lines
+    assert "2602:fd60:e::/48 AS396503" not in final_lines
+    assert "2602:fd60:7::/48 AS396503" not in final_lines
+    assert "2602:fd60:11::/48 AS49134" in final_lines
+    assert "Result entries written: 8" in captured.out
+    assert "Redundant entries pruned: 2" in captured.out
     assert "Duplicates found: 5" in captured.out
     assert "Invalids found: 1" in captured.out
     assert "Incompletes: 0" in captured.out

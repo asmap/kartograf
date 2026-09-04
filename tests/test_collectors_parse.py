@@ -34,3 +34,20 @@ def test_parse(tmp_path):
     assert "2ab1:db8::/32 AS33521665" not in results
 
     assert results == ["1.0.0.0/24 AS13335", "1.0.4.0/24 AS38803", "1.0.16.0/24 AS2519"]
+
+
+def test_parse_prunes_same_asn_more_specifics(tmp_path, capsys):
+    context = build_test_context(tmp_path)
+    raw_file = Path(context.out_dir_collectors) / "pfx2asn.txt"
+    raw_file.write_text("1.0.0.0/23 AS1\n1.0.0.0/24 AS1\n1.0.1.0/24 AS2\n")
+
+    parse_routeviews_pfx2as(context)
+
+    result_file = Path(context.out_dir_collectors) / "pfx2asn_clean.txt"
+    with open(result_file, 'r') as f:
+        results = [l.strip() for l in f.readlines()]
+
+    assert results == ["1.0.0.0/23 AS1", "1.0.1.0/24 AS2"]
+    captured = capsys.readouterr()
+    assert "Entries after cleanup: 2" in captured.out
+    assert "Redundant entries pruned: 1" in captured.out

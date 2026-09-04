@@ -9,6 +9,7 @@ from kartograf.bogon import (
     is_bogon_asn,
     is_out_of_encoding_range,
 )
+from kartograf.prune import prune_entries
 from kartograf.timed import timed
 from kartograf.util import parse_pfx, rir_from_str
 
@@ -116,7 +117,10 @@ def parse_irr(context):
 
     print("Found valid, unique entries:", len(output_cache))
 
+    entries = [(route, origin) for route, [origin, _] in output_cache.items()]
+    entries, pruned = prune_entries(entries)
+    print(f"Redundant entries pruned: {pruned}")
+
     with open(irr_res, "a+") as irr:
-        for route, [origin, _] in output_cache.items():
-            line_out = f"{route} {origin}\n"
-            irr.write(line_out)
+        for route, origin in entries:
+            irr.write(f"{route} {origin}\n")
