@@ -19,7 +19,7 @@ def _df_from_networks(networks, asn=123):
     return df
 
 
-def test_base_dict_create():
+def test_base_create():
     '''
     contains_row returns false when adding a row to an empty base file dict.
     '''
@@ -31,15 +31,15 @@ def test_base_dict_create():
         assert not base.contains_row(row)
 
 
-def test_base_dict_update():
+def test_base_update():
     '''
     contains_row returns true when adding a row already present in the base dict.
     '''
     base = BaseNetworkIndex()
     ipv4_network = "10.10.0.0/16"
     ipv6_network = "2c0f:ff90::/32"
-    base.update(ipv4_network)
-    base.update(ipv6_network)
+    base.update(ipv4_network, 123)
+    base.update(ipv6_network, 123)
     df_extra = _df_from_networks([ipv4_network, ipv6_network])
     for row in df_extra.itertuples(index=False):
         assert base.contains_row(row)
@@ -51,7 +51,7 @@ def test_check_included_subnet():
     '''
     base = BaseNetworkIndex()
     network = "10.10.0.0/16"
-    base.update(network)
+    base.update(network, 123)
     subnet = "10.10.0.0/21"
     df_extra = _df_from_networks([subnet])
     for row in df_extra.itertuples(index=False):

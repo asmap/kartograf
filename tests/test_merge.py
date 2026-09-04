@@ -4,7 +4,7 @@ Test merging multiple sets of networks, as if they were independent AS files.
 from pathlib import Path
 import pytest
 
-from kartograf.merge import general_merge, pick_chunk_size
+from kartograf.merge import general_merge
 from kartograf.prune import prune_entries
 
 from .util.generate_data import (
@@ -35,6 +35,22 @@ def _read_test_vectors(filepath):
             if in_result.strip() == "1":
                 all_in_result.append(network)
     return all_networks, all_in_result
+
+
+def test_extra_more_specific_does_not_supersede_base_supernet(tmp_path):
+    base_path = tmp_path / "base.txt"
+    extra_path = tmp_path / "extra.txt"
+    out_path = tmp_path / "out.txt"
+
+    base_path.write_text("12.0.0.0/8 AS7018\n")
+    extra_path.write_text("12.0.224.0/24 AS2386\n")
+
+    general_merge(base_path, extra_path, None, out_path)
+
+    result = out_path.read_text()
+
+    assert "12.0.0.0/8 AS7018\n" in result
+    assert "12.0.224.0/24 AS2386\n" not in result
 
 def test_merge_from_fixtures(tmp_path):
     '''
@@ -160,18 +176,6 @@ def test_more_specific_base_does_not_suppress_extra_supernet(tmp_path):
     assert "12.0.0.0/9 AS7018\n" in final_result
     assert "12.2.12.0/24 AS40724\n" not in final_result
     assert "13.0.0.0/8 AS1239\n" in final_result
-
-
-def test_pick_chunk_size():
-    '''
-    Test picking a chunk size for the merge function.
-    '''
-    assert pick_chunk_size(100, workers=16) == 7
-    assert pick_chunk_size(100, workers=4) == 25
-    # min_chunk wins
-    assert pick_chunk_size(10, workers=4) == 5
-    # min_chunk wins
-    assert pick_chunk_size(0) == 5
 
 
 def test_pruned_extras_merge_to_the_same_canonical_result(tmp_path):
