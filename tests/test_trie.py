@@ -267,3 +267,95 @@ def test_lookup_rejects_invalid_string():
 
     with pytest.raises(TypeError):
         trie.lookup("not.an.ip.address")
+
+
+def test_lookup_rejects_network():
+    trie = IPTrie()
+    trie.insert(ip_network("10.0.0.0/8"), "AS100")
+
+    with pytest.raises(TypeError):
+        trie.lookup(ip_network("10.1.0.0/16"))
+
+
+def test_covering_asn_rejects_address():
+    trie = IPTrie()
+    trie.insert(ip_network("10.0.0.0/8"), "AS100")
+
+    with pytest.raises(TypeError):
+        trie.covering_asn(ip_address("10.1.2.3"))
+
+
+@pytest.mark.parametrize("base,down,down_nonaligned,up,sib", [
+    ("10.1.0.0/16", "10.1.0.0/21", "10.1.128.0/17", "10.0.0.0/8", "10.2.0.0/16"),
+    ("2001:db8::/32", "2001:db8:8000::/33", "2001:db8:ffff::/48", "2001::/16", "2001:db9::/32"),
+])
+def test_covering_asn(base, down, down_nonaligned, up, sib):
+    trie = IPTrie()
+    trie.insert(ip_network(base), "AS100")
+
+    assert trie.covering_asn(ip_network(base)) == "AS100"
+    assert trie.covering_asn(ip_network(down)) == "AS100"
+    assert trie.covering_asn(ip_network(down_nonaligned)) == "AS100"
+    assert trie.covering_asn(ip_network(up)) is None
+    assert trie.covering_asn(ip_network(sib)) is None
+
+
+@pytest.mark.parametrize("outer,inner,query", [
+    ("10.0.0.0/8", "10.1.0.0/16", "10.1.2.0/24"),
+    ("2001::/16", "2001:db8::/32", "2001:db8:1234::/48"),
+])
+def test_covering_asn_returns_nearest_cover(outer, inner, query):
+    trie = IPTrie()
+    trie.insert(ip_network(outer), "AS100")
+    trie.insert(ip_network(inner), "AS200")
+
+    assert trie.covering_asn(ip_network(query)) == "AS200"
+    assert trie.covering_asn(ip_network(inner)) == "AS200"
+
+
+@pytest.mark.parametrize("default,inside", [
+    ("0.0.0.0/0", "10.1.2.3"),
+    ("::/0", "2001:db8::1"),
+])
+def test_covering_asn_default_route(default, inside):
+    trie = IPTrie()
+    trie.insert(ip_network(default), "AS_DEFAULT")
+
+    assert trie.covering_asn(ip_network(default)) == "AS_DEFAULT"
+    assert trie.covering_asn(ip_network(inside)) == "AS_DEFAULT"
+
+
+@pytest.mark.parametrize("host,miss", [
+    ("192.168.1.100/32", "192.168.1.101/32"),
+    ("2001:db8::1/128", "2001:db8::2/128"),
+])
+def test_covering_asn_single_host(host, miss):
+    trie = IPTrie()
+    trie.insert(ip_network(host), "AS_SINGLE")
+
+    assert trie.covering_asn(ip_network(host)) == "AS_SINGLE"
+    assert trie.covering_asn(ip_network(miss)) is None
+
+
+@pytest.mark.parametrize("base,other_family", [
+    ("10.1.0.0/16", "2001:db8::/32"),
+    ("2001:db8::/32", "10.1.0.0/16"),
+])
+def test_covering_asn_cross_family_is_none(base, other_family):
+    trie = IPTrie()
+    trie.insert(ip_network(base), "AS100")
+
+    assert trie.covering_asn(ip_network(other_family)) is None
+
+
+@pytest.mark.parametrize("base,supernet", [
+    ("12.0.0.0/22", "12.0.0.0/8"),
+    ("2001:db8:8000::/33", "2001:db8::/32"),
+])
+def test_covering_asn_supernet_is_not_covered(base, supernet):
+    # Merge regression: a more-specific base must not suppress an
+    # extra supernet with the same network address.
+    trie = IPTrie()
+    trie.insert(ip_network(base), "AS100")
+
+    assert trie.covering_asn(ip_network(supernet)) is None

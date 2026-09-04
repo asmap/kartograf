@@ -22,54 +22,65 @@ class IPTrie:
 
     def insert(self, network, asn):
         if not isinstance(network, (ipaddress.IPv4Network, ipaddress.IPv6Network)):
-            raise TypeError("lookup expects an ip_address object")
+            raise TypeError("insert expects an ip_network object")
 
-        if network.version == 4:
-            root = self._ipv4_root
-            max_bits = 32
-        else:
-            root = self._ipv6_root
-            max_bits = 128
-
-        addr_int = int(network.network_address)
-        prefix_len = network.prefixlen
-
-        node = root
-        for i in range(prefix_len):
-            bit = (addr_int >> (max_bits - 1 - i)) & 1
-            if node.children[bit] is None:
-                node.children[bit] = TrieNode()
-            node = node.children[bit]
-
+        node, _ = self._walk(network.version, int(network.network_address),
+                             bits=network.prefixlen, create=True)
         node.asn = asn
 
     def lookup(self, ip):
+        """Lookup an IP address using longest prefix match."""
         if not isinstance(ip, (ipaddress.IPv4Address, ipaddress.IPv6Address)):
             raise TypeError("lookup expects an ip_address object")
 
-        if ip.version == 4:
-            root = self._ipv4_root
+        _, last_asn = self._walk(ip.version, int(ip))
+        return last_asn
+
+    def covering_asn(self, network):
+        """Return the ASN of the network covering this one (exact match or
+        superset), or None.
+
+        For RPKI-based merging, we consider a network 'included' if it is
+        covered by an existing network (exact match or subset). We only want
+        to add networks from less trusted sources if they don't overlap at all.
+        """
+        if not isinstance(network, (ipaddress.IPv4Network, ipaddress.IPv6Network)):
+            raise TypeError("covering_asn expects an ip_network object")
+
+        _, last_asn = self._walk(network.version, int(network.network_address),
+                                 bits=network.prefixlen)
+        return last_asn
+
+    def _walk(self, version, addr_int, bits=None, create=False):
+        """Walk the trie along the bit path of addr_int.
+
+        Walks up to `bits` levels (default: every level, stopping when the
+        path runs out of children). With create=True, extends the path with
+        new nodes instead of stopping. Returns (node, last_asn): the node
+        where the walk stopped, and the ASN of the deepest node with an ASN
+        seen along the path.
+        """
+        if version == 4:
+            node = self._ipv4_root
             max_bits = 32
         else:
-            root = self._ipv6_root
+            node = self._ipv6_root
             max_bits = 128
 
-        addr_int = int(ip)
-        last_asn = None
-        node = root
-
-        for i in range(max_bits):
+        last_asn = node.asn
+        for i in range(max_bits if bits is None else bits):
+            bit = (addr_int >> (max_bits - 1 - i)) & 1
+            child = node.children[bit]
+            if child is None:
+                if not create:
+                    break
+                child = TrieNode()
+                node.children[bit] = child
+            node = child
             if node.asn is not None:
                 last_asn = node.asn
-            bit = (addr_int >> (max_bits - 1 - i)) & 1
-            if node.children[bit] is None:
-                break
-            node = node.children[bit]
 
-        if node.asn is not None:
-            last_asn = node.asn
-
-        return last_asn
+        return node, last_asn
 
     def from_map_file(self, map_file):
         for line in map_file:
