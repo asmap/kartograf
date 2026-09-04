@@ -90,7 +90,9 @@ def extra_file_to_df(extra_file_path):
     extra_pfxs_leading = []
     with open(extra_file_path, "r") as file:
         for line in file:
-            pfx, asn = line.split(" ")
+            if not line.strip():
+                continue
+            pfx, asn = line.split()
             try:
                 ipn = ipaddress.ip_network(pfx)
             except ValueError:
@@ -122,7 +124,9 @@ def general_merge(
     base_network_index = BaseNetworkIndex()
     with open(base_file, "r") as file:
         for line in file:
-            pfx, asn = line.split(" ")
+            if not line.strip():
+                continue
+            pfx, asn = line.split()
             base_network_index.update(pfx, asn.strip())
 
     df_extra = extra_file_to_df(extra_file)
