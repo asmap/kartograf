@@ -8,12 +8,12 @@ import json
 from threading import Lock
 from pathlib import Path
 import requests
-from tqdm import tqdm
 
 from kartograf.timed import timed
 from kartograf.util import (
     calculate_sha256,
     calculate_sha256_directory,
+    print_progress,
 )
 
 TAL_URLS = {
@@ -169,11 +169,12 @@ def validate_rpki_db(context):
     results = []
     with ThreadPoolExecutor() as executor:
         futures = [executor.submit(process_files_batch, batch) for batch in batches]
-        for future in tqdm(as_completed(futures), total=total_batches):
+        for done, future in enumerate(as_completed(futures), start=1):
             result = future.result()
             if result:
                 normalized = result.replace(b"\n}\n{\n\t", b"\n},\n{\n").decode('utf-8').strip()
                 results.append(normalized)
+            print_progress(done, total_batches)
         results_json = json.loads("[" + ",".join(results) + "]")
         s = sorted(results_json, key=lambda result: result["hash_id"])
 

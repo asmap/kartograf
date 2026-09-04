@@ -1,22 +1,22 @@
+from collections import namedtuple
 import ipaddress
-import pandas as pd
 from kartograf.merge import BaseNetworkIndex
 from kartograf.util import get_root_network
 
+Row = namedtuple("Row", ["INETS", "ASNS", "PFXS", "PFXS_LEADING"])
 
-def _df_from_networks(networks, asn=123):
+
+def _rows_from_networks(networks, asn=123):
     '''
-    Create a one-row dataframe that holds the extra file rows in the expected format for contains_row().
+    Create the extra file rows in the expected format for contains_row().
     '''
-    df = pd.DataFrame(
-        columns=["INETS", "ASNS", "PFXS", "PFXS_LEADING"],
-    )
+    rows = []
     for network in networks:
         ipn = ipaddress.ip_network(network)
         root_net = get_root_network(network)
         network_int = int(ipn.network_address)
-        df.loc[len(df)] = [network_int, asn, str(ipn), root_net]
-    return df
+        rows.append(Row(network_int, asn, str(ipn), root_net))
+    return rows
 
 
 def test_base_dict_create():
@@ -26,8 +26,7 @@ def test_base_dict_create():
     base = BaseNetworkIndex()
     ipv4_network = "10.10.0.0/16"
     ipv6_network = "2c0f:ff90::/32"
-    df_extra = _df_from_networks([ipv4_network, ipv6_network])
-    for row in df_extra.itertuples(index=False):
+    for row in _rows_from_networks([ipv4_network, ipv6_network]):
         assert not base.contains_row(row)
 
 
@@ -40,8 +39,7 @@ def test_base_dict_update():
     ipv6_network = "2c0f:ff90::/32"
     base.update(ipv4_network)
     base.update(ipv6_network)
-    df_extra = _df_from_networks([ipv4_network, ipv6_network])
-    for row in df_extra.itertuples(index=False):
+    for row in _rows_from_networks([ipv4_network, ipv6_network]):
         assert base.contains_row(row)
 
 
@@ -53,6 +51,5 @@ def test_check_included_subnet():
     network = "10.10.0.0/16"
     base.update(network)
     subnet = "10.10.0.0/21"
-    df_extra = _df_from_networks([subnet])
-    for row in df_extra.itertuples(index=False):
+    for row in _rows_from_networks([subnet]):
         assert base.contains_row(row)

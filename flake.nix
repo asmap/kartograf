@@ -32,12 +32,9 @@
       pkgs = nixpkgsFor system;
       python = pkgs.python313;
       pythonDevDeps = python.withPackages (ps: [
-        ps.beautifulsoup4
-        ps.pandas
         ps.pylint
         ps.pytest
         ps.requests
-        ps.tqdm
       ]);
     in {
       default = pkgs.mkShell {
