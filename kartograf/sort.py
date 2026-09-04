@@ -1,6 +1,7 @@
 import ipaddress
 from pathlib import Path
 
+from kartograf.prune import prune_entries
 from kartograf.timed import timed
 
 
@@ -16,12 +17,16 @@ def sort_result_by_pfx(context):
         out_file = Path(context.out_dir_rpki) / "rpki_final.txt"
 
     with open(out_file, 'r') as file:
-        prefixes = file.read().splitlines()
+        entries = [tuple(line.split()) for line in file if line.strip()]
+
+    # Catches entries that only became redundant through the merge, e.g. an
+    # RPKI /24 under an IRR /23 with the same ASN.
+    entries, pruned = prune_entries(entries)
+    print(f"Redundant entries pruned: {pruned}")
 
     # Convert prefixes to a sortable form
     sortable_prefixes = []
-    for prefix in prefixes:
-        ip_prefix, asn = prefix.split(' ')
+    for ip_prefix, asn in entries:
         net = ipaddress.ip_network(ip_prefix)
         # Determine if the network is IPv4 or IPv6
         is_ipv6 = int(net.version == 6)
