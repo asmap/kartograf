@@ -1,7 +1,5 @@
-import ipaddress
 import pandas as pd
 from kartograf.merge import BaseNetworkIndex
-from kartograf.util import get_root_network
 
 
 def _df_from_networks(networks, asn=123):
@@ -9,13 +7,10 @@ def _df_from_networks(networks, asn=123):
     Create a one-row dataframe that holds the extra file rows in the expected format for contains_row().
     '''
     df = pd.DataFrame(
-        columns=["INETS", "ASNS", "PFXS", "PFXS_LEADING"],
+        columns=["ASNS", "PFXS"],
     )
     for network in networks:
-        ipn = ipaddress.ip_network(network)
-        root_net = get_root_network(network)
-        network_int = int(ipn.network_address)
-        df.loc[len(df)] = [network_int, asn, str(ipn), root_net]
+        df.loc[len(df)] = [asn, network]
     return df
 
 

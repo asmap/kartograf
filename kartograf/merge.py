@@ -5,7 +5,7 @@ import pandas as pd
 
 from kartograf.timed import timed
 from kartograf.trie import IPTrie
-from kartograf.util import get_root_network
+
 
 class BaseNetworkIndex:
     '''
@@ -84,32 +84,24 @@ def merge_pfx2as(context):
 
 
 def extra_file_to_df(extra_file_path):
-    extra_nets_int = []
     extra_asns = []
     extra_pfxs = []
-    extra_pfxs_leading = []
     with open(extra_file_path, "r") as file:
         for line in file:
             if not line.strip():
                 continue
             pfx, asn = line.split()
             try:
-                ipn = ipaddress.ip_network(pfx)
+                ipaddress.ip_network(pfx)
             except ValueError:
                 print(f"Invalid IP network: {pfx}, skipping")
                 continue
-            netw_int = int(ipn.network_address)
-            extra_nets_int.append(netw_int)
             extra_asns.append(asn.strip())
             extra_pfxs.append(pfx)
-            root_net = get_root_network(pfx)
-            extra_pfxs_leading.append(root_net)
 
     df_extra = pd.DataFrame({
-        "INETS": extra_nets_int,
         "ASNS": extra_asns,
         "PFXS": extra_pfxs,
-        "PFXS_LEADING": extra_pfxs_leading
         })
 
     return df_extra
