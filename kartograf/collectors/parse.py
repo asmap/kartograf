@@ -5,6 +5,7 @@ from kartograf.bogon import (
     is_bogon_asn,
     is_out_of_encoding_range,
 )
+from kartograf.prune import prune_entries
 from kartograf.timed import timed
 from kartograf.util import parse_pfx
 
@@ -14,9 +15,9 @@ def parse_routeviews_pfx2as(context):
     raw_file = Path(context.out_dir_collectors) / "pfx2asn.txt"
     clean_file = Path(context.out_dir_collectors) / "pfx2asn_clean.txt"
     context.cleanup_out_files.append(raw_file)
-    written_lines = 0
+    entries = []
 
-    with open(raw_file, 'r') as raw, open(clean_file, 'w') as clean:
+    with open(raw_file, 'r') as raw:
         lines = raw.readlines()
         for line in lines:
             # CAIDA PFX2AS files can contain multi-origin routes as well as
@@ -38,8 +39,7 @@ def parse_routeviews_pfx2as(context):
                             logs.write(f"Routeviews: parser encountered an invalid IP network: {prefix}")
                     continue
 
-                clean.write(f"{prefix} {asn}\n")
-                written_lines += 1
+                entries.append((prefix, asn))
                 continue
 
             # If the line contains a multi-origin route (signified by the _)
@@ -70,7 +70,12 @@ def parse_routeviews_pfx2as(context):
             if context.max_encode and is_out_of_encoding_range(asn, context.max_encode):
                 continue
 
-            clean.write(f"{prefix} {asn}\n")
-            written_lines += 1
+            entries.append((prefix, asn))
 
-    print("Entries after cleanup:", written_lines)
+    entries, pruned = prune_entries(entries)
+    with open(clean_file, 'w') as clean:
+        for prefix, asn in entries:
+            clean.write(f"{prefix} {asn}\n")
+
+    print("Entries after cleanup:", len(entries))
+    print(f"Redundant entries pruned: {pruned}")

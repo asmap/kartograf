@@ -10,6 +10,7 @@ from kartograf.bogon import (
     is_bogon_asn,
     is_out_of_encoding_range,
 )
+from kartograf.prune import prune_entries
 from kartograf.rpki.fetch import data_tals, parse_ccr_hashes
 from kartograf.timed import timed
 from kartograf.util import parse_pfx
@@ -106,11 +107,12 @@ def parse_rpki(context):
                     # No duplicate, add to cache
                     output_cache[prefix] = [asn, valid_until, valid_since]
 
-    with open(rpki_res, "w") as asmap:
-        for prefix, [asn, _, _] in output_cache.items():
-            line_out = f"{prefix} AS{asn}"
+    entries = [(prefix, f"AS{asn}") for prefix, [asn, _, _] in output_cache.items()]
+    entries, pruned = prune_entries(entries)
 
-            asmap.write(line_out + '\n')
+    with open(rpki_res, "w") as asmap:
+        for prefix, asn in entries:
+            asmap.write(f"{prefix} {asn}\n")
             out_count += 1
 
     context.cleanup_out_files.append(raw_input)
@@ -120,6 +122,7 @@ def parse_rpki(context):
     print(f'Invalids found: {invalids}')
     print(f'Incompletes: {incompletes}')
     print(f'Non-ROA files: {not_roas}')
+    print(f'Redundant entries pruned: {pruned}')
 
     if out_count == 0:
         print("No valid RPKI assignments found! Exiting.")

@@ -45,5 +45,34 @@ def test_parse_validation_cases(tmp_path):
     # Last complete object has no trailing blank in the fixture
     assert "212.20.0.0/24 AS12345" in content
 
-    # Test expected set
-    assert content == ["193.254.30.0/24 AS12726", "212.166.64.0/19 AS12321", "212.80.191.0/24 AS12541", "212.16.0.0/24 AS12346", "212.17.0.0/24 AS12347", "2345:2ca::/32 AS12345", "212.20.0.0/24 AS12345"]
+    # Test expected set, the output is sorted by IP version and network
+    assert content == ["193.254.30.0/24 AS12726", "212.16.0.0/24 AS12346", "212.17.0.0/24 AS12347", "212.20.0.0/24 AS12345", "212.80.191.0/24 AS12541", "212.166.64.0/19 AS12321", "2345:2ca::/32 AS12345"]
+
+
+def test_parse_prunes_same_asn_more_specifics(tmp_path, capsys):
+    context = create_test_context(tmp_path, "111111113")
+    irr_file = Path(context.out_dir_irr) / "irr_ripe_nested.txt"
+    irr_file.write_text(
+        "route:          212.100.0.0/23\n"
+        "origin:         AS1\n"
+        "source:         RIPE\n"
+        "\n"
+        "route:          212.100.0.0/24\n"
+        "origin:         AS1\n"
+        "source:         RIPE\n"
+        "\n"
+        "route:          212.100.1.0/24\n"
+        "origin:         AS2\n"
+        "source:         RIPE\n"
+    )
+
+    parse_irr(context)
+
+    result_file = Path(context.out_dir_irr) / "irr_final.txt"
+    with open(str(result_file), 'r') as f:
+        content = [l.strip() for l in f.readlines()]
+
+    assert content == ["212.100.0.0/23 AS1", "212.100.1.0/24 AS2"]
+    captured = capsys.readouterr()
+    assert "Found valid, unique entries: 3" in captured.out
+    assert "Redundant entries pruned: 1" in captured.out

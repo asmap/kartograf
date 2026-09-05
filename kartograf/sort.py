@@ -1,7 +1,15 @@
 import ipaddress
 from pathlib import Path
 
+from kartograf.prune import prune_entries
 from kartograf.timed import timed
+
+
+def _sort_key(entry):
+    # IPv4 before IPv6, then by network address, longer prefixes first for
+    # the same address, then by ASN
+    net = ipaddress.ip_network(entry[0])
+    return (int(net.version == 6), int(net.network_address), -net.prefixlen, entry[1])
 
 
 @timed
@@ -16,35 +24,20 @@ def sort_result_by_pfx(context):
         out_file = Path(context.out_dir_rpki) / "rpki_final.txt"
 
     with open(out_file, 'r') as file:
-        prefixes = file.read().splitlines()
+        entries = [tuple(line.split()) for line in file if line.strip()]
 
-    # Convert prefixes to a sortable form
-    sortable_prefixes = []
-    for prefix in prefixes:
-        ip_prefix, asn = prefix.split(' ')
-        net = ipaddress.ip_network(ip_prefix)
-        # Determine if the network is IPv4 or IPv6
-        is_ipv6 = int(net.version == 6)
-        # Create a tuple containing whether it's IPv6, the IP network as an
-        # integer, the prefix length (negated for descending order), and the
-        # ASN
-        sortable_prefixes.append((is_ipv6,
-                                  int(net.network_address),
-                                  -net.prefixlen,
-                                  asn))
+    # Catches entries that only became redundant through the merge, e.g. an
+    # RPKI /24 under an IRR /23 with the same ASN.
+    entries, pruned = prune_entries(entries)
+    print(f"Redundant entries pruned: {pruned}")
 
-    sortable_prefixes.sort()
+    # The prefixes are canonical strings from our parsers, so they are
+    # written back as they are once sorted.
+    entries.sort(key=_sort_key)
 
     sorted_out_file = Path(context.out_dir) / "merged_file_sorted.txt"
     with open(sorted_out_file, "w") as file:
-        for is_ipv6, net_int, neg_prefixlen, asn in sortable_prefixes:
-            prefixlen = -neg_prefixlen
-            if is_ipv6:
-                net_address = ipaddress.IPv6Address(net_int)
-                net = ipaddress.IPv6Network((net_address, prefixlen))
-            else:
-                net_address = ipaddress.IPv4Address(net_int)
-                net = ipaddress.IPv4Network((net_address, prefixlen))
-            file.write(f'{str(net)} {asn}\n')
+        for prefix, asn in entries:
+            file.write(f"{prefix} {asn}\n")
 
     sorted_out_file.rename(Path(context.final_result_file))

@@ -5,6 +5,7 @@ from pathlib import Path
 import pytest
 
 from kartograf.merge import general_merge, pick_chunk_size
+from kartograf.prune import prune_entries
 
 from .util.generate_data import (
     build_file_lines,
@@ -171,3 +172,33 @@ def test_pick_chunk_size():
     assert pick_chunk_size(10, workers=4) == 5
     # min_chunk wins
     assert pick_chunk_size(0) == 5
+
+
+def test_pruned_extras_merge_to_the_same_canonical_result(tmp_path):
+    '''
+    Pruning a source before the merge must not change the final map. This
+    relies on the containment based coverage check: whatever a redundant
+    extra covered is also covered by its cover. The old check without the
+    prefix length comparison dropped the /8 below while keeping the /9.
+    '''
+    base = tmp_path / "base.txt"
+    base.write_text("12.0.0.0/22 AS100\n")
+    extras = [("12.0.0.0/8", "AS200"), ("12.128.0.0/9", "AS200"), ("12.0.0.0/23", "AS300")]
+
+    unpruned_extra = tmp_path / "extra.txt"
+    unpruned_extra.write_text("".join(f"{p} {a}\n" for p, a in extras))
+    pruned_extra = tmp_path / "extra_pruned.txt"
+    pruned_extra.write_text("".join(f"{p} {a}\n" for p, a in prune_entries(extras)[0]))
+
+    out_unpruned = tmp_path / "out_unpruned.txt"
+    out_pruned = tmp_path / "out_pruned.txt"
+    general_merge(base, unpruned_extra, None, out_unpruned)
+    general_merge(base, pruned_extra, None, out_pruned)
+
+    assert out_unpruned.read_text() == "12.0.0.0/22 AS100\n12.0.0.0/8 AS200\n12.128.0.0/9 AS200\n"
+    assert out_pruned.read_text() == "12.0.0.0/22 AS100\n12.0.0.0/8 AS200\n"
+
+    def canonical(path):
+        return prune_entries(tuple(l.split()) for l in path.read_text().splitlines())[0]
+
+    assert canonical(out_unpruned) == canonical(out_pruned) == [("12.0.0.0/8", "AS200"), ("12.0.0.0/22", "AS100")]
