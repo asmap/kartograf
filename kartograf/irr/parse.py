@@ -73,7 +73,7 @@ def parse_irr(context):
                     if not parsed_route:
                         if context.debug_log:
                             with open(context.debug_log, 'a') as logs:
-                                logs.write(f"Could not parse prefix from line: {route}")
+                                logs.write(f"Could not parse prefix from line: {route}\n")
                         continue
 
                     # AFRINIC and LACNIC appear to not use last modified anymore

@@ -69,7 +69,7 @@ def parse_rpki(context):
                 if not prefix:
                     if context.debug_log:
                         with open(context.debug_log, 'a') as logs:
-                            logs.write(f"Could not parse prefix from line: {vrp['prefix']}")
+                            logs.write(f"Could not parse prefix from line: {vrp['prefix']}\n")
                     continue
                 # Bogon prefixes and ASNs are excluded since they can not
                 # be used for routing.
