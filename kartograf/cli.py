@@ -39,6 +39,9 @@ def create_parser():
     # Set to 0 to disable
     parser_map.add_argument("-me", "--max_encode", type=int, default=33521664)
 
+    parser_map.add_argument("-e", "--encode", action="store_true", default=False,
+                            help="Encode the final map as filled and unfilled Bitcoin Core ASMaps")
+
     # TODO:
     # Save the final output file in a different location that the default out
     # folder
