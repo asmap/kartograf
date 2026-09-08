@@ -9,12 +9,11 @@ from kartograf.trie import IPTrie
 
 class BaseNetworkIndex:
     '''
-    A class whose _dict represents a mapping of the network number and
-    IP networks within that network for a given AS file.
+    An index of the base AS file's networks, backed by an IPTrie
+    mapping each network to its ASN.
 
     To check inclusion of a given IP network in the base AS file,
-    we can compare (see check_inclusion) the networks under the root network number
-    instead of all the networks in the base file.
+    contains_row looks up the nearest covering prefix in the trie.
     '''
 
     def __init__(self):
