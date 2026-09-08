@@ -1,0 +1,37 @@
+name: Check vendored sources
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+    branches: [master]
+  schedule:
+    - cron: '17 6 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  check-vendor:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Checkout Bitcoin Core
+      uses: actions/checkout@v4
+      with:
+        repository: bitcoin/bitcoin
+        ref: master
+        path: bitcoin-core
+
+    - name: Compare vendored file hashes with upstream
+      shell: bash
+      run: |
+        set -euo pipefail
+
+        sha256sum bitcoin-core/contrib/asmap/asmap.py \
+          bitcoin-core/contrib/asmap/asmap-tool.py |
+          sed 's|bitcoin-core/contrib/asmap/|kartograf/vendor/bitcoin_core/|' |
+          sha256sum --check
