@@ -82,8 +82,11 @@ def parse_irr(context):
 
                     # Bogon prefixes and ASNs are excluded since they can not
                     # be used for routing.
-                    if is_bogon_pfx(parsed_route) or is_bogon_asn(origin):
-                        context.debug(f"IRR: parser encountered an invalid route: {parsed_route}")
+                    if is_bogon_pfx(parsed_route):
+                        context.debug(f"IRR: parser encountered a bogon route: {parsed_route}")
+                        continue
+                    if is_bogon_asn(origin):
+                        context.debug(f"IRR: parser encountered a bogon ASN: {origin}")
                         continue
 
                     if context.max_encode and is_out_of_encoding_range(origin, context.max_encode):

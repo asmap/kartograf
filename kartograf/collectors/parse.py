@@ -33,8 +33,14 @@ def parse_routeviews_pfx2as(context):
                 if context.max_encode and is_out_of_encoding_range(asn, context.max_encode):
                     continue
 
-                if not prefix or is_bogon_pfx(prefix) or is_bogon_asn(asn):
-                    context.debug(f"Routeviews: parser encountered an invalid IP network: {prefix}")
+                if not prefix:
+                    context.debug(f"Routeviews: could not parse prefix from line: {line.strip()}")
+                    continue
+                if is_bogon_pfx(prefix):
+                    context.debug(f"Routeviews: parser encountered a bogon prefix: {prefix}")
+                    continue
+                if is_bogon_asn(asn):
+                    context.debug(f"Routeviews: parser encountered a bogon ASN: {asn}")
                     continue
 
                 entries.append((prefix, asn))
@@ -59,8 +65,11 @@ def parse_routeviews_pfx2as(context):
 
             if not prefix:
                 continue
-            if is_bogon_pfx(prefix) or is_bogon_asn(asn):
-                context.debug(f"Routeviews: parser encountered an invalid IP network: {prefix}")
+            if is_bogon_pfx(prefix):
+                context.debug(f"Routeviews: parser encountered a bogon prefix: {prefix}")
+                continue
+            if is_bogon_asn(asn):
+                context.debug(f"Routeviews: parser encountered a bogon ASN: {asn}")
                 continue
 
             if context.max_encode and is_out_of_encoding_range(asn, context.max_encode):

@@ -49,6 +49,37 @@ def test_parse_validation_cases(tmp_path):
     assert content == ["193.254.30.0/24 AS12726", "212.16.0.0/24 AS12346", "212.17.0.0/24 AS12347", "212.20.0.0/24 AS12345", "212.80.191.0/24 AS12541", "212.166.64.0/19 AS12321", "2345:2ca::/32 AS12345"]
 
 
+def test_bogons_logged_separately(tmp_path):
+    '''
+    Bogon prefixes and bogon ASNs are logged separately.
+    '''
+    context = create_test_context(tmp_path, "111111114")
+    context.debug_log = str(tmp_path / "debug.log")
+
+    irr_file = Path(context.out_dir_irr) / "irr_ripe_bogons.txt"
+    irr_file.write_text(
+        "route:          212.16.0.0/24\n"
+        "origin:         AS12345\n"
+        "source:         RIPE\n"
+        "\n"
+        "route:          192.168.0.0/16\n"
+        "origin:         AS12345\n"
+        "source:         RIPE\n"
+        "\n"
+        "route:          212.17.0.0/24\n"
+        "origin:         AS64512\n"
+        "source:         RIPE\n"
+    )
+
+    parse_irr(context)
+
+    with open(context.debug_log, "r") as f:
+        log = f.read()
+
+    assert "IRR: parser encountered a bogon route: 192.168.0.0/16" in log
+    assert "IRR: parser encountered a bogon ASN: AS64512" in log
+
+
 def test_parse_prunes_same_asn_more_specifics(tmp_path, capsys):
     context = create_test_context(tmp_path, "111111113")
     irr_file = Path(context.out_dir_irr) / "irr_ripe_nested.txt"
