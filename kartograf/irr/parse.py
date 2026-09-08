@@ -71,9 +71,7 @@ def parse_irr(context):
 
                     parsed_route = parse_pfx(route)
                     if not parsed_route:
-                        if context.debug_log:
-                            with open(context.debug_log, 'a') as logs:
-                                logs.write(f"Could not parse prefix from line: {route}")
+                        context.debug(f"Could not parse prefix from line: {route}")
                         continue
 
                     # AFRINIC and LACNIC appear to not use last modified anymore
@@ -85,9 +83,7 @@ def parse_irr(context):
                     # Bogon prefixes and ASNs are excluded since they can not
                     # be used for routing.
                     if is_bogon_pfx(parsed_route) or is_bogon_asn(origin):
-                        if context.debug_log:
-                            with open(context.debug_log, 'a') as logs:
-                                logs.write(f"IRR: parser encountered an invalid route: {parsed_route}\n")
+                        context.debug(f"IRR: parser encountered an invalid route: {parsed_route}")
                         continue
 
                     if context.max_encode and is_out_of_encoding_range(origin, context.max_encode):

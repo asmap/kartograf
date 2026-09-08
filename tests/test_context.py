@@ -26,6 +26,31 @@ def test_basic_map_context(parser, tmp_path):
     assert context.max_encode == 33521664
     assert Path(context.debug_log).name == ''
 
+
+def test_debug_disabled_writes_nothing(parser, tmp_path):
+    args = parser.parse_args(['map'])
+    os.chdir(tmp_path)  # Use temporary directory
+    context = Context(args)
+
+    assert context.debug_log == ''
+
+    context.debug("should not be written")
+
+    assert not list(tmp_path.rglob("debug.log"))
+
+
+def test_debug_appends_one_line_per_message(parser, tmp_path):
+    args = parser.parse_args(['map'])
+    os.chdir(tmp_path)  # Use temporary directory
+    context = Context(args)
+    context.debug_log = str(tmp_path / "debug.log")
+
+    context.debug("first")
+    context.debug("second")
+
+    assert (tmp_path / "debug.log").read_text() == "first\nsecond\n"
+
+
 def test_map_context_with_reproduce(parser, tmp_path):
     # Setup a mock reproduction directory
     repro_path = tmp_path / "repro"

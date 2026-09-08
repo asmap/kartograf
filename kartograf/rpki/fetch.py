@@ -61,13 +61,11 @@ def fetch_rpki_db(context):
                                 capture_output=True,
                                 check=False)
 
-        if context.debug_log:
-            with open(context.debug_log, 'a') as logs:
-                logs.write("=== RPKI Download ===\n")
-                if result.stdout:
-                    logs.write(result.stdout.decode())
-                if result.stderr:
-                    logs.write(result.stderr.decode())
+        context.debug("\n\n=== RPKI Download ===")
+        if result.stdout:
+            context.debug(result.stdout.decode())
+        if result.stderr:
+            context.debug(result.stderr.decode())
 
         if result.returncode != 0:
             print(f"rpki-client exited with code {result.returncode} "
@@ -98,9 +96,7 @@ def validate_rpki_db(context):
 
     debug_file_lock = Lock()
 
-    if context.debug_log:
-        with open(context.debug_log, 'a') as logs:
-            logs.write("\n\n=== RPKI Validation ===\n")
+    context.debug("\n\n=== RPKI Validation ===")
 
     def process_files_batch(batch):
         result = subprocess.run(["rpki-client",
@@ -120,11 +116,10 @@ def validate_rpki_db(context):
             print(result.stderr.decode() if result.stderr else "(no stderr)")
             sys.exit(1)
 
-        if result.stderr and context.debug_log:
+        if result.stderr:
             stderr_output = result.stderr.decode()
             with debug_file_lock:
-                with open(context.debug_log, 'a') as logs:
-                    logs.write(stderr_output)
+                context.debug(stderr_output)
         return result.stdout
 
     total = len(files)
