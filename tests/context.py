@@ -12,6 +12,7 @@ TEST_ARGS = SimpleNamespace(**{
     "irr": False,
     "routeviews": False,
     "max_encode": 33521664,
+    "encode": False,
     "debug": False,
     "stable_repos": False,
     "wipe_data_dir": False,
