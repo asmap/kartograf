@@ -83,6 +83,15 @@ class Context:
             self.debug_log = ""
 
 
+    def debug(self, message):
+        '''
+        Append the message to the run's debug.log, one line per message.
+        No-op when debug logging is disabled.
+        '''
+        if self.debug_log:
+            with open(self.debug_log, 'a') as logs:
+                logs.write(f"{message}\n")
+
     def _set_epoch_dirs(self):
         '''
         If doing a reproduction run, we will prepend the directory name with a "r"

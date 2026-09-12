@@ -36,6 +36,29 @@ def test_parse(tmp_path):
     assert results == ["1.0.0.0/24 AS13335", "1.0.4.0/24 AS38803", "1.0.16.0/24 AS2519"]
 
 
+def test_bogons_logged_separately(tmp_path):
+    '''
+    Bogon prefixes and bogon ASNs are logged separately.
+    '''
+    context = build_test_context(tmp_path)
+    context.debug_log = str(tmp_path / "debug.log")
+
+    raw_file = Path(context.out_dir_collectors) / "pfx2asn.txt"
+    raw_file.write_text(
+        "1.0.0.0/24 AS13335\n"
+        "192.168.0.0/16 AS1234\n"
+        "1.0.4.0/24 AS64512\n"
+    )
+
+    parse_routeviews_pfx2as(context)
+
+    with open(context.debug_log, "r") as f:
+        log = f.read()
+
+    assert "Routeviews: parser encountered a bogon prefix: 192.168.0.0/16" in log
+    assert "Routeviews: parser encountered a bogon ASN: AS64512" in log
+
+
 def test_parse_prunes_same_asn_more_specifics(tmp_path, capsys):
     context = build_test_context(tmp_path)
     raw_file = Path(context.out_dir_collectors) / "pfx2asn.txt"

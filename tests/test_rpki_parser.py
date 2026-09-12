@@ -149,6 +149,58 @@ def test_roa_asn_fallback(tmp_path):
     assert "103.0.1.0/24 AS11105" in entries, "ROA with lower ASN should be selected"
     assert not any("103.0.1.0/24 AS11106" in e for e in entries), "ROA with higher ASN should not be selected"
 
+def test_roa_bogons_logged_separately(tmp_path):
+    '''
+    Bogon prefixes and bogon ASNs are logged separately.
+    '''
+    epoch = "111111114"
+    context = create_test_context(tmp_path, epoch)
+    context.debug_log = str(tmp_path / "debug.log")
+
+    roas = [
+        {
+            "type": "roa",
+            "validation": "OK",
+            "aki": "some-aki",
+            "ski": "some-ski",
+            "vrps": [{"prefix": "192.0.1.0/24", "asid": "13335", "maxlen": "24"}],
+            "valid_until": "1234567890",
+            "valid_since": "1234567880"
+        },
+        {
+            # AS_TRANS, reserved
+            "type": "roa",
+            "validation": "OK",
+            "aki": "some-aki",
+            "ski": "some-ski",
+            "vrps": [{"prefix": "45.0.1.0/24", "asid": "23456", "maxlen": "24"}],
+            "valid_until": "1234567890",
+            "valid_since": "1234567880"
+        },
+        {
+            # TEST-NET-1, documentation range
+            "type": "roa",
+            "validation": "OK",
+            "aki": "some-aki",
+            "ski": "some-ski",
+            "vrps": [{"prefix": "192.0.2.0/24", "asid": "13335", "maxlen": "24"}],
+            "valid_until": "1234567890",
+            "valid_since": "1234567880"
+        },
+    ]
+
+    with open(os.path.join(context.out_dir_rpki, "rpki_raw.json"), "w") as f:
+        json.dump(roas, f)
+
+    parse_rpki(context)
+
+    with open(context.debug_log, "r") as f:
+        log = f.read()
+
+    assert "RPKI: parser encountered a bogon ASN: 23456" in log
+    assert "RPKI: parser encountered a bogon prefix: 192.0.2.0/24" in log
+
+
 def test_no_valid_output_exits(tmp_path, capsys):
     """
     When all ROAs in the input are filtered out (e.g. all incomplete
