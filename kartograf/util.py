@@ -40,13 +40,13 @@ def print_section_header(name):
     print()
 
 
-def print_progress(done, total):
-    pct = 100 * done // total
+def print_progress(label, done, total):
+    progress = f"{label}: {100 * done // total}%"
     if sys.stdout.isatty():
-        print(f"\r{pct}%", end="\n" if done == total else "", flush=True)
+        print(f"\r{progress}", end="\n" if done == total else "", flush=True)
     # Without a terminal only print every 10% to keep the log readable
     elif done == total or done * 10 // total != (done - 1) * 10 // total:
-        print(f"{pct}%", flush=True)
+        print(progress, flush=True)
 
 
 def rir_from_str(maybe_rir):

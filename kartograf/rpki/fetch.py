@@ -138,7 +138,7 @@ def validate_rpki_db(context):
             if result:
                 normalized = result.replace(b"\n}\n{\n\t", b"\n},\n{\n").decode('utf-8').strip()
                 results.append(normalized)
-            print_progress(done, total_batches)
+            print_progress("Validating ROA files", done, total_batches)
         results_json = json.loads("[" + ",".join(results) + "]")
         s = sorted(results_json, key=lambda result: result["hash_id"])
 

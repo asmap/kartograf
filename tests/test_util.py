@@ -88,13 +88,13 @@ def test_rir_from_string():
 
 def test_print_progress_on_terminal(capsys, monkeypatch):
     monkeypatch.setattr(sys.stdout, "isatty", lambda: True)
-    print_progress(1, 4)
-    print_progress(4, 4)
-    assert capsys.readouterr().out == "\r25%\r100%\n"
+    print_progress("Working", 1, 4)
+    print_progress("Working", 4, 4)
+    assert capsys.readouterr().out == "\rWorking: 25%\rWorking: 100%\n"
 
 
 def test_print_progress_without_terminal(capsys):
     for done in range(1, 301):
-        print_progress(done, 300)
+        print_progress("Working", done, 300)
     lines = capsys.readouterr().out.splitlines()
-    assert lines == [f"{pct}%" for pct in range(10, 101, 10)]
+    assert lines == [f"Working: {pct}%" for pct in range(10, 101, 10)]
