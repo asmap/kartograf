@@ -1,10 +1,10 @@
 from datetime import timedelta
+from html.parser import HTMLParser
 from pathlib import Path
 import gzip
 import shutil
 import sys
 
-from bs4 import BeautifulSoup
 import requests
 
 from kartograf.timed import timed
@@ -14,6 +14,35 @@ from kartograf.util import calculate_sha256
 # https://www.caida.org/catalog/datasets/routeviews-prefix2as/
 PFX2AS_V4 = "https://publicdata.caida.org/datasets/routing/routeviews-prefix2as/"
 PFX2AS_V6 = "https://publicdata.caida.org/datasets/routing/routeviews6-prefix2as/"
+
+
+class _HrefCollector(HTMLParser):
+    def __init__(self):
+        super().__init__()
+        self.hrefs = []
+
+    def handle_starttag(self, tag, attrs):
+        if tag != "a":
+            return
+        for name, value in attrs:
+            if name == "href" and value is not None:
+                self.hrefs.append(value)
+
+
+def find_latest_pfx2as(listing_html):
+    """
+    The CAIDA listing is sorted by file name, which embeds the date, so the
+    last .pfx2as.gz link is the most recent file.
+    """
+    parser = _HrefCollector()
+    parser.feed(listing_html)
+
+    latest = ""
+    for link in parser.hrefs:
+        if link.endswith(".pfx2as.gz"):
+            latest = link
+
+    return latest
 
 
 def latest_link(base, epoch_datetime):
@@ -39,16 +68,7 @@ def latest_link(base, epoch_datetime):
                   f"Download of Routeviews pfx2as data failed.")
             sys.exit()
 
-    soup = BeautifulSoup(response.text, 'html.parser')
-
-    links = [a["href"] for a in soup.find_all("a", href=True)]
-    latest = ""
-
-    for link in links:
-        if link.endswith(".pfx2as.gz"):
-            latest = link
-
-    return url + latest
+    return url + find_latest_pfx2as(response.text)
 
 
 def year_and_month(now):
