@@ -16,6 +16,12 @@ def test_map_command(parser):
     assert args.reproduce is None
     assert args.epoch is None
     assert args.max_encode == 33521664
+    assert args.encode is False
+
+@pytest.mark.parametrize("flag", ["-e", "--encode"])
+def test_encode_flag(parser, flag):
+    args = parser.parse_args(['map', flag])
+    assert args.encode is True
 
 def test_reproduce_args_failure(capsys):
     '''

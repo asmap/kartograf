@@ -107,6 +107,23 @@ You can enhance the RPKI maps with RIRs IRR data and Routeviews data using the f
 
 The input data downloaded from the sources will be stored under `data/` and the output data under `out/` in the project directory. Each run stores its input and output data under its start Unix timestamp. For example, the AS map for the run at time `1764864000` will be output to `out/1764864000/final_result.txt`.
 
+To also encode the final map for use with Bitcoin Core, add `--encode` (or `-e`):
+
+```
+./run map -irr -rv --encode
+```
+
+The last processing step uses vendored Bitcoin Core tools to create both encodings
+beside `final_result.txt`, following the [asmap-data](https://github.com/bitcoin-core/asmap-data) naming scheme:
+
+- `<epoch>_asmap.dat`: filled, allowing unassigned ranges to be assigned an ASN to reduce file size.
+- `<epoch>_asmap_unfilled.dat`: unfilled, preserving unassigned ranges.
+
+Kartograf prints the SHA-256 hashes of the text result and both binary files.
+Encoding also works with coordinated launches and reproduction runs. For example,
+`./run map -r /path/to/data -t 1764864000 --encode` writes the binaries to
+`out/r1764864000/`, using `1764864000` in their filenames.
+
 To not save the input data (up to 2 GB per run), use the `--wipe_data_dir` or `-wd` flag.
 
 ### Coordinated launch for building IP prefix to ASN maps

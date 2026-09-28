@@ -29,13 +29,19 @@ jobs:
 
         zstd -d tests/data/1762444800-data.tar.zst -c | tar -xf - -C tests/data
 
-    - name: Run with reproduction data and check hash
+    - name: Run with reproduction data and encode results
       shell: bash
       run: |
         set -euo pipefail
 
-        output=$(nix develop --command ./run map -r tests/data/1762444800 -t 1762444800 2>&1)
-        echo "$output"
+        nix develop --command ./run map -r tests/data/1762444800 -t 1762444800 --encode
 
-        echo "$output" | grep -q 'bd43e98d95d5905eb16ccdcfdb35d9e19e090e7801e94829b0540988dbffc18d'
-        echo "Output matches the expected value"
+    - name: Check text, filled, and unfilled result hashes
+      working-directory: out/r1762444800
+      shell: bash
+      run: |
+        sha256sum --check <<'EOF'
+        bd43e98d95d5905eb16ccdcfdb35d9e19e090e7801e94829b0540988dbffc18d  final_result.txt
+        8c921bcaa93d519e34c1b2a43718848713a427fc4a9a6a105cc668a87a5f1c6a  1762444800_asmap.dat
+        1c805af2ad9c9585081ea68ada20c66bda9488070158f875460942d16d0d7127  1762444800_asmap_unfilled.dat
+        EOF

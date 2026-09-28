@@ -7,6 +7,7 @@ from kartograf.cleanup import cleanup_out_files
 
 from kartograf.context import Context
 from kartograf.coverage import coverage
+from kartograf.encode import encode_result
 from kartograf.collectors.routeviews import (
     extract_routeviews_pfx2as,
     fetch_routeviews_pfx2as,
@@ -105,6 +106,11 @@ class Kartograf:
         print_section_header("Sorting results")
         sort_result_by_pfx(context)
 
+        encoded_files = []
+        if context.args.encode:
+            print_section_header("Encoding results")
+            encoded_files = encode_result(context)
+
         if not context.args.debug:
             cleanup_out_files(context)
 
@@ -116,6 +122,8 @@ class Kartograf:
 
         result_hash = calculate_sha256(context.final_result_file)
         print(f"The SHA-256 hash of the result file is: {result_hash}")
+        for encoded_file in encoded_files:
+            print(f"The SHA-256 hash of {encoded_file.name} is: {calculate_sha256(encoded_file)}")
 
         end_time = time.time()
         total_time = end_time - start_time
