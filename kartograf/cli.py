@@ -86,7 +86,7 @@ def create_parser():
 
 def is_root():
     # Get current the Effective UID. On Unix systems the root user EUID is 0.
-    return os.geteuid() == 0
+    return hasattr(os, "geteuid") and os.geteuid() == 0
 
 def main(args=None):
     parser = create_parser()
