@@ -15,3 +15,19 @@ def test_sort_prunes_and_orders_result(tmp_path, capsys):
     result = Path(context.final_result_file).read_text()
     assert result == "10.0.0.0/23 AS1\n10.0.1.0/24 AS2\n2001:db8::/32 AS3\n"
     assert "Redundant entries pruned: 1" in capsys.readouterr().out
+
+
+def test_sort_limits_prefix_length(tmp_path, capsys):
+    context = create_test_context(tmp_path, "111111114")
+    # 10.0.0.0/24 is aggregated, then pruned
+    unsorted = Path(context.out_dir_rpki) / "rpki_final.txt"
+    unsorted.write_text("10.0.0.0/16 AS1\n10.0.0.0/25 AS1\n10.0.0.128/25 AS1\n"
+                        "10.0.1.0/25 AS2\n10.0.2.128/25 AS3\n10.0.2.0/25 AS3\n")
+
+    sort_result_by_pfx(context)
+
+    result = Path(context.final_result_file).read_text()
+    assert result == "10.0.0.0/16 AS1\n10.0.2.0/24 AS3\n"
+    out = capsys.readouterr().out
+    assert "Entries longer than /24 or /48 dropped: 5, aggregated blocks: 2" in out
+    assert "Redundant entries pruned: 1" in out
