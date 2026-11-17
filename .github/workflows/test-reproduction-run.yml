@@ -37,5 +37,5 @@ jobs:
         output=$(nix develop --command ./run map -r tests/data/1762444800 -t 1762444800 2>&1)
         echo "$output"
 
-        echo "$output" | grep -q 'bd43e98d95d5905eb16ccdcfdb35d9e19e090e7801e94829b0540988dbffc18d'
+        echo "$output" | grep -q 'b7a4fe5f0e541b08180a680ecc93d46b496eb55eff982484ecfd4ad95f50c02e'
         echo "Output matches the expected value"

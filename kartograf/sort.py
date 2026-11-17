@@ -1,6 +1,7 @@
 import ipaddress
 from pathlib import Path
 
+from kartograf.limit import limit_prefix_length
 from kartograf.prune import prune_entries
 from kartograf.timed import timed
 
@@ -25,6 +26,9 @@ def sort_result_by_pfx(context):
 
     with open(out_file, 'r') as file:
         entries = [tuple(line.split()) for line in file if line.strip()]
+
+    entries, dropped, aggregated = limit_prefix_length(entries)
+    print(f"Entries longer than /24 or /48 dropped: {dropped}, aggregated blocks: {aggregated}")
 
     # Catches entries that only became redundant through the merge, e.g. an
     # RPKI /24 under an IRR /23 with the same ASN.
